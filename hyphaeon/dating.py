@@ -959,7 +959,8 @@ def run_mrca_dating(
     # 6. Per-Taxon Residuals and Predictions
     active_model = pgls_res if pgls_res is not None else ols_res
     pred_dates = active_model['t_ref'] + (dists - active_model['d0']) / active_model['mu']
-    residuals = dists - active_model['fitted']
+    fitted_all = active_model['d0'] + active_model['mu'] * (times - active_model['t_ref'])
+    residuals = dists - fitted_all
     std_res = np.std(residuals) if np.std(residuals) > 1e-12 else 1.0
 
     taxon_records = []
@@ -970,7 +971,7 @@ def run_mrca_dating(
             'taxon': t,
             'sampling_date': float(times[i]),
             'root_divergence': float(dists[i]),
-            'fitted_divergence': float(active_model['fitted'][i]),
+            'fitted_divergence': float(fitted_all[i]),
             'predicted_date': float(pred_dates[i]),
             'divergence_residual': float(residuals[i]),
             'temporal_residual': float(pred_dates[i] - times[i]),
