@@ -83,40 +83,65 @@ def extract_cross_taxa_attentions_and_embeddings(
     accum_attn = torch.zeros((num_species, num_species), dtype=torch.float32, device=device)
     accum_taxa_repr = torch.zeros((num_species, model.embed_dim), dtype=torch.float32, device=device)
 
+    total_sites = batch_size * window_size
+    if num_nodes > 2000:
+        chunk_size = 2
+    elif num_nodes > 1000:
+        chunk_size = 8
+    elif num_nodes > 500:
+        chunk_size = 16
+    elif total_sites > 32:
+        chunk_size = 32
+    else:
+        chunk_size = total_sites
+
     with torch.no_grad():
         for i, layer in enumerate(model.row_layers):
-            row_in = x_full.transpose(1, 2).contiguous().view(batch_size * window_size, num_nodes, model.embed_dim)
+            row_in = x_full.transpose(1, 2).contiguous().view(total_sites, num_nodes, model.embed_dim)
+            row_out_chunks = []
 
-            q = layer.q_proj(row_in).view(batch_size * window_size, num_nodes, layer.num_heads, layer.head_dim).transpose(1, 2)
-            k = layer.k_proj(row_in).view(batch_size * window_size, num_nodes, layer.num_heads, layer.head_dim).transpose(1, 2)
-            v = layer.v_proj(row_in).view(batch_size * window_size, num_nodes, layer.num_heads, layer.head_dim).transpose(1, 2)
+            for c_start in range(0, total_sites, chunk_size):
+                c_end = min(total_sites, c_start + chunk_size)
+                r_chunk = row_in[c_start:c_end]
+                n_c = c_end - c_start
 
-            cos, sin = static_coss[i], static_sins[i]
-            half_dim = layer.head_dim // 2
-            q1, q2 = q[..., :half_dim], q[..., half_dim:]
-            k1, k2 = k[..., :half_dim], k[..., half_dim:]
-            q = torch.cat([q1 * cos - q2 * sin, q1 * sin + q2 * cos], dim=-1)
-            k = torch.cat([k1 * cos - k2 * sin, k1 * sin + k2 * cos], dim=-1)
+                q = layer.q_proj(r_chunk).view(n_c, num_nodes, layer.num_heads, layer.head_dim).transpose(1, 2)
+                k = layer.k_proj(r_chunk).view(n_c, num_nodes, layer.num_heads, layer.head_dim).transpose(1, 2)
+                v = layer.v_proj(r_chunk).view(n_c, num_nodes, layer.num_heads, layer.head_dim).transpose(1, 2)
 
-            scores = torch.matmul(q, k.transpose(-2, -1)) / (layer.head_dim ** 0.5)
-            scores = scores + static_biases[i]
+                cos, sin = static_coss[i], static_sins[i]
+                half_dim = layer.head_dim // 2
+                q1, q2 = q[..., :half_dim], q[..., half_dim:]
+                k1, k2 = k[..., :half_dim], k[..., half_dim:]
+                q = torch.cat([q1 * cos - q2 * sin, q1 * sin + q2 * cos], dim=-1)
+                k = torch.cat([k1 * cos - k2 * sin, k1 * sin + k2 * cos], dim=-1)
 
-            if padding_mask_dup is not None:
-                mask = padding_mask_dup.unsqueeze(1).unsqueeze(2)
-                scores = scores.masked_fill(mask, -1e4)
-                attn_weights = torch.softmax(scores, dim=-1)
-                attn_weights = torch.where(mask, torch.zeros_like(attn_weights), attn_weights)
-            else:
-                attn_weights = torch.softmax(scores, dim=-1)
+                scores = torch.matmul(q, k.transpose(-2, -1)) / (layer.head_dim ** 0.5)
+                scores = scores + static_biases[i]
 
-            # Extract cross-taxa attention weights (taxa 1:N to taxa 1:N, omitting root at index 0)
-            cross_taxa = attn_weights[:, :, 1:, 1:]
-            accum_attn += cross_taxa.mean(dim=1).sum(dim=0)
+                if padding_mask_dup is not None:
+                    p_chunk = padding_mask_dup[c_start:c_end].unsqueeze(1).unsqueeze(2)
+                    scores = scores.masked_fill(p_chunk, -1e4)
+                    attn_weights = torch.softmax(scores, dim=-1)
+                    attn_weights = torch.where(p_chunk, torch.zeros_like(attn_weights), attn_weights)
+                else:
+                    attn_weights = torch.softmax(scores, dim=-1)
 
-            out = torch.matmul(attn_weights, v)
-            out = out.transpose(1, 2).contiguous().view(batch_size * window_size, num_nodes, layer.embed_dim)
-            out = layer.out_proj(out) + layer.alpha_skip * x0_dup
-            row_out = model.row_norms[i](row_in + out)
+                # Extract cross-taxa attention weights (taxa 1:N to taxa 1:N, omitting root at index 0)
+                cross_taxa = attn_weights[:, :, 1:, 1:]
+                accum_attn += cross_taxa.mean(dim=1).sum(dim=0)
+
+                out = torch.matmul(attn_weights, v)
+                out = out.transpose(1, 2).contiguous().view(n_c, num_nodes, layer.embed_dim)
+                out = layer.out_proj(out) + layer.alpha_skip * x0_dup[c_start:c_end]
+                r_out = model.row_norms[i](r_chunk + out)
+                row_out_chunks.append(r_out)
+
+                del q, k, v, scores, attn_weights, cross_taxa, out
+                if "mps" in str(device).lower() and (c_start // chunk_size) % 10 == 0:
+                    torch.mps.empty_cache()
+
+            row_out = torch.cat(row_out_chunks, dim=0)
             x_full = row_out.reshape(batch_size, window_size, num_nodes, model.embed_dim).transpose(1, 2)
 
         # Taxa embeddings across sites: [batch_size, num_species, embed_dim]

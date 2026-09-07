@@ -43,7 +43,9 @@ projection engines, plus a pooled MEME concordance workflow:
 8. **`hyphaeon splits` (Spectral Graph Bisection & Tree-Free Clade Discovery)**:
    Recovers well-supported phylogenetic macro-clades and deep hierarchical bipartitions by fusing pairwise continuous 4D MDS geometry with discrete cross-taxa attention maps. Delivers up to 28× speedups over traditional ML tree search without requiring pre-computed phylogenies. See the [**Spectral Splits & Benchmarking Report**](SPECTRAL_SPLITS_BENCHMARK.md).
 9. **`hyphaeon dating` (Molecular Clock Calibration & t_MRCA Dating)**:
-   Heterochronous molecular clock calibration, ancestor dating, and latent manifold coalescent variance collapse. Implements centered root-to-tip OLS (TempEst emulation), HyphAeon Attention-Derived PGLS ($\boldsymbol{\Sigma} = \mathbf{A}_{\text{fused}} + \lambda\mathbf{I}$) resolving phylogenetic pseudoreplication without tree reconstruction, and 128D latent manifold variance collapse ($\text{Var}(\mathbf{Z}(t)) \to 0$). Replicates landmark studies such as Bette Korber et al. (Science 2000) dating the ancestor of HIV-1 group M to ~1931 in seconds. See the [**Molecular Clock & Dating Guide**](DATING_GUIDE.md).
+   Heterochronous molecular clock calibration, ancestor dating, automated adaptive ridge regularization (`--tune-ridge` via fast spectral PRESS LOOCV), and non-linear clock model adjudication (Restricted Cubic Splines). Implements centered root-to-tip OLS (TempEst emulation), time-decay weighted consensus rooting, and HyphAeon Attention-Derived PGLS ($\boldsymbol{\Sigma} = \mathbf{A}_{\text{fused}} + \lambda\mathbf{I}$) resolving phylogenetic pseudoreplication. Replicates landmark studies such as Bette Korber et al. (Science 2000) dating the ancestor of HIV-1 group M to ~1931 in seconds. See the [**Molecular Clock & Dating Guide**](DATING_GUIDE.md).
+10. **`hyphaeon geo` (Discrete Phylogeography & Spatial Transmission Network Inference)**:
+   Ultra-fast discrete phylogeography, directed migration flux matrices ($M_{jk} \ne M_{kj}$), vectorized permutation BSSVS Bayes Factors ($\text{BF} \ge 3.0$), and spatial PGLS continuous root epicenter estimation. Replicates landmark studies such as Philippe Lemey et al. (PLoS Comput Biol 2009) avian influenza H5N1 dispersal across 7 Chinese provinces in < 1 second.
 
 ---
 
@@ -78,14 +80,14 @@ a custom wheel, or a CPU-only build on a server without GPU).
 
 All example alignments and phylogenetic trees required to reproduce these analyses are bundled directly in the `examples/` directory:
 
-| Dataset | Alignment File | Tree File | Taxa (N) | Codons (L) | Description & Biological Domain |
+The repository bundles canonical historical and pandemic outbreak benchmarks in `examples/`:
+
+| Dataset | Alignment | Tree / Coordinates | Taxa | Sites | Scientific Significance |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **HIV-1 RT** | [`examples/HIV1_RT.fasta`](examples/HIV1_RT.fasta) | [`examples/HIV1_RT.nwk`](examples/HIV1_RT.nwk) | 476 | 335 | Retroviral Reverse Transcriptase polymerase domain (drug resistance & epistasis). |
-| **Rhodopsin** | [`examples/RHO.fasta`](examples/RHO.fasta) | Embedded / Auto | 710 | 349 | Mammalian Rhodopsin visual pigments (deep-sea diving sensory adaptation). |
-| **Smc6** | [`examples/Smc6.fasta`](examples/Smc6.fasta) | [`examples/Smc6.nwk`](examples/Smc6.nwk) | 20 | 1,097 | Primate Smc6 structural maintenance of chromosomes (antiviral host restriction). |
-| **Bat OAS1** | [`examples/bat_oas1.fasta`](examples/bat_oas1.fasta) | [`examples/bat_oas1.nwk`](examples/bat_oas1.nwk) | 18 | 351 | Chiropteran OAS1 2'-5'-oligoadenylate synthetase (innate immunity escape). |
-| **Camelid VHH** | [`examples/camelid.fasta`](examples/camelid.fasta) | [`examples/camelid.nwk`](examples/camelid.nwk) | 212 | 96 | Camelid single-domain antibody heavy-chain variable domain (antigenic diversity). |
+| **HIV-1 Reverse Transcriptase** | [`examples/HIV1_RT.fasta`](examples/HIV1_RT.fasta) | [`examples/HIV1_RT.nwk`](examples/HIV1_RT.nwk) | 52 | 335 | Canonical benchmark for positive selection, TAM-1/TAM-2 antagonistic pathways, and Q151M MDR complexes. |
 | **HIV-1 gp160 (Korber 2000)** | [`examples/korber_env_gp160.fasta`](examples/korber_env_gp160.fasta) | Tree-Free / Consensus | 143 | 981 | Bette Korber et al. (Science 2000) landmark molecular clock dataset (1959–1997 HIV-1 group M). |
+| **Avian Flu H5N1 (Lemey 2009)** | [`examples/H5N1_HA_geo.fasta`](examples/H5N1_HA_geo.fasta) | [`examples/H5N1_HA.nwk`](examples/H5N1_HA.nwk) | 98 | 566 | Lemey et al. (PLoS Comput Biol 2009) benchmark discrete phylogeography across 7 Chinese provinces. |
+| **Pandemic H1N1 (Fraser 2009)** | [`examples/H1N1_2009_pandemic.fasta`](examples/H1N1_2009_pandemic.fasta) | [`examples/H1N1_2009_pandemic.nwk`](examples/H1N1_2009_pandemic.nwk) | 100 | 1701 | Fraser et al. (Science 2009) landmark phylodynamics and early growth rate benchmark ($R_0$ estimation). |
 
 ---
 
@@ -325,6 +327,65 @@ Method / Estimator                   Estimated t_MRCA     95% Confidence Interva
 
 ---
 
+### Example 8: Discrete Phylogeography & Spatial Transmission Networks (`hyphaeon geo`)
+
+Replicating the landmark discrete phylogeography study of **Philippe Lemey et al. (PLoS Comput Biol 2009)** reconstructing the epicentral origin and dispersal corridors of Avian Influenza A (H5N1) across 7 Chinese provinces:
+
+```bash
+# Run the built-in worked example with a single command
+hyphaeon geo --example --no-neural
+```
+
+Or execute directly on custom alignments and metadata:
+```bash
+hyphaeon geo \
+  -a examples/H5N1_HA_geo.fasta \
+  -g examples/H5N1_HA_metadata.csv \
+  -t examples/H5N1_HA.nwk \
+  --no-neural \
+  --n-perms 1000 \
+  --min-bf 3.0 \
+  --geojson examples/H5N1_HA_geo.geojson \
+  -o examples/H5N1_HA_geo_results.json \
+  -c examples/H5N1_HA_routes.csv \
+  --plot-path examples/H5N1_HA_geo_diagnostic.png
+```
+
+#### Output Summary:
+```text
+=========================================================================================================
+Rank   Geographic Region        Posterior P(Root)      Isolates     Role / Dynamics         
+---------------------------------------------------------------------------------------------------------
+1      Guangdong                  1.0000                15         Source / Exporter    ★ EPICENTER
+2      Fujian                     0.0000                 8         Source / Exporter   
+3      Guangxi                    0.0000                27         Source / Exporter   
+4      Hebei                      0.0000                 3         Sink / Importer     
+5      Henan                      0.0000                 8         Source / Exporter   
+6      HongKong                   0.0000                28         Sink / Importer     
+7      Hunan                      0.0000                 9         Sink / Importer     
+---------------------------------------------------------------------------------------------------------
+
+[*] Statistically Supported Transmission Routes (BF >= 3.0 or FDR <= 0.10):
+Source           Target (Sink)    Flux         Z-Score    p-value    FDR q      Bayes Factor   Support         
+---------------------------------------------------------------------------------------------------------
+Guangdong        Fujian            0.36515       3.63     0.0060    0.2517      247.5     Decisive (BF >= 100)
+Henan            Hebei             0.20412       3.92     0.0559    1.0000       43.0     Strong (10 <= BF < 100)
+Guangdong        Guangxi           0.24845       1.33     0.1578    1.0000       13.4     Strong (10 <= BF < 100)
+Fujian           Hebei             0.20412       1.69     0.1948    1.0000       10.4     Strong (10 <= BF < 100)
+Henan            Hunan             0.11785       0.76     0.3986    1.0000        3.8     Substantial (3 <= BF < 10)
+Fujian           Henan             0.12500       0.67     0.4226    1.0000        3.4     Substantial (3 <= BF < 10)
+Guangdong        HongKong          0.14639       0.40     0.4426    1.0000        3.2     Substantial (3 <= BF < 10)
+```
+
+#### Key Innovations over BEAST (Lemey et al. 2009):
+* **Ultra-Fast Speed (< 1 Second vs. Hours)**: Replaces tens of millions of MCMC iterations over $2^{K(K-1)/2}$ graph configurations with closed-form ancestral state reconstruction and vectorized matrix permutations.
+* **Naturally Asymmetric Directed Migration**: Unlike BEAST's reversible rate matrix ($\mathbf{\Lambda} = \mu \mathbf{S} \mathbf{P}$, which enforces $s_{jk} = s_{kj}$), HyphAeon measures true directional transmission ($M_{jk} \ne M_{kj}$), capturing directional source-sink dynamics.
+* **Vectorized Permutation BSSVS**: Generates exact empirical Bayes Factors ($\text{BF} \ge 3.0$) and Benjamini-Hochberg FDR $q$-values from 1,000 null permutations in $< 0.1$ seconds.
+* **Spatial PGLS Epicenter**: Infers the continuous geographic epicenter coordinates ($28.10^\circ\text{N}, 111.83^\circ\text{E}$) with analytical 95% geographic confidence radii.
+* **Modern Web GIS Export**: Generates standard GeoJSON feature collections (`.geojson`) compatible with Kepler.gl and Nextstrain/Auspice.
+
+---
+
 ## 🛠️ Retraining & Fine-Tuning HyphAeon
 
 ### 1. Build per-gene training tensors
@@ -380,8 +441,10 @@ python train.py \
 | `--no-tree` / `--use-tn93` | `flag` | `False` | Skip phylogenetic tree and estimate pairwise evolutionary distances directly from alignment via TN93. |
 | `-d` / `--dates` | `path` | `None` | Path to Nextstrain Auspice JSON, metadata CSV/TSV, or omitted to auto-extract timestamps from headers. |
 | `--root-taxon` | `str` | `None` | Anchor/root taxon name (e.g. `'CONSENSUS'`, earliest taxon, or outgroup). |
-| `--method` | `str` | `all` | Dating estimator(s) to run: `all`, `ols`, `pgls`, or `manifold`. |
-| `--ridge` | `float` | `0.05` | Regularization parameter for PGLS cross-taxa attention covariance. |
+| `--method` | `str` | `all` | Dating estimator(s) to run: `all`, `ols`, or `pgls`. |
+| `--clock-model` | `str` | `auto` | Clock model: `auto` (spline vs linear adjudication), `linear`, `spline`, or `power`. |
+| `--ridge` | `float/str` | `0.05` | Regularization parameter for PGLS cross-taxa attention covariance (or `'auto'`). |
+| `--tune-ridge` | `flag` | `False` | Automatically tune ridge parameter $\lambda^*$ via fast spectral PRESS LOOCV. |
 | `--bootstrap` | `int` | `1000` | Number of non-parametric bootstrap resamples for empirical confidence intervals. |
 | `--plot` | `flag` | `False` | Generate publication-grade diagnostic PDF and PNG figures. |
 | `--plot-path` | `path` | `None` | Custom output path for diagnostic plot (e.g. `mrca_clock.png`). |
@@ -420,6 +483,49 @@ python train.py \
 | `-c` / `--csv` | `path` | `None` | Optional path to export split clade membership assignments (`.csv`). |
 | `-w` / `--weights` | `path` | `None` | Path to local model weights file (overrides HF download). |
 | `--cpu` | `flag` | `False` | Force CPU execution. |
+
+#### `hyphaeon geo`
+| Flag | Type | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `--example` / `--run-example` | `flag` | `False` | Execute the built-in worked benchmark example (Avian Flu H5N1 across 7 Chinese provinces from Lemey et al. 2009). |
+| `-a` / `--alignment` | `path` | `None` | Path to FASTA alignment (required unless `--example` is set). |
+| `-g` / `--metadata` | `path` | `None` | Path to metadata CSV/TSV or Auspice JSON containing discrete location labels (required unless `--example` is set). |
+| `-t` / `--tree` | `path` | `None` | Optional Newick tree (auto-built via FastTree if omitted). |
+| `--location-col` | `str` | `None` | Column name for discrete location / region in metadata (auto-detected if omitted). |
+| `--strain-col` | `str` | `None` | Column name for taxon identifier in metadata. |
+| `--date-col` | `str` | `None` | Column name for sample collection date in metadata (used for temporal rooting). |
+| `--lat-col` / `--lon-col` | `str` | `None` | Column names for latitude / longitude coordinates (used for continuous spatial PGLS epicenter). |
+| `--n-perms` | `int` | `1000` | Number of label permutations for null flux distribution and Bayes Factor calculation. |
+| `--min-bf` | `float` | `3.0` | Bayes Factor threshold for significant transmission routes ($\text{BF} \ge 3.0$). |
+| `--fdr` | `float` | `0.10` | Benjamini-Hochberg FDR threshold for significant transmission routes. |
+| `--no-neural` | `flag` | `False` | Disable neural attention backbone; use phylogenetic tree branch transitions. |
+| `--plot` | `flag` | `False` | Generate publication-grade diagnostic PDF and PNG figures. |
+| `--plot-path` | `path` | `None` | Custom output path for diagnostic plot (e.g. `h5n1_geo_diagnostic.png`). |
+| `--geojson` | `path` | `None` | Path to export standard GeoJSON feature collection for Kepler.gl / Auspice GIS visualization. |
+| `-o` / `--output` | `path` | `None` | Optional path to export JSON summary results. |
+| `-c` / `--csv` | `path` | `None` | Optional path to export transmission routes table (`.csv`). |
+
+#### `hyphaeon r0`
+| Flag | Type | Default | Description |
+| :--- | :---: | :---: | :--- |
+| `--example` / `--run-example` | `flag` | `False` | Execute the built-in worked benchmark example (2009 Pandemic H1N1 Origin from Fraser et al. 2009). |
+| `-a` / `--alignment` | `path` | `None` | Path to FASTA alignment with dates in headers or metadata. |
+| `-t` / `--tree` | `path` | `None` | Path to Newick tree with calibrated or substitution branch lengths. |
+| `-g` / `--metadata` | `path` | `None` | Path to metadata CSV/TSV containing collection dates. |
+| `--pathogen` | `str` | `None` | Pathogen preset (`h1n1`, `ebola`, `sars-cov-2`, `measles`, `hiv_early`). |
+| `--generation-time` | `float` | `None` | Mean clinical generation interval / serial interval $T_g$ (default from pathogen preset or 5.0 days). |
+| `--generation-sd` | `float` | `None` | Standard deviation of generation interval $\sigma_g$ (for gamma renewal model). |
+| `--latent-time` | `float` | `None` | Optional latent period in days for SEIR renewal model. |
+| `--units` | `str` | `days` | Time units for generation interval parameters (`days` or `years`). |
+| `--date-col` | `str` | `None` | Metadata CSV column name for sample collection date. |
+| `--strain-col` | `str` | `None` | Metadata CSV column name for taxon identifier. |
+| `--mu-prior` | `float` | `None` | Clock rate prior ($\text{sub/site/yr}$) to convert substitution trees to calendar time via LSD. |
+| `--window-size` | `float` | `0.25` | Temporal window span in years for dynamic $R(t)$ skyline (default: 0.25 years / 3 months). |
+| `--step-size` | `float` | `0.05` | Sliding window step size in years for dynamic $R(t)$ skyline (default: 0.05 years). |
+| `--plot` | `flag` | `False` | Generate publication-grade 3-panel diagnostic figures (LTT dynamics, Profile Likelihood, Dynamic $R_t$). |
+| `--plot-path` | `path` | `None` | Custom output path for diagnostic plot (e.g. `r0_diagnostics.png`). |
+| `-o` / `--output` | `path` | `None` | Optional path to export JSON summary results. |
+| `-c` / `--csv` | `path` | `None` | Optional path to export dynamic $R(t)$ skyline table (`.csv`). |
 
 ---
 

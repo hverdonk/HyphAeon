@@ -1088,7 +1088,7 @@ def cmd_splits(args):
         print(f"[✓] Split assignments saved to: {args.csv}")
 
 def cmd_dating(args):
-    """Executes Heterochronous Molecular Clock Calibration, Ancestor Dating (t_MRCA), and Latent Manifold Collapse."""
+    """Executes Heterochronous Molecular Clock Calibration and Ancestor Dating (t_MRCA)."""
     from .dating import run_mrca_dating, plot_mrca_dating
     use_tn93 = getattr(args, "no_tree", False) or getattr(args, "use_tn93", False) or (getattr(args, "tree", None) == "tn93")
     device = get_device(cpu=getattr(args, "cpu", False))
@@ -1104,9 +1104,11 @@ def cmd_dating(args):
         strain_col=getattr(args, "strain_col", None),
         date_regex=getattr(args, "date_regex", None),
         root_taxon=getattr(args, "root_taxon", None),
+        decay_gamma=getattr(args, "decay_gamma", None),
         optimize_root=not getattr(args, "no_optimize_root", False),
         use_tn93=use_tn93,
         method=getattr(args, "method", "all"),
+        clock_model=getattr(args, "clock_model", "auto"),
         ridge=getattr(args, "ridge", 0.05),
         n_bootstrap=getattr(args, "bootstrap", 1000),
         weights=getattr(args, "weights", DEFAULT_WEIGHTS_ENV),
@@ -1126,16 +1128,43 @@ def cmd_dating(args):
     ci_ols_str = f"[{ols['ci_mrca'][0]:.1f}, {ols['ci_mrca'][1]:.1f}]"
     print(f"{'1. Standard OLS (TempEst RTT)':<36} {ols['t_mrca']:>7.2f}            {ci_ols_str:<26} {ols['mu']:>11.6f}      {ols['r2']:>5.3f}")
 
+    curr_idx = 2
     if res.get('pgls'):
         pgls = res['pgls']
         ci_pgls_str = f"[{pgls['ci_mrca'][0]:.1f}, {pgls['ci_mrca'][1]:.1f}]"
-        print(f"{'2. HyphAeon Attention PGLS':<36} {pgls['t_mrca']:>7.2f}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
+        print(f"{f'{curr_idx}. HyphAeon Attention PGLS':<36} {pgls['t_mrca']:>7.2f}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
+        curr_idx += 1
 
-    if res.get('manifold'):
-        man = res['manifold']
-        print(f"{'3. Latent Manifold Collapse':<36} {man['t_mrca']:>7.2f}            {'[Non-Parametric Coalescent]':<26} {man['slope']:>11.6f} [Var/yr] {man['r2']:>5.3f}")
+    if res.get('spline'):
+        sp = res['spline']
+        if np.isnan(sp['t_mrca']) or sp['rate_ancestral'] <= 0:
+            sp_t0_str = f"{'n/a':>7}"
+            ci_sp_str = f"{'[non-pos rate]':<26}"
+        else:
+            sp_t0_str = f"{sp['t_mrca']:>7.2f}"
+            ci_sp_str = f"[{sp['ci_mrca'][0]:.1f}, {sp['ci_mrca'][1]:.1f}]"
+        sp_label = f"{curr_idx}. Restricted Spline Clock"
+        print(f"{sp_label:<36} {sp_t0_str}            {ci_sp_str:<26} {sp['rate_ancestral']:>11.6f}      {sp['r2']:>5.3f}")
+        curr_idx += 1
+
+    if res.get('power'):
+        pwr = res['power']
+        ci_pwr_str = f"[{pwr['ci_mrca'][0]:.1f}, {pwr['ci_mrca'][1]:.1f}]"
+        pwr_label = f"{curr_idx}. Power-Law Clock (θ={pwr['theta']:.3f})"
+        print(f"{pwr_label:<36} {pwr['t_mrca']:>7.2f}            {ci_pwr_str:<26} {pwr['rate_mean']:>11.6f}      {pwr['r2']:>5.3f}")
+        curr_idx += 1
 
     print("-" * 105)
+    print(f"[*] Selected Clock Model: {res.get('selected_clock', 'Linear')}")
+    if res.get('spline'):
+        sp = res['spline']
+        p_str = f"p={sp['p_f_test']:.4f}" if sp['p_f_test'] >= 0.0001 else "p<0.0001"
+        ratio_sym = "acceleration" if sp['rate_ratio'] > 1.0 else "deceleration"
+        print(f"    Restricted Spline (2 DF): μ_anc = {sp['rate_ancestral']:.6f}, μ_rec = {sp['rate_recent']:.6f} ({ratio_sym} {sp['rate_ratio']:.2f}x) | F = {sp['f_stat']:.3f} ({p_str}) | ΔAIC = {sp['delta_aic']:+.2f}")
+    if res.get('power'):
+        pwr = res['power']
+        p_str = f"p={pwr['p_f_test']:.4f}" if pwr['p_f_test'] >= 0.0001 else "p<0.0001"
+        print(f"    Power-Law Curvature: θ = {pwr['theta']:.3f} [{pwr['ci_theta'][0]:.3f}, {pwr['ci_theta'][1]:.3f}] | F = {pwr['f_stat']:.3f} ({p_str}) | ΔAIC = {pwr['delta_aic']:+.2f}")
 
     outliers = [r for r in res['taxa_records'] if r['is_outlier']]
     if outliers:
@@ -1153,6 +1182,171 @@ def cmd_dating(args):
     plot_path = getattr(args, "plot_path", None)
     if plot_path:
         plot_mrca_dating(res, plot_path)
+
+
+def cmd_geo(args):
+    """Executes Fast Discrete Phylogeography & Spatial Transmission Network Inference."""
+    from .geo import run_phylogeography_analysis, plot_geo_diagnostics
+    device = get_device(cpu=getattr(args, "cpu", False))
+    print(f"[*] Hardware device selected: {device.type.upper()}")
+
+    # Handle built-in worked example
+    if getattr(args, "example", False) or (args.alignment is None and args.metadata is None):
+        examples_dir = Path(__file__).parent.parent / "examples"
+        example_aln = examples_dir / "H5N1_HA_geo.fasta"
+        example_meta = examples_dir / "H5N1_HA_metadata.csv"
+        example_tree = examples_dir / "H5N1_HA.nwk"
+        if not example_aln.exists() or not example_meta.exists():
+            raise FileNotFoundError(
+                f"Built-in example files not found at {examples_dir}. "
+                f"Please provide -a/--alignment and -g/--metadata explicitly."
+            )
+        print(f"[*] Executing built-in worked example: Avian Influenza A (H5N1) Dispersal (Lemey et al. 2009)...")
+        print(f"    • Alignment: {example_aln.name} (98 taxa, 1698 nt)")
+        print(f"    • Metadata:  {example_meta.name} (7 Chinese provinces)")
+        print(f"    • Phylogeny: {example_tree.name}")
+        args.alignment = str(example_aln)
+        args.metadata = str(example_meta)
+        if getattr(args, "tree", None) is None:
+            args.tree = str(example_tree)
+        if getattr(args, "plot_path", None) is None and not getattr(args, "plot", False):
+            args.plot_path = "h5n1_geo_example.png"
+            args.plot = True
+        if getattr(args, "geojson", None) is None:
+            args.geojson = "h5n1_geo_example.geojson"
+    elif not args.alignment or not args.metadata:
+        raise ValueError(
+            "Both -a/--alignment and -g/--metadata are required to run phylogeography "
+            "(or use --example to execute the built-in worked benchmark example)."
+        )
+
+    plot_requested = getattr(args, "plot", False) or (getattr(args, "plot_path", None) is not None)
+
+    res = run_phylogeography_analysis(
+        alignment_path=args.alignment,
+        metadata_path=args.metadata,
+        tree_path=getattr(args, "tree", None),
+        location_col=getattr(args, "location_col", None),
+        strain_col=getattr(args, "strain_col", None),
+        date_col=getattr(args, "date_col", None),
+        lat_col=getattr(args, "lat_col", None),
+        lon_col=getattr(args, "lon_col", None),
+        root_taxon=getattr(args, "root_taxon", None),
+        n_perms=getattr(args, "n_perms", 1000),
+        min_bf=getattr(args, "min_bf", 3.0),
+        fdr_thresh=getattr(args, "fdr", 0.10),
+        use_neural=not getattr(args, "no_neural", False),
+        weights=getattr(args, "weights", DEFAULT_WEIGHTS_ENV),
+        variant=getattr(args, "variant", DEFAULT_VARIANT_ENV),
+        device=device,
+        output_prefix=getattr(args, "output", None),
+        geojson_path=getattr(args, "geojson", None),
+        plot=plot_requested,
+        plot_path=getattr(args, "plot_path", None),
+    )
+
+    print("\n" + "=" * 105)
+    print(f"{'Rank':<6} {'Geographic Region':<24} {'Posterior P(Root)':<22} {'Isolates':<12} {'Role / Dynamics':<24}")
+    print("-" * 105)
+
+    root_dist = res["root_epicenter"]["distribution"]
+    sorted_locs = sorted(root_dist.items(), key=lambda x: -x[1])
+    sample_counts = dict(zip(res["unique_locations"], res["sample_counts"]))
+
+    for rank, (loc, p) in enumerate(sorted_locs, 1):
+        cnt = sample_counts.get(loc, 0)
+        role = res["hub_metrics"][loc]["role"]
+        star = " ★ EPICENTER" if rank == 1 and p >= 0.5 else ""
+        print(f"{rank:<6} {loc:<24} {p:>8.4f}              {cnt:>4}         {role:<20}{star}")
+    print("-" * 105)
+
+    sig_routes = res["significant_routes"]
+    print(f"\n[*] Statistically Supported Transmission Routes (BF >= {getattr(args, 'min_bf', 3.0):.1f} or FDR <= {getattr(args, 'fdr', 0.10):.2f}):")
+    if sig_routes:
+        print(f"{'Source':<16} {'Target (Sink)':<16} {'Flux':<12} {'Z-Score':<10} {'p-value':<10} {'FDR q':<10} {'Bayes Factor':<14} {'Support':<16}")
+        print("-" * 105)
+        for r in sig_routes[:20]:
+            print(f"{r['source']:<16} {r['target']:<16} {r['rate']:>8.5f}    {r['z_score']:>7.2f}   {r['p_value']:>8.4f}  {r['fdr_q']:>8.4f}  {r['bayes_factor']:>9.1f}     {r['support']}")
+        if len(sig_routes) > 20:
+            print(f"    ... and {len(sig_routes) - 20} more routes (see JSON / CSV for full list).")
+    else:
+        print("    No routes passed the specified Bayes Factor / FDR thresholds.")
+
+    if getattr(args, "csv", None):
+        csv_path = args.csv
+        pd.DataFrame(res["routes"]).to_csv(csv_path, index=False)
+        print(f"[✓] Transmission routes saved to: {csv_path}")
+
+
+def cmd_r0(args):
+    """Executes Fast Phylodynamic Estimation of Growth Rate (r) and Reproduction Numbers (R0, Rt)."""
+    from .r0 import run_r0_analysis, plot_r0_diagnostics, PATHOGEN_PRESETS
+
+    # Handle built-in worked example
+    if getattr(args, "example", False) or (args.alignment is None and getattr(args, "tree", None) is None):
+        examples_dir = Path(__file__).parent.parent / "examples"
+        example_aln = examples_dir / "H1N1_2009_pandemic.fasta"
+        example_tree = examples_dir / "H1N1_2009_pandemic.nwk"
+        if not example_aln.exists() or not example_tree.exists():
+            raise FileNotFoundError(
+                f"Built-in example files not found at {examples_dir}. "
+                f"Please provide -a/--alignment or -t/--tree explicitly."
+            )
+        print(f"[*] Executing built-in worked example: 2009 Pandemic Influenza A (H1N1) Origin (Fraser et al. 2009)...")
+        print(f"    • Alignment: {example_aln.name} (100 taxa, whole genome coding segments)")
+        print(f"    • Phylogeny: {example_tree.name} (time-scaled tree)")
+        args.alignment = str(example_aln)
+        args.tree = str(example_tree)
+        if getattr(args, "pathogen", None) is None:
+            args.pathogen = "h1n1"
+        if getattr(args, "plot_path", None) is None and not getattr(args, "plot", False):
+            args.plot_path = "h1n1_r0_example.png"
+            args.plot = True
+
+    plot_requested = getattr(args, "plot", False) or (getattr(args, "plot_path", None) is not None)
+
+    res = run_r0_analysis(
+        alignment_path=args.alignment,
+        tree_path=getattr(args, "tree", None),
+        metadata_path=getattr(args, "metadata", None),
+        pathogen=getattr(args, "pathogen", None),
+        generation_time=getattr(args, "generation_time", None),
+        generation_sd=getattr(args, "generation_sd", None),
+        latent_time=getattr(args, "latent_time", None),
+        units=getattr(args, "units", "days"),
+        date_col=getattr(args, "date_col", None),
+        strain_col=getattr(args, "strain_col", None),
+        mu_prior=getattr(args, "mu_prior", None),
+        window_size=getattr(args, "window_size", None),
+        step_size=getattr(args, "step_size", None),
+    )
+
+    if plot_requested:
+        plot_out = getattr(args, "plot_path", None) or "r0_diagnostics.png"
+        plot_r0_diagnostics(res, output_path=plot_out)
+
+    if getattr(args, "output", None):
+        out_path = args.output
+        clean_res = {
+            "status": res["status"],
+            "pathogen": res["pathogen"],
+            "n_taxa": res["n_taxa"],
+            "n_coalescent_events": res["n_coalescent_events"],
+            "t_mrca": res["t_mrca"],
+            "clock_rate_mu": res["clock_rate_mu"],
+            "growth_rate": res["growth_rate"],
+            "reproduction_number": res["reproduction_number"],
+            "rt_skyline": res["rt_skyline"],
+        }
+        with open(out_path, "w") as f:
+            json.dump(clean_res, f, indent=2)
+        print(f"[✓] Phylodynamic R0 results saved to: {out_path}")
+
+    if getattr(args, "csv", None) and len(res.get("rt_skyline", [])) > 0:
+        csv_path = args.csv
+        pd.DataFrame(res["rt_skyline"]).to_csv(csv_path, index=False)
+        print(f"[✓] Dynamic R(t) skyline saved to: {csv_path}")
+
 
 def main():
 
@@ -1358,7 +1552,7 @@ def main():
     date_parser = subparsers.add_parser(
         "dating",
         aliases=["date", "mrca", "clock"],
-        help="Calibrate heterochronous molecular clocks, date MRCA ancestor, and run latent manifold variance collapse"
+        help="Calibrate heterochronous molecular clocks and date MRCA ancestor"
     )
     date_parser.add_argument("-a", "--alignment", required=True, help="Path to in-frame codon FASTA or NEXUS alignment")
     date_parser.add_argument("-t", "--tree", default=None, help="Optional Newick/NEXUS phylogenetic tree (optional if embedded, or if --no-tree/--use-tn93 is set)")
@@ -1368,10 +1562,13 @@ def main():
     date_parser.add_argument("--date-col", default=None, help="Column name for sample collection date in metadata CSV/TSV")
     date_parser.add_argument("--strain-col", default=None, help="Column name for taxon / strain identifier in metadata CSV/TSV")
     date_parser.add_argument("--date-regex", default=None, help="Optional regex with capture group to extract dates from sequence headers")
-    date_parser.add_argument("--root-taxon", default=None, help="Reference taxon to use as ancestral root founder (e.g. 'CONSENSUS', earliest taxon, or outgroup)")
+    date_parser.add_argument("--root-taxon", default=None, help="Reference taxon to use as ancestral root founder (e.g. 'CONSENSUS', earliest taxon, or outgroup; default for tree-free: time-decay weighted consensus)")
+    date_parser.add_argument("--decay-gamma", type=float, default=None, help="Exponential decay rate gamma for Time-Decay Weighted Consensus (default: 0.05 or auto-scaled)")
     date_parser.add_argument("--no-optimize-root", action="store_true", help="Disable heuristic root search when a tree is provided")
-    date_parser.add_argument("--method", choices=["all", "ols", "pgls", "manifold"], default="all", help="Dating estimator(s) to run (default: all)")
-    date_parser.add_argument("--ridge", type=float, default=0.05, help="Regularization parameter for PGLS cross-taxa attention covariance (default: 0.05)")
+    date_parser.add_argument("--method", choices=["all", "ols", "pgls"], default="all", help="Dating estimator(s) to run: 'all', 'pgls', or 'ols' (default: all)")
+    date_parser.add_argument("--clock-model", choices=["auto", "linear", "spline", "power"], default="auto", help="Clock curvature model: 'auto' (F-test/AIC adjudication against restricted spline), 'linear', 'spline' (2-DF restricted natural cubic spline), or 'power' (power-law)")
+    date_parser.add_argument("--ridge", default="auto", help="Regularization parameter for PGLS neural covariance: 'auto' (exact REML profile likelihood estimation of Pagel's lambda) or float (default: auto)")
+    date_parser.add_argument("--tune-ridge", action="store_true", help="(Compatibility flag) Automated REML regularization is active by default")
     date_parser.add_argument("--bootstrap", type=int, default=1000, help="Number of bootstrap resamples for empirical confidence intervals (default: 1000)")
     date_parser.add_argument("--plot", action="store_true", help="Generate publication-grade diagnostic PDF and PNG figures")
     date_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. mrca_clock.pdf)")
@@ -1382,6 +1579,52 @@ def main():
     date_parser.add_argument("--cpu", action="store_true", help="Force CPU execution")
     date_parser.add_argument("-o", "--output", help="Optional path to output JSON results")
     date_parser.add_argument("-c", "--csv", help="Optional path to output per-taxon CSV results")
+
+    # 10. Phylogeography Subcommand
+    geo_parser = subparsers.add_parser("geo", aliases=["phylogeography", "spatial", "migration"], help="Run discrete phylogeography & spatial transmission network inference")
+    geo_parser.add_argument("--example", "--run-example", action="store_true", help="Execute the built-in worked benchmark example (Avian Influenza A/H5N1 across 7 Chinese provinces from Lemey et al. 2009)")
+    geo_parser.add_argument("-a", "--alignment", required=False, default=None, help="Path to FASTA alignment (required unless --example is set)")
+    geo_parser.add_argument("-g", "--metadata", required=False, default=None, help="Path to metadata CSV/TSV or Auspice JSON containing location labels (required unless --example is set)")
+    geo_parser.add_argument("-t", "--tree", default=None, help="Optional path to Newick tree (auto-built via FastTree if omitted)")
+    geo_parser.add_argument("--location-col", default=None, help="Metadata column name for discrete location / region")
+    geo_parser.add_argument("--strain-col", default=None, help="Metadata column name for taxon / strain identifier")
+    geo_parser.add_argument("--date-col", default=None, help="Metadata column name for sample collection date")
+    geo_parser.add_argument("--lat-col", default=None, help="Metadata column name for latitude")
+    geo_parser.add_argument("--lon-col", default=None, help="Metadata column name for longitude")
+    geo_parser.add_argument("--root-taxon", default=None, help="Reference taxon to use as tree root / outgroup (default: earliest isolate or temporal root)")
+    geo_parser.add_argument("--n-perms", type=int, default=1000, help="Number of permutations for null flux distribution and Bayes Factor calculation (default: 1000)")
+    geo_parser.add_argument("--min-bf", type=float, default=3.0, help="Bayes Factor threshold for significant transmission routes (default: 3.0)")
+    geo_parser.add_argument("--fdr", type=float, default=0.10, help="FDR threshold for significant transmission routes (default: 0.10)")
+    geo_parser.add_argument("--no-neural", action="store_true", help="Disable neural attention backbone; use phylogenetic tree branch transitions")
+    geo_parser.add_argument("--plot", action="store_true", help="Generate publication-grade diagnostic PDF and PNG figures")
+    geo_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. phylogeography.pdf)")
+    geo_parser.add_argument("--geojson", default=None, help="Optional path to output GeoJSON feature collection")
+    geo_parser.add_argument("-w", "--weights", default=DEFAULT_WEIGHTS_ENV, help="Path to local model weights file (overrides HF download)")
+    geo_parser.add_argument("--model-variant", dest="variant", default=DEFAULT_VARIANT_ENV, help=f"Model variant to download from HF (default: {DEFAULT_VARIANT})")
+    geo_parser.add_argument("--cpu", action="store_true", help="Force CPU execution")
+    geo_parser.add_argument("-o", "--output", help="Optional path to output JSON results")
+    geo_parser.add_argument("-c", "--csv", help="Optional path to output transmission routes CSV")
+
+    # 11. Phylodynamics R0 & Rt Subcommand
+    r0_parser = subparsers.add_parser("r0", aliases=["rt", "phylodynamics", "growth"], help="Estimate epidemic growth rate (r) and reproduction numbers (R0, Rt)")
+    r0_parser.add_argument("--example", "--run-example", action="store_true", help="Execute the built-in worked benchmark example (2009 Pandemic H1N1 Origin from Fraser et al. 2009)")
+    r0_parser.add_argument("-a", "--alignment", required=False, default=None, help="Path to FASTA alignment with dates in headers (optional if --tree is provided)")
+    r0_parser.add_argument("-t", "--tree", required=False, default=None, help="Path to Newick tree with calibrated or substitution branch lengths")
+    r0_parser.add_argument("-g", "--metadata", required=False, default=None, help="Path to metadata CSV/TSV containing collection dates")
+    r0_parser.add_argument("--pathogen", default=None, help="Pathogen preset (e.g. 'h1n1', 'ebola', 'sars-cov-2', 'measles', 'hiv_early')")
+    r0_parser.add_argument("--generation-time", type=float, default=None, help="Mean clinical generation interval / serial interval (default from pathogen preset or 5.0 days)")
+    r0_parser.add_argument("--generation-sd", type=float, default=None, help="Standard deviation of clinical generation interval (for gamma distribution)")
+    r0_parser.add_argument("--latent-time", type=float, default=None, help="Optional latent period in days for SEIR renewal model")
+    r0_parser.add_argument("--units", choices=["days", "years"], default="days", help="Time units for generation interval parameters (default: days)")
+    r0_parser.add_argument("--date-col", default=None, help="Metadata CSV column name for sample collection date")
+    r0_parser.add_argument("--strain-col", default=None, help="Metadata CSV column name for taxon / strain identifier")
+    r0_parser.add_argument("--mu-prior", type=float, default=None, help="Clock rate prior (substitutions/site/year) to convert substitution trees to calendar time")
+    r0_parser.add_argument("--window-size", type=float, default=0.25, help="Window span in years for dynamic R(t) skyline (default: 0.25 years / 3 months)")
+    r0_parser.add_argument("--step-size", type=float, default=0.05, help="Step size in years for dynamic R(t) skyline sliding window (default: 0.05 years)")
+    r0_parser.add_argument("--plot", action="store_true", help="Generate publication-grade 3-panel diagnostic figures")
+    r0_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. r0_diagnostics.png)")
+    r0_parser.add_argument("-o", "--output", help="Optional path to output JSON results")
+    r0_parser.add_argument("-c", "--csv", help="Optional path to output dynamic R(t) skyline CSV")
 
     args = parser.parse_args()
     if args.command in ["meme", "predict", "site-selection"]:
@@ -1404,6 +1647,10 @@ def main():
         cmd_splits(args)
     elif args.command in ["dating", "date", "mrca", "clock"]:
         cmd_dating(args)
+    elif args.command in ["geo", "phylogeography", "spatial", "migration"]:
+        cmd_geo(args)
+    elif args.command in ["r0", "rt", "phylodynamics", "growth"]:
+        cmd_r0(args)
     elif args.command == "list-models":
         list_models()
     elif args.command == "evaluate":

@@ -1,8 +1,8 @@
 """
 hyphaeon/dating.py
 ------------------
-Heterochronous Molecular Clock Calibration, Ancestor Dating (t_MRCA),
-and Latent Manifold Coalescent Variance Collapse for Pathogen Genomics.
+Heterochronous Molecular Clock Calibration and Ancestor Dating (t_MRCA)
+for Pathogen Genomics.
 
 Methods:
 1. Strict in-frame coding alignment validation (L_nt % 3 == 0, triplet-gap check, stop codon audit).
@@ -13,7 +13,7 @@ Methods:
 4. Estimators:
    - Centered Root-to-Tip Ordinary Least Squares (OLS / TempEst emulation with delta-method & bootstrap CIs).
    - HyphAeon Attention-Derived Phylogenetic Generalized Least Squares (PGLS) via A_fused covariance.
-   - Latent Manifold Coalescent Variance Collapse (Var(Z(t)) -> 0 in 128D continuous representation space).
+   - Non-Linear Restricted Cubic Spline Clock (2 DF) and Power-Law Clock with hypothesis testing.
 5. Historical outlier scoring & blind tip dating (e.g. dating the 1959 ZR59 archival isolate).
 6. Publication-grade diagnostic visualization (PDF and PNG).
 """
@@ -32,6 +32,7 @@ import numpy as np
 import pandas as pd
 import scipy.linalg as la
 import scipy.stats as stats
+import scipy.optimize as optimize
 import torch
 
 try:
@@ -61,12 +62,66 @@ from .inference import (
     get_device,
     prepare_alignment,
 )
+from scipy.spatial.distance import pdist, squareform
 from .splits import (
     extract_cross_taxa_attentions_and_embeddings,
     compute_fused_affinity_matrix,
 )
 from .temporal import parse_date_to_decimal, parse_dates_from_auspice_json, extract_date_from_string
 from .io import ensure_parent_directory, write_json, write_csv
+
+
+def compute_neural_covariance_kernel(
+    cross_attn: np.ndarray,
+    taxa_repr: Optional[np.ndarray] = None,
+    mds_coords: Optional[np.ndarray] = None
+) -> np.ndarray:
+    """
+    Computes a strictly positive semi-definite (PSD) phylogenetic correlation matrix
+    fusing transformer cross-taxa attention profile similarity and 128D continuous sequence representations.
+    Features are centered across taxa to eliminate representation anisotropy (the cone effect),
+    ensuring proper phylogenetic decoupling between distinct clades and realistic confidence intervals.
+    Guarantees unit diagonal C(i, i) = 1.0 and zero negative eigenvalues.
+    """
+    n = cross_attn.shape[0]
+
+    # 1. Cross-Taxa Attention Profile Correlation Matrix (Centered)
+    # Each row a_i is taxon i's attention distribution across all taxa.
+    # Centering removes the background entropy baseline across taxa:
+    a_centered = cross_attn - np.mean(cross_attn, axis=0, keepdims=True)
+    a_cov = a_centered @ a_centered.T
+    a_var = np.diag(a_cov)
+    a_std = np.sqrt(np.maximum(a_var, 1e-12))[:, None]
+    a_denom = a_std @ a_std.T
+    K_attn = np.divide(a_cov, a_denom, where=(a_denom > 1e-12), out=np.eye(n))
+    np.fill_diagonal(K_attn, 1.0)
+
+    # 2. Continuous Latent Sequence Embedding Correlation Matrix (Centered)
+    if taxa_repr is not None and len(taxa_repr) == n:
+        # Centering removes the dominant common activation vector across taxa:
+        z_centered = taxa_repr - np.mean(taxa_repr, axis=0, keepdims=True)
+        z_cov = z_centered @ z_centered.T
+        z_var = np.diag(z_cov)
+        z_std = np.sqrt(np.maximum(z_var, 1e-12))[:, None]
+        z_denom = z_std @ z_std.T
+        K_emb = np.divide(z_cov, z_denom, where=(z_denom > 1e-12), out=np.eye(n))
+        np.fill_diagonal(K_emb, 1.0)
+        K_neural = 0.50 * K_attn + 0.50 * K_emb
+    else:
+        K_neural = K_attn
+
+    np.fill_diagonal(K_neural, 1.0)
+    return K_neural
+
+
+def compute_attention_covariance_kernel(
+    cross_attn: np.ndarray,
+    mds_coords: Optional[np.ndarray] = None,
+    taxa_repr: Optional[np.ndarray] = None
+) -> np.ndarray:
+    """Backward-compatible alias for compute_neural_covariance_kernel."""
+    return compute_neural_covariance_kernel(cross_attn, taxa_repr=taxa_repr, mds_coords=mds_coords)
+
 
 
 # =========================================================================
@@ -177,6 +232,71 @@ def generate_consensus_sequence(seq_dict: Dict[str, str], taxa: Optional[List[st
             best_char = '-'
         consensus_chars.append(best_char)
     return "".join(consensus_chars)
+
+
+def generate_time_decay_consensus_sequence(
+    seq_dict: Dict[str, str],
+    dates_map: Dict[str, float],
+    taxa: Optional[List[str]] = None,
+    gamma: Optional[float] = None,
+    half_life: Optional[float] = None,
+) -> Tuple[str, float]:
+    """
+    Computes a time-decay weighted nucleotide consensus sequence:
+        w_i \propto \exp(-\gamma * (t_i - t_min))
+
+    Downweights modern, densely-sampled contemporary isolates and upweights ancestral/early isolates,
+    producing an optimal tree-free reference root anchor resistant to temporal sampling bias.
+
+    Returns:
+        (consensus_sequence, effective_gamma)
+    """
+    if taxa is None:
+        taxa = list(seq_dict.keys())
+
+    valid_taxa = [t for t in taxa if t in dates_map and not np.isnan(dates_map[t])]
+    if not valid_taxa:
+        # Fallback to unweighted consensus if dates are unavailable
+        return generate_consensus_sequence(seq_dict, taxa), 0.0
+
+    times = np.array([dates_map[t] for t in valid_taxa], dtype=np.float64)
+    t_min = float(np.min(times))
+    t_max = float(np.max(times))
+    delta_t = t_max - t_min
+
+    if half_life is not None and half_life > 0:
+        eff_gamma = float(np.log(2.0) / half_life)
+    elif gamma is not None and gamma > 0:
+        eff_gamma = float(gamma)
+    else:
+        # Adaptive default: if span > 0, set gamma = 0.05 or adapt
+        if delta_t > 0:
+            eff_gamma = 0.05 if (0.05 * delta_t >= 1.0) else float(2.0 / delta_t)
+        else:
+            eff_gamma = 0.0
+
+    weights = np.exp(-eff_gamma * (times - t_min))
+    w_sum = np.sum(weights)
+    if w_sum > 0:
+        weights /= w_sum
+    else:
+        weights = np.ones(len(valid_taxa)) / len(valid_taxa)
+
+    seq_len = len(seq_dict[valid_taxa[0]])
+    consensus_chars = []
+    for pos in range(seq_len):
+        char_weights: Dict[str, float] = {}
+        for i, t in enumerate(valid_taxa):
+            c = seq_dict[t][pos].upper()
+            if c not in ['-', '?', 'N']:
+                char_weights[c] = char_weights.get(c, 0.0) + float(weights[i])
+        if char_weights:
+            best_c = max(char_weights.items(), key=lambda x: x[1])[0]
+        else:
+            best_c = '-'
+        consensus_chars.append(best_c)
+
+    return "".join(consensus_chars), eff_gamma
 
 
 # =========================================================================
@@ -362,7 +482,14 @@ def extract_tree_root_to_tip(
         best_node = None
         best_dists: Dict[str, float] = {}
 
-        for node in non_terminals:
+        # Subsample candidate nodes for large trees to avoid N^2 tree traversals
+        if len(non_terminals) > 60:
+            step = max(1, len(non_terminals) // 60)
+            candidate_nodes = non_terminals[::step]
+        else:
+            candidate_nodes = non_terminals
+
+        for node in candidate_nodes:
             try:
                 tree.root_with_outgroup(node)
             except Exception:
@@ -396,18 +523,21 @@ def compute_tree_free_divergences(
     seq_dict: Dict[str, str],
     dated_taxa: List[str],
     dates_map: Dict[str, float],
-    root_taxon: Optional[str] = None
+    root_taxon: Optional[str] = None,
+    decay_gamma: Optional[float] = None,
+    decay_half_life: Optional[float] = None,
 ) -> Tuple[np.ndarray, str]:
     """
     Computes tree-free root-to-tip divergence directly from pairwise TN93 distances.
     Anchors root at:
     1. Specified root_taxon (if found in alignment).
-    2. Computed consensus of the entire alignment or earliest cohort.
-    3. Earliest sampled taxon.
+    2. Explicit unweighted consensus if requested ('unweighted_consensus' / 'modal_consensus').
+    3. Earliest sampled taxon / cohort if requested ('earliest' / 'earliest_cohort').
+    4. Time-Decay Weighted Consensus (default & recommended for tree-free dating).
     """
     all_taxa = list(seq_dict.keys())
 
-    # Case 1: User explicitly specified an existing taxon as root (e.g. 'CONSENSUS' or 'Z59ZR.ZHU')
+    # Case 1: User explicitly specified an existing taxon as root (e.g. outgroup or specific strain)
     if root_taxon and root_taxon in seq_dict:
         eval_taxa = [root_taxon] + [t for t in dated_taxa if t != root_taxon]
         dist_mat = compute_tn93_distance_matrix(seq_dict, eval_taxa)
@@ -416,34 +546,47 @@ def compute_tree_free_divergences(
         divergences = np.array([div_dict[t] for t in dated_taxa if t != root_taxon], dtype=np.float64)
         return divergences, f"explicit_root_{root_taxon}"
 
-    # Case 2: User requested 'consensus' root, or alignment has no predefined root
-    if root_taxon and root_taxon.lower() in ['consensus', 'founder', 'ancestor']:
+    # Case 2: User requested unweighted modal consensus
+    if root_taxon and root_taxon.lower() in ['unweighted_consensus', 'flat_consensus', 'modal_consensus']:
         con_seq = generate_consensus_sequence(seq_dict, dated_taxa)
         aug_dict = dict(seq_dict)
         aug_dict['__SYNTHETIC_CONSENSUS__'] = con_seq
         eval_taxa = ['__SYNTHETIC_CONSENSUS__'] + dated_taxa
         dist_mat = compute_tn93_distance_matrix(aug_dict, eval_taxa)
         divergences = np.array([dist_mat[0, i + 1] for i in range(len(dated_taxa))], dtype=np.float64)
-        return divergences, "synthetic_consensus_root"
+        return divergences, "unweighted_modal_consensus_root"
 
     # Case 3: Anchor on earliest sampled cohort
-    valid_dates = [(t, dates_map[t]) for t in dated_taxa if t in dates_map and not np.isnan(dates_map[t])]
-    valid_dates.sort(key=lambda x: x[1])
-    min_date = valid_dates[0][1]
-    earliest_taxa = [t for t, d in valid_dates if abs(d - min_date) < 1e-4]
+    if root_taxon and root_taxon.lower() in ['earliest', 'earliest_taxon', 'earliest_cohort']:
+        valid_dates = [(t, dates_map[t]) for t in dated_taxa if t in dates_map and not np.isnan(dates_map[t])]
+        valid_dates.sort(key=lambda x: x[1])
+        min_date = valid_dates[0][1]
+        earliest_taxa = [t for t, d in valid_dates if abs(d - min_date) < 1e-4]
 
-    dist_mat = compute_tn93_distance_matrix(seq_dict, dated_taxa)
-    taxa_idx = {t: i for i, t in enumerate(dated_taxa)}
-    earliest_indices = [taxa_idx[t] for t in earliest_taxa]
+        dist_mat = compute_tn93_distance_matrix(seq_dict, dated_taxa)
+        taxa_idx = {t: i for i, t in enumerate(dated_taxa)}
+        earliest_indices = [taxa_idx[t] for t in earliest_taxa]
 
-    if len(earliest_indices) == 1:
-        root_idx = earliest_indices[0]
-        divergences = dist_mat[root_idx, :].copy()
-        root_desc = f"earliest_taxon_{dated_taxa[root_idx]}"
-    else:
-        divergences = np.mean(dist_mat[earliest_indices, :], axis=0)
-        root_desc = f"earliest_cohort_n{len(earliest_indices)}"
+        if len(earliest_indices) == 1:
+            root_idx = earliest_indices[0]
+            divergences = dist_mat[root_idx, :].copy()
+            root_desc = f"earliest_taxon_{dated_taxa[root_idx]}"
+        else:
+            divergences = np.mean(dist_mat[earliest_indices, :], axis=0)
+            root_desc = f"earliest_cohort_n{len(earliest_indices)}"
 
+        return divergences, root_desc
+
+    # Case 4 (Default & Recommended for Tree-Free): Time-Decay Weighted Consensus
+    decay_seq, eff_gamma = generate_time_decay_consensus_sequence(
+        seq_dict, dates_map, dated_taxa, gamma=decay_gamma, half_life=decay_half_life
+    )
+    aug_dict = dict(seq_dict)
+    aug_dict['__TIME_DECAY_ROOT__'] = decay_seq
+    eval_taxa = ['__TIME_DECAY_ROOT__'] + dated_taxa
+    dist_mat = compute_tn93_distance_matrix(aug_dict, eval_taxa)
+    divergences = np.array([dist_mat[0, i + 1] for i in range(len(dated_taxa))], dtype=np.float64)
+    root_desc = f"time_decay_consensus_root (γ={eff_gamma:.4f})"
     return divergences, root_desc
 
 
@@ -559,6 +702,7 @@ def run_pgls_dating(
     dists: np.ndarray,
     cov_matrix: np.ndarray,
     ridge: float = 0.05,
+    pagel_lambda: Optional[float] = None,
     t_ref: Optional[float] = None,
     n_boot: int = 1000,
     seed: int = 42
@@ -567,7 +711,7 @@ def run_pgls_dating(
     Fits Centered Phylogenetic Generalized Least Squares (PGLS) regression:
         d = X * beta + epsilon,   Cov(epsilon) = sigma^2 * Sigma
 
-    where Sigma = A_fused + ridge * I is HyphAeon's cross-taxa attention covariance.
+    where Sigma is HyphAeon's neural phylogenetic covariance matrix.
     Directly incorporates evolutionary covariance without tree reconstruction.
     """
     n = len(times)
@@ -580,11 +724,19 @@ def run_pgls_dating(
     x = times - t_ref
     X = np.column_stack([x, np.ones(n)])
 
-    # Spectral regularization: Sigma = V * Lambda * V^T
-    C = cov_matrix + ridge * np.eye(n)
-    w, v = la.eigh(C)
-    w = np.maximum(w, 1e-6)
-    C_inv = v @ np.diag(1.0 / w) @ v.T
+    w_raw, v = la.eigh(cov_matrix)
+    w_pos = np.maximum(w_raw, 0.0)
+
+    # Either Pagel's lambda covariance: C = lambda * K + (1 - lambda) * I
+    # or additive ridge covariance: C = K + ridge * I
+    if pagel_lambda is not None:
+        eff_lam = float(np.clip(pagel_lambda, 0.001, 0.999))
+        w_c = eff_lam * w_pos + (1.0 - eff_lam)
+    else:
+        w_c = w_pos + ridge
+
+    inv_w = 1.0 / np.maximum(w_c, 1e-12)
+    C_inv = v @ np.diag(inv_w) @ v.T
 
     # GLS solution: beta = (X^T C^-1 X)^-1 X^T C^-1 d
     Xt_Cinv = X.T @ C_inv
@@ -612,7 +764,9 @@ def run_pgls_dating(
     se_mrca = float(np.sqrt(max(0.0, var_mrca)))
 
     t_crit = float(stats.t.ppf(0.975, df=max(1, n - 2)))
-    ci_analytical = [t_mrca - t_crit * se_mrca, t_mrca + t_crit * se_mrca]
+    ci_lower = float(t_mrca - t_crit * se_mrca)
+    ci_upper = min(float(np.min(times)), float(t_mrca + t_crit * se_mrca))
+    ci_analytical = [ci_lower, ci_upper]
 
     # Generalized R^2 (Buse 1973)
     one_Cinv_one = float(np.ones(n).T @ C_inv @ np.ones(n))
@@ -634,66 +788,494 @@ def run_pgls_dating(
         'ci_analytical': ci_analytical,
         'ci_mrca': ci_analytical,
         'r2': r2_gls,
-        'ridge': ridge,
+        'ridge': ridge if pagel_lambda is None else (1.0 - eff_lam),
+        'pagel_lambda': pagel_lambda,
         'sigma2': sigma2_gls,
         'rmse': float(np.sqrt(np.mean(residuals ** 2))),
         'residuals': residuals,
         'fitted': X @ beta_gls,
+        'times': times,
         'n': n
     }
 
 
-def run_manifold_variance_collapse(
-    taxa_repr: np.ndarray,
+def estimate_reml_pagel_lambda(
     times: np.ndarray,
-    min_taxa_per_timepoint: int = 2
-) -> Optional[Dict[str, Any]]:
+    dists: np.ndarray,
+    cov_matrix: np.ndarray
+) -> Dict[str, Any]:
     """
-    Evaluates Coalescent Population Variance Collapse in 128D continuous representation space:
-        Var(Z(t)) = s * (t - t_founder)
+    Estimates the phylogenetic signal / shrinkage parameter lambda in [0, 1] (Pagel's lambda)
+    by maximizing the exact profile Restricted Maximum Likelihood (REML).
 
-    Under founder bottleneck transmission (N(0)=1), variance expands linearly with time.
-    Extrapolating population dispersion Var(Z(t)) -> 0 recovers the time of origin
-    without requiring root heuristics, branch lengths, or tree inference.
+    Covariance model:
+        C(lambda) = lambda * cov_matrix + (1 - lambda) * I
+
+    where lambda = 1 represents full neural phylogenetic covariance and lambda = 0 represents
+    independent tip variance. Computed in O(N) using spectral projection.
     """
-    unique_times = np.unique(times)
-    valid_times = []
-    intra_vars = []
-    counts = []
+    n = len(times)
+    t_ref = float(np.mean(times))
+    x = times - t_ref
+    X = np.column_stack([x, np.ones(n)])
 
-    for t in unique_times:
-        mask = (times == t)
-        if np.sum(mask) >= min_taxa_per_timepoint:
-            z_t = taxa_repr[mask]
-            var_t = float(np.sum(np.var(z_t, axis=0)))
-            valid_times.append(float(t))
-            intra_vars.append(var_t)
-            counts.append(int(np.sum(mask)))
+    w_K, V = la.eigh(cov_matrix)
+    w_K = np.maximum(w_K, 0.0)
 
-    if len(valid_times) < 3:
-        return None
+    # Pre-project design matrix and responses onto eigenvectors
+    Z = V.T @ X      # (N, 2)
+    u = V.T @ dists  # (N,)
 
-    vt = np.array(valid_times)
-    iv = np.array(intra_vars)
+    def neg_reml(lam):
+        w_c = lam * w_K + (1.0 - lam)
+        inv_w = 1.0 / np.maximum(w_c, 1e-12)
 
-    slope, intercept = np.polyfit(vt, iv, 1)
-    if abs(slope) < 1e-15:
-        slope = 1e-15
+        Z_scaled = Z * inv_w[:, None]
+        Xt_Cinv_X = Z.T @ Z_scaled
+        Xt_Cinv_d = Z_scaled.T @ u
 
-    t_collapse = -intercept / slope
-    r_val = float(np.corrcoef(vt, iv)[0, 1])
+        try:
+            beta = la.solve(Xt_Cinv_X, Xt_Cinv_d)
+        except Exception:
+            return 1e9
+
+        res_ss = float(np.sum((u ** 2) * inv_w) - beta.T @ Xt_Cinv_d)
+        if res_ss <= 0:
+            return 1e9
+
+        sigma2 = res_ss / max(1, n - 2)
+        log_det_C = float(np.sum(np.log(np.maximum(w_c, 1e-12))))
+        _, log_det_XtCinvX = np.linalg.slogdet(Xt_Cinv_X)
+
+        minus_2_logL = (n - 2) * np.log(sigma2) + log_det_C + log_det_XtCinvX
+        return minus_2_logL
+
+    res_opt = optimize.minimize_scalar(neg_reml, bounds=(0.001, 0.999), method='bounded')
+    opt_lambda = float(res_opt.x) if res_opt.success else 0.95
 
     return {
-        'method': 'Manifold_Collapse',
-        't_mrca': float(t_collapse),
-        'slope': float(slope),
-        'intercept': float(intercept),
-        'r2': float(r_val ** 2),
-        'r': float(r_val),
-        'timepoints': vt,
-        'variances': iv,
-        'counts': counts,
-        'n_timepoints': len(vt)
+        'best_lambda': opt_lambda,
+        'status': 'OPTIMAL_REML'
+    }
+
+
+def tune_ridge_for_pgls(
+    times: np.ndarray,
+    dists: np.ndarray,
+    cov_matrix: np.ndarray,
+    method: str = 'reml'
+) -> Dict[str, Any]:
+    """Backward-compatible wrapper mapping to estimate_reml_pagel_lambda."""
+    reml_res = estimate_reml_pagel_lambda(times, dists, cov_matrix)
+    return {
+        'best_lambda': reml_res['best_lambda'],
+        'status': reml_res['status']
+    }
+
+
+def run_powerlaw_clock_dating(
+    times: np.ndarray,
+    dists: np.ndarray,
+    cov_matrix: Optional[np.ndarray] = None,
+    ridge: float = 0.05,
+    n_boot: int = 500,
+    seed: int = 42
+) -> Dict[str, Any]:
+    """
+    Fits a Time-Dependent Rate (TDR) Power-Law Molecular Clock:
+        d(t) = k * (t - t_MRCA)^theta,   t > t_MRCA
+
+    Captures sub-linear rate deceleration (theta < 1.0) caused by long-term purifying
+    selection and mutational saturation (Aiewsakun & Katzourakis 2015, Membrebe et al. 2019).
+    When theta == 1.0, reduces to standard linear clock regression d(t) = mu * (t - t_MRCA).
+
+    Performs nested F-test and AIC comparison against the linear null model.
+    """
+    n = len(times)
+    if n < 4:
+        raise ValueError(f"At least 4 observations are required for non-linear power-law dating (got N={n}).")
+
+    t_min = float(np.min(times))
+    t_max = float(np.max(times))
+    delta_t = max(1e-4, t_max - t_min)
+
+    # Covariance weighting with single-call spectral projection & inversion:
+    if cov_matrix is not None:
+        w_raw, v = la.eigh(cov_matrix)
+        w_c = np.maximum(w_raw, 0.0) + ridge
+        C_inv = v @ np.diag(1.0 / w_c) @ v.T
+    else:
+        C_inv = np.eye(n)
+
+    # 1. Fit Linear Null Model
+    x_mean = float(np.mean(times))
+    d_mean = float(np.mean(dists))
+    X_lin = np.column_stack([times - x_mean, np.ones(n)])
+    Xt_Cinv = X_lin.T @ C_inv
+    beta_lin = la.solve(Xt_Cinv @ X_lin, Xt_Cinv @ dists)
+    mu_lin = float(beta_lin[0])
+    d0_lin = float(beta_lin[1])
+    fitted_lin = X_lin @ beta_lin
+    res_lin = dists - fitted_lin
+    rss_lin = float(res_lin.T @ C_inv @ res_lin)
+    t0_lin = float(x_mean - d0_lin / max(1e-12, mu_lin))
+    aic_lin = float(n * np.log(max(1e-12, rss_lin / n)) + 2 * 2)
+
+    # 2. Fit Power-Law Model d(t) = k * (t - t0)^theta
+    def objective(params):
+        t0, k, theta = params
+        if t0 >= t_min - 0.001:
+            return 1e9 + float((t0 - t_min) ** 2)
+        dt = times - t0
+        if np.any(dt <= 0.0) or k <= 0.0 or theta <= 0.0:
+            return 1e9
+        pred = k * (dt ** theta)
+        res = dists - pred
+        return float(res.T @ C_inv @ res)
+
+    best_res = None
+    best_val = 1e12
+
+    # Multi-start initializations over t0 and theta
+    t0_candidates = [
+        t_min - 0.1 * delta_t,
+        t_min - 0.3 * delta_t,
+        t_min - 0.6 * delta_t,
+        t_min - 1.2 * delta_t,
+        t_min - 2.5 * delta_t,
+        t_min - 5.0 * delta_t,
+    ]
+    if t0_lin < t_min:
+        t0_candidates.append(t0_lin)
+
+    for t0_cand in t0_candidates:
+        if t0_cand >= t_min:
+            continue
+        for th_cand in [0.4, 0.7, 1.0, 1.3]:
+            dt_mean = max(1e-4, x_mean - t0_cand)
+            k_cand = float(max(1e-6, d_mean / (dt_mean ** th_cand)))
+            try:
+                opt = optimize.minimize(
+                    objective,
+                    [t0_cand, k_cand, th_cand],
+                    bounds=[
+                        (t_min - 50.0 * delta_t, t_min - 0.001),
+                        (1e-7, 100.0),
+                        (0.05, 3.0)
+                    ],
+                    method='L-BFGS-B'
+                )
+                if opt.fun < best_val:
+                    best_val = opt.fun
+                    best_res = opt
+            except Exception:
+                continue
+
+    if best_res is not None and best_res.success:
+        t0_nl, k_nl, th_nl = [float(x) for x in best_res.x]
+        rss_nl = float(best_val)
+    else:
+        # Fallback to linear
+        t0_nl = t0_lin
+        th_nl = 1.0
+        k_nl = mu_lin
+        rss_nl = rss_lin
+
+    pred_nl = k_nl * (np.maximum(1e-6, times - t0_nl) ** th_nl)
+    res_nl = dists - pred_nl
+
+    # 3. Model Comparison Metrics (F-test and AIC)
+    df_lin = n - 2
+    df_nl = n - 3
+    diff_rss = max(0.0, rss_lin - rss_nl)
+    f_stat = float((diff_rss / 1.0) / max(1e-12, rss_nl / max(1, df_nl)))
+    p_f_test = float(stats.f.sf(f_stat, 1, max(1, df_nl)))
+
+    aic_nl = float(n * np.log(max(1e-12, rss_nl / n)) + 2 * 3)
+    delta_aic = float(aic_lin - aic_nl)
+
+    # Automatic selection decision:
+    # Requires p < 0.05, delta_AIC >= 2.0, and meaningful curvature deviation (|theta - 1.0| >= 0.03)
+    is_nonlinear_preferred = bool(
+        (p_f_test < 0.05) and (delta_aic >= 2.0) and (abs(th_nl - 1.0) >= 0.03)
+    )
+
+    # Instantaneous Rates
+    r_ancestral = float(k_nl * th_nl * (max(1e-6, t_min - t0_nl) ** (th_nl - 1.0)))
+    r_recent = float(k_nl * th_nl * (max(1e-6, t_max - t0_nl) ** (th_nl - 1.0)))
+    r_mean = float((k_nl * (max(1e-6, t_max - t0_nl) ** th_nl) - k_nl * (max(1e-6, t_min - t0_nl) ** th_nl)) / delta_t)
+
+    # Bootstrap CIs for non-linear parameters
+    rng = np.random.RandomState(seed)
+    boot_t0 = []
+    boot_th = []
+    boot_k = []
+    if n_boot > 0:
+        for _ in range(n_boot):
+            b_idx = rng.choice(n, size=n, replace=True)
+            b_t = times[b_idx]
+            b_d = dists[b_idx]
+            if len(np.unique(b_t)) < 3:
+                continue
+            b_tmin = float(np.min(b_t))
+            b_dt = max(1e-4, float(np.max(b_t)) - b_tmin)
+            try:
+                def b_obj(p):
+                    if p[0] >= b_tmin - 0.001:
+                        return 1e9
+                    dt = b_t - p[0]
+                    if np.any(dt <= 0) or p[1] <= 0 or p[2] <= 0:
+                        return 1e9
+                    return float(np.sum((b_d - p[1] * (dt ** p[2])) ** 2))
+
+                b_opt = optimize.minimize(
+                    b_obj, [t0_nl, k_nl, th_nl],
+                    bounds=[(b_tmin - 50.0 * b_dt, b_tmin - 0.001), (1e-7, 100.0), (0.05, 3.0)],
+                    method='L-BFGS-B'
+                )
+                if b_opt.success:
+                    boot_t0.append(float(b_opt.x[0]))
+                    boot_k.append(float(b_opt.x[1]))
+                    boot_th.append(float(b_opt.x[2]))
+            except Exception:
+                pass
+
+    if len(boot_t0) >= 20:
+        ci_t0 = [float(np.percentile(boot_t0, 2.5)), float(np.percentile(boot_t0, 97.5))]
+        ci_th = [float(np.percentile(boot_th, 2.5)), float(np.percentile(boot_th, 97.5))]
+        ci_k = [float(np.percentile(boot_k, 2.5)), float(np.percentile(boot_k, 97.5))]
+    else:
+        ci_t0 = [t0_nl, t0_nl]
+        ci_th = [th_nl, th_nl]
+        ci_k = [k_nl, k_nl]
+
+    # Generalized R^2
+    one_Cinv_one = float(np.ones(n).T @ C_inv @ np.ones(n))
+    weighted_mean = float(np.ones(n).T @ C_inv @ dists) / max(1e-12, one_Cinv_one)
+    tot_residuals = dists - weighted_mean
+    ss_tot = float(tot_residuals.T @ C_inv @ tot_residuals)
+    r2_nl = float(max(0.0, 1.0 - (rss_nl / max(1e-12, ss_tot))))
+
+    return {
+        'method': 'POWER_LAW',
+        't_mrca': t0_nl,
+        'ci_mrca': ci_t0,
+        'theta': th_nl,
+        'ci_theta': ci_th,
+        'k': k_nl,
+        'ci_k': ci_k,
+        'rate_recent': r_recent,
+        'rate_ancestral': r_ancestral,
+        'rate_mean': r_mean,
+        'rss': rss_nl,
+        'aic': aic_nl,
+        'rss_linear': rss_lin,
+        'aic_linear': aic_lin,
+        'delta_aic': delta_aic,
+        'f_stat': f_stat,
+        'p_f_test': p_f_test,
+        'is_nonlinear_preferred': is_nonlinear_preferred,
+        'r2': r2_nl,
+        'rmse': float(np.sqrt(np.mean(res_nl ** 2))),
+        'fitted': pred_nl,
+        'residuals': res_nl,
+        'n': n
+    }
+
+
+def compute_rcs_basis(
+    x: np.ndarray,
+    knots: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Computes Harrell's Restricted Cubic Spline (RCS) basis matrix and its first derivative.
+    For k knots, produces (k - 2) non-linear columns.
+    When knots[0] = t_min, all non-linear basis columns and derivatives
+    vanish identically for t <= t_min, guaranteeing strictly linear ancestral extrapolation.
+    """
+    knots = np.asarray(knots, dtype=float)
+    k = len(knots)
+    if k < 3:
+        raise ValueError("At least 3 knots are required for restricted cubic splines.")
+    t1, tk_1, tk = knots[0], knots[-2], knots[-1]
+    denom = (tk - t1) ** 2
+
+    cols, d_cols = [], []
+    for j in range(k - 2):
+        tj = knots[j]
+        term1 = np.maximum(0.0, x - tj) ** 3
+        term2 = ((tk - tj) / (tk - tk_1)) * (np.maximum(0.0, x - tk_1) ** 3)
+        term3 = ((tk_1 - tj) / (tk - tk_1)) * (np.maximum(0.0, x - tk) ** 3)
+        cols.append((term1 - term2 + term3) / denom)
+
+        d1 = 3.0 * (np.maximum(0.0, x - tj) ** 2)
+        d2 = ((tk - tj) / (tk - tk_1)) * (3.0 * (np.maximum(0.0, x - tk_1) ** 2))
+        d3 = ((tk_1 - tj) / (tk - tk_1)) * (3.0 * (np.maximum(0.0, x - tk) ** 2))
+        d_cols.append((d1 - d2 + d3) / denom)
+
+    B = np.column_stack(cols) if cols else np.empty((len(x), 0))
+    dB = np.column_stack(d_cols) if d_cols else np.empty((len(x), 0))
+    return B, dB
+
+
+def run_restricted_spline_clock_dating(
+    times: np.ndarray,
+    dists: np.ndarray,
+    cov_matrix: Optional[np.ndarray] = None,
+    ridge: float = 0.05,
+    n_boot: int = 500,
+    seed: int = 42
+) -> Dict[str, Any]:
+    """
+    Fits a Degrees-of-Freedom (DF) Restricted Natural Cubic Spline Molecular Clock.
+
+    Solves the boundary collapse pathology of unconstrained power-law models by
+    restricting the curve to be STRICTLY LINEAR beyond the boundary knots:
+        For t <= t_min: d(t) = beta_0 + beta_1 * t
+
+    Guarantees well-behaved, singularity-free ancestral extrapolation to the MRCA:
+        t_MRCA = -beta_0 / beta_1
+
+    While allowing non-linear curvature (flexibility) across the observation window [t_min, t_max]:
+        d(t) = beta_0 + beta_1 * t + beta_2 * X_2(t)
+
+    Performs an exact nested F-test and Delta-AIC comparison against the linear null model.
+    """
+    n = len(times)
+    if n < 5:
+        raise ValueError(f"At least 5 observations are required for restricted spline dating (got N={n}).")
+
+    t_min = float(np.min(times))
+    t_max = float(np.max(times))
+
+    # 3 knots: t_min, median, 90th percentile
+    knots = np.array([t_min, float(np.median(times)), float(np.percentile(times, 90))])
+    B, dB = compute_rcs_basis(times, knots)
+
+    # Covariance weighting with single-call spectral projection & inversion:
+    if cov_matrix is not None:
+        w_raw, v = la.eigh(cov_matrix)
+        w_c = np.maximum(w_raw, 0.0) + ridge
+        C_inv = v @ np.diag(1.0 / w_c) @ v.T
+    else:
+        C_inv = np.eye(n)
+
+    # 1. Fit Linear Null Model: d(t) = beta_0 + beta_1 * t
+    X_lin = np.column_stack([np.ones(n), times])
+    Xt_Cinv_lin = X_lin.T @ C_inv
+    beta_lin = la.solve(Xt_Cinv_lin @ X_lin, Xt_Cinv_lin @ dists)
+    pred_lin = X_lin @ beta_lin
+    res_lin = dists - pred_lin
+    rss_lin = float(res_lin.T @ C_inv @ res_lin)
+    aic_lin = float(n * np.log(max(1e-12, rss_lin / n)) + 2 * 2)
+
+    # 2. Fit Restricted Spline Model: d(t) = beta_0 + beta_1 * t + beta_2 * X_2(t)
+    X_sp = np.column_stack([np.ones(n), times, B])
+    Xt_Cinv_sp = X_sp.T @ C_inv
+    beta_sp = la.solve(Xt_Cinv_sp @ X_sp, Xt_Cinv_sp @ dists)
+    pred_sp = X_sp @ beta_sp
+    res_sp = dists - pred_sp
+    rss_sp = float(res_sp.T @ C_inv @ res_sp)
+    aic_sp = float(n * np.log(max(1e-12, rss_sp / n)) + 2 * 3)
+    delta_aic = float(aic_lin - aic_sp)
+
+    # 3. Model Comparison Metrics (Nested F-test & AIC)
+    df_sp = n - 3
+    diff_rss = max(0.0, rss_lin - rss_sp)
+    f_stat = float((diff_rss / 1.0) / max(1e-12, rss_sp / max(1, df_sp)))
+    p_f_test = float(stats.f.sf(f_stat, 1, max(1, df_sp)))
+
+    # Ancestral MRCA (strictly linear for t <= t_min)
+    mu_ancestral = float(beta_sp[1])
+    if mu_ancestral > 1e-9:
+        t0_sp = float(-beta_sp[0] / mu_ancestral)
+    else:
+        # If ancestral slope is non-positive, backward extrapolation is undefined
+        t0_sp = float(-beta_lin[0] / max(1e-12, beta_lin[1])) if beta_lin[1] > 1e-9 else float('nan')
+
+    # Instantaneous Rates
+    dB_max = float(dB[-1, 0]) if len(dB) > 0 else 0.0
+    mu_recent = float(beta_sp[1] + beta_sp[2] * dB_max)
+    rate_ratio = float(mu_recent / mu_ancestral) if mu_ancestral > 1e-9 else 1.0
+
+    # Automatic selection rule:
+    # Requires statistical significance (p < 0.05), positive model evidence (delta_AIC >= 2.0),
+    # positive ancestral rate, and biologically meaningful rate variation (|rate_ratio - 1.0| >= 0.15).
+    is_nonlinear_preferred = bool(
+        p_f_test < 0.05 and delta_aic >= 2.0 and mu_ancestral > 0 and abs(rate_ratio - 1.0) >= 0.15
+    )
+
+    # Bootstrap 95% Confidence Intervals
+    boot_t0 = []
+    boot_mu_anc = []
+    boot_mu_rec = []
+    boot_beta2 = []
+    if n_boot > 0:
+        rng = np.random.default_rng(seed)
+        for _ in range(n_boot):
+            b_idx = rng.choice(n, size=n, replace=True)
+            b_t = times[b_idx]
+            b_d = dists[b_idx]
+            if len(np.unique(b_t)) < 4:
+                continue
+            b_B, b_dB = compute_rcs_basis(b_t, knots)
+            b_X = np.column_stack([np.ones(n), b_t, b_B])
+            try:
+                b_beta = la.lstsq(b_X, b_d, rcond=None)[0]
+                if b_beta[1] > 1e-9:
+                    boot_t0.append(float(-b_beta[0] / b_beta[1]))
+                    boot_mu_anc.append(float(b_beta[1]))
+                    b_rec = float(b_beta[1] + b_beta[2] * (b_dB[-1, 0] if len(b_dB) > 0 else 0.0))
+                    boot_mu_rec.append(b_rec)
+                    boot_beta2.append(float(b_beta[2]))
+            except Exception:
+                pass
+
+    if len(boot_t0) >= 20:
+        ci_t0 = [float(np.percentile(boot_t0, 2.5)), float(np.percentile(boot_t0, 97.5))]
+        ci_mu_anc = [float(np.percentile(boot_mu_anc, 2.5)), float(np.percentile(boot_mu_anc, 97.5))]
+        ci_mu_rec = [float(np.percentile(boot_mu_rec, 2.5)), float(np.percentile(boot_mu_rec, 97.5))]
+        ci_beta2 = [float(np.percentile(boot_beta2, 2.5)), float(np.percentile(boot_beta2, 97.5))]
+    else:
+        ci_t0 = [t0_sp, t0_sp]
+        ci_mu_anc = [mu_ancestral, mu_ancestral]
+        ci_mu_rec = [mu_recent, mu_recent]
+        ci_beta2 = [float(beta_sp[2]), float(beta_sp[2])]
+
+    # Generalized R^2
+    one_Cinv_one = float(np.ones(n).T @ C_inv @ np.ones(n))
+    weighted_mean = float(np.ones(n).T @ C_inv @ dists) / max(1e-12, one_Cinv_one)
+    tot_residuals = dists - weighted_mean
+    ss_tot = float(tot_residuals.T @ C_inv @ tot_residuals)
+    r2_sp = float(max(0.0, 1.0 - (rss_sp / max(1e-12, ss_tot))))
+
+    return {
+        'method': 'RESTRICTED_SPLINE',
+        't_mrca': t0_sp,
+        'ci_mrca': ci_t0,
+        'rate_ancestral': mu_ancestral,
+        'ci_rate_ancestral': ci_mu_anc,
+        'rate_recent': mu_recent,
+        'ci_rate_recent': ci_mu_rec,
+        'rate_ratio': rate_ratio,
+        'beta_0': float(beta_sp[0]),
+        'beta_1': float(beta_sp[1]),
+        'beta_2': float(beta_sp[2]),
+        'ci_beta_2': ci_beta2,
+        'knots': knots.tolist(),
+        'rss': rss_sp,
+        'aic': aic_sp,
+        'rss_linear': rss_lin,
+        'aic_linear': aic_lin,
+        'delta_aic': delta_aic,
+        'f_stat': f_stat,
+        'p_f_test': p_f_test,
+        'is_nonlinear_preferred': is_nonlinear_preferred,
+        'r2': r2_sp,
+        'rmse': float(np.sqrt(np.mean(res_sp ** 2))),
+        'fitted': pred_sp,
+        'residuals': res_sp,
+        'n': n
     }
 
 
@@ -718,7 +1300,8 @@ def plot_mrca_dating(
     dists = dating_results['dists']
     ols = dating_results['ols']
     pgls = dating_results.get('pgls')
-    manifold = dating_results.get('manifold')
+    spline = dating_results.get('spline')
+    power = dating_results.get('power')
 
     # Panel A: Root-to-Tip Molecular Clock Regression
     ax1 = fig.add_subplot(gs[0])
@@ -729,8 +1312,10 @@ def plot_mrca_dating(
     mrca_candidates = [ols['t_mrca']]
     if pgls:
         mrca_candidates.append(pgls['t_mrca'])
-    if manifold:
-        mrca_candidates.append(manifold['t_mrca'])
+    if spline:
+        mrca_candidates.append(spline['t_mrca'])
+    if power:
+        mrca_candidates.append(power['t_mrca'])
 
     plot_left = min(t_min - (t_max - t_min) * 0.35, min(mrca_candidates) - (t_max - t_min) * 0.1)
     plot_right = t_max + (t_max - t_min) * 0.05
@@ -747,13 +1332,45 @@ def plot_mrca_dating(
         ax1.plot(x_grid, y_pgls, color='#7b2cbf', linestyle='-', linewidth=2.5,
                  label=f"HyphAeon PGLS (t_MRCA={pgls['t_mrca']:.1f}, μ={pgls['mu']:.5f})", zorder=5)
 
+    # Restricted Spline fitted curve
+    if spline:
+        knots_arr = np.array(spline['knots'])
+        b0 = spline['beta_0']
+        b1 = spline['beta_1']
+        b2 = spline['beta_2']
+        x_spline = np.linspace(max(plot_left, spline['t_mrca']), plot_right, 250)
+        B_grid, _ = compute_rcs_basis(x_spline, knots_arr)
+        y_spline = b0 + b1 * x_spline + (b2 * B_grid[:, 0] if B_grid.shape[1] > 0 else 0.0)
+        lbl_spline = f"Restricted Spline (t_MRCA={spline['t_mrca']:.1f}, μ_anc={spline['rate_ancestral']:.5f})"
+        color_s = '#2a9d8f' if spline.get('is_nonlinear_preferred') else '#f4a261'
+        style_s = '-' if spline.get('is_nonlinear_preferred') else ':'
+        ax1.plot(x_spline, y_spline, color=color_s, linestyle=style_s, linewidth=2.4, label=lbl_spline, zorder=6)
+
+    # Power-law fitted curve
+    if power:
+        x_power = np.linspace(max(plot_left, power['t_mrca'] + 1e-4), plot_right, 200)
+        y_power = power['k'] * (np.maximum(0.0, x_power - power['t_mrca']) ** power['theta'])
+        lbl_power = f"Power-Law (t_MRCA={power['t_mrca']:.1f}, θ={power['theta']:.3f})"
+        color_p = '#2a9d8f' if power.get('is_nonlinear_preferred') else '#f4a261'
+        style_p = '-' if power.get('is_nonlinear_preferred') else ':'
+        ax1.plot(x_power, y_power, color=color_p, linestyle=style_p, linewidth=2.2, label=lbl_power, zorder=6)
+
     # MRCA markers and CI error bars at distance = 0
     ax1.axhline(0, color='gray', linestyle=':', linewidth=0.8, zorder=1)
-    ax1.errorbar([ols['t_mrca']], [0], xerr=[[ols['t_mrca'] - ols['ci_mrca'][0]], [ols['ci_mrca'][1] - ols['t_mrca']]],
+    e_ols_l = max(0.0, ols['t_mrca'] - min(ols['ci_mrca'][0], ols['ci_mrca'][1]))
+    e_ols_r = max(0.0, max(ols['ci_mrca'][0], ols['ci_mrca'][1]) - ols['t_mrca'])
+    ax1.errorbar([ols['t_mrca']], [0], xerr=[[e_ols_l], [e_ols_r]],
                  fmt='s', color='#e63946', markersize=6, capsize=4, capthick=1.5, zorder=6)
     if pgls:
-        ax1.errorbar([pgls['t_mrca']], [-0.002], xerr=[[pgls['t_mrca'] - pgls['ci_mrca'][0]], [pgls['ci_mrca'][1] - pgls['t_mrca']]],
+        e_pgls_l = max(0.0, pgls['t_mrca'] - min(pgls['ci_mrca'][0], pgls['ci_mrca'][1]))
+        e_pgls_r = max(0.0, max(pgls['ci_mrca'][0], pgls['ci_mrca'][1]) - pgls['t_mrca'])
+        ax1.errorbar([pgls['t_mrca']], [-0.002], xerr=[[e_pgls_l], [e_pgls_r]],
                      fmt='D', color='#7b2cbf', markersize=6, capsize=4, capthick=1.5, zorder=6)
+    if spline and spline.get('is_nonlinear_preferred'):
+        e_spl_l = max(0.0, spline['t_mrca'] - min(spline['ci_mrca'][0], spline['ci_mrca'][1]))
+        e_spl_r = max(0.0, max(spline['ci_mrca'][0], spline['ci_mrca'][1]) - spline['t_mrca'])
+        ax1.errorbar([spline['t_mrca']], [-0.003], xerr=[[e_spl_l], [e_spl_r]],
+                     fmt='^', color='#2a9d8f', markersize=6, capsize=4, capthick=1.5, zorder=6)
 
     ax1.set_xlim(plot_left, plot_right)
     ax1.set_xlabel("Sampling Date / Time", fontsize=11, fontweight='bold')
@@ -762,36 +1379,22 @@ def plot_mrca_dating(
     ax1.legend(loc='upper left', frameon=True, fontsize=8.5)
     ax1.grid(True, linestyle=':', alpha=0.4)
 
-    # Panel B: Manifold Collapse or Residual Diagnostics
+    # Panel B: Residual Error Diagnostics
     ax2 = fig.add_subplot(gs[1])
-    if manifold is not None and manifold['n_timepoints'] >= 3:
-        vt = manifold['timepoints']
-        iv = manifold['variances']
-        ax2.scatter(vt, iv, color='#2a9d8f', s=65, edgecolors='black', linewidth=0.6, label='Latent Population Variance', zorder=3)
-        t_var_plot = np.linspace(manifold['t_mrca'] - (t_max - t_min) * 0.1, t_max + 1, 100)
-        ax2.plot(t_var_plot, manifold['slope'] * t_var_plot + manifold['intercept'], color='#2a9d8f', linewidth=2.2,
-                 label=f"Coalescent Collapse (t_MRCA={manifold['t_mrca']:.1f})", zorder=4)
-        ax2.axvline(manifold['t_mrca'], color='#2a9d8f', linestyle='--', linewidth=1.8)
-        ax2.scatter([manifold['t_mrca']], [0], color='#e76f51', s=80, marker='*', zorder=5, label='Origin Intercept')
-        ax2.axhline(0, color='gray', linestyle=':', linewidth=0.8)
-        ax2.set_xlabel("Sampling Date / Time", fontsize=11, fontweight='bold')
-        ax2.set_ylabel("128D Latent Manifold Variance Tr(Var(Z))", fontsize=11, fontweight='bold')
-        ax2.set_title("(B) Latent Manifold Coalescent Variance Collapse", fontsize=12, fontweight='bold')
-        ax2.legend(loc='upper left', frameon=True, fontsize=8.5)
-        ax2.grid(True, linestyle=':', alpha=0.4)
-    else:
-        # Residuals vs Time
-        res_ols = ols['residuals']
-        ax2.scatter(times, res_ols, color='#e63946', alpha=0.7, s=40, edgecolors='black', linewidth=0.5, label='OLS Residuals', zorder=3)
-        if pgls:
-            res_pgls = pgls['residuals']
-            ax2.scatter(times, res_pgls, color='#7b2cbf', alpha=0.7, s=40, marker='^', edgecolors='black', linewidth=0.5, label='PGLS Residuals', zorder=4)
-        ax2.axhline(0, color='black', linestyle='--', linewidth=1.2)
-        ax2.set_xlabel("Sampling Date / Time", fontsize=11, fontweight='bold')
-        ax2.set_ylabel("Residual Divergence (d - d_pred)", fontsize=11, fontweight='bold')
-        ax2.set_title("(B) Residual Error Diagnostics", fontsize=12, fontweight='bold')
-        ax2.legend(loc='upper right', frameon=True, fontsize=8.5)
-        ax2.grid(True, linestyle=':', alpha=0.4)
+    res_ols = ols['residuals']
+    ax2.scatter(times, res_ols, color='#e63946', alpha=0.7, s=40, edgecolors='black', linewidth=0.5, label='OLS Residuals', zorder=3)
+    if pgls:
+        res_pgls = pgls['residuals']
+        t_pgls = pgls.get('times', times)
+        if len(t_pgls) != len(res_pgls):
+            t_pgls = times[:len(res_pgls)]
+        ax2.scatter(t_pgls, res_pgls, color='#7b2cbf', alpha=0.7, s=40, marker='^', edgecolors='black', linewidth=0.5, label='HyphAeon PGLS Residuals', zorder=4)
+    ax2.axhline(0, color='black', linestyle='--', linewidth=1.2)
+    ax2.set_xlabel("Sampling Date / Time", fontsize=11, fontweight='bold')
+    ax2.set_ylabel("Residual Divergence (d - d_pred)", fontsize=11, fontweight='bold')
+    ax2.set_title("(B) Residual Error Diagnostics", fontsize=12, fontweight='bold')
+    ax2.legend(loc='upper right', frameon=True, fontsize=8.5)
+    ax2.grid(True, linestyle=':', alpha=0.4)
 
     plt.suptitle(title or "HyphAeon Molecular Clock Calibration & Ancestor Dating", fontsize=13, fontweight='bold', y=0.98)
     plt.tight_layout()
@@ -817,10 +1420,14 @@ def run_mrca_dating(
     strain_col: Optional[str] = None,
     date_regex: Optional[str] = None,
     root_taxon: Optional[str] = None,
+    decay_gamma: Optional[float] = None,
+    decay_half_life: Optional[float] = None,
     optimize_root: bool = True,
     use_tn93: bool = False,
     method: str = "all",
-    ridge: float = 0.05,
+    clock_model: str = "auto",
+    ridge: Union[float, str] = "auto",
+    tune_ridge: bool = False,
     n_bootstrap: int = 1000,
     model: Optional[torch.nn.Module] = None,
     weights: Optional[str] = None,
@@ -888,9 +1495,13 @@ def run_mrca_dating(
     else:
         print(f"[*] Tree skipped: Estimating tree-free pairwise distances via TN93...")
         dists, root_desc = compute_tree_free_divergences(
-            seq_dict, dated_taxa, dates_map, root_taxon=root_taxon
+            seq_dict, dated_taxa, dates_map,
+            root_taxon=root_taxon, decay_gamma=decay_gamma, decay_half_life=decay_half_life
         )
-        taxa = [t for t in dated_taxa if root_taxon is None or t != root_taxon]
+        if root_taxon and root_taxon in seq_dict:
+            taxa = [t for t in dated_taxa if t != root_taxon]
+        else:
+            taxa = list(dated_taxa)
         times = np.array([dates_map[t] for t in taxa], dtype=np.float64)
 
     print(f"[*] Root configuration: {root_desc} (Timespan: {np.min(times):.1f} - {np.max(times):.1f})")
@@ -899,12 +1510,12 @@ def run_mrca_dating(
     ols_res = run_ols_dating(times, dists, n_boot=n_bootstrap)
     print(f"[✓] OLS Molecular Clock: t_MRCA = {ols_res['t_mrca']:.2f} [{ols_res['ci_mrca'][0]:.1f}, {ols_res['ci_mrca'][1]:.1f}], μ = {ols_res['mu']:.6f} subs/site/yr (R^2 = {ols_res['r2']:.3f})")
 
-    # 5. HyphAeon Attention PGLS & Manifold Collapse (if requested)
+    # 5. HyphAeon Neural Attention PGLS (if requested)
     pgls_res = None
-    manifold_res = None
     cov_matrix = None
+    opt_lambda = 0.95
 
-    run_neural = method in ["all", "pgls", "manifold"]
+    run_neural = method in ["all", "pgls"]
     if run_neural:
         if device is None:
             device = get_device()
@@ -927,13 +1538,12 @@ def run_mrca_dating(
         print(f"[*] Extracting cross-taxa attention and 128D continuous representations...")
         msa_codons = c.to(device)
         msa_aas = a.to(device)
-        mds_coords = z.squeeze(0).cpu().numpy()
 
         cross_attn, taxa_repr = extract_cross_taxa_attentions_and_embeddings(
             model, msa_codons, msa_aas, tree_cache, device=device
         )
-        A_fused = compute_fused_affinity_matrix(cross_attn, mds_coords, taxa_repr)
-        print(f"[✓] Forward pass complete in {time.time() - t_fwd:.2f}s! Extracted {taxa_repr.shape[0]} taxa representations.")
+        K_neural = compute_neural_covariance_kernel(cross_attn, taxa_repr)
+        print(f"[✓] Forward pass complete in {time.time() - t_fwd:.2f}s! Extracted {taxa_repr.shape[0]} taxa neural representations.")
 
         # Align taxa order with dated taxa
         aln_taxa_map = {t: i for i, t in enumerate(aln_taxa)}
@@ -942,24 +1552,114 @@ def run_mrca_dating(
         sub_times = times[[i for i, t in enumerate(taxa) if t in aln_taxa_map]]
         sub_dists = dists[[i for i, t in enumerate(taxa) if t in aln_taxa_map]]
 
-        cov_matrix = A_fused[sub_indices, :][:, sub_indices]
+        cov_matrix = K_neural[sub_indices, :][:, sub_indices]
         z_sub = taxa_repr[sub_indices]
+
+        effective_ridge = 0.05
+        if isinstance(ridge, (int, float)):
+            effective_ridge = float(ridge)
+        elif str(ridge).lower() in ["auto", "reml"]:
+            opt_reml = estimate_reml_pagel_lambda(sub_times, sub_dists, cov_matrix)
+            # Map Pagel's lambda to complementary nugget ridge: ridge = (1 - lambda)
+            effective_ridge = float(np.clip(1.0 - opt_reml['best_lambda'], 0.01, 0.20))
+            print(f"[*] REML Estimated Phylogenetic Signal: Pagel's λ* = {opt_reml['best_lambda']:.4f} (nugget ridge = {effective_ridge:.4f})")
 
         # Fit PGLS
         if method in ["all", "pgls"]:
-            pgls_res = run_pgls_dating(sub_times, sub_dists, cov_matrix, ridge=ridge, n_boot=n_bootstrap)
+            pgls_res = run_pgls_dating(sub_times, sub_dists, cov_matrix, ridge=effective_ridge, n_boot=n_bootstrap)
             print(f"[✓] HyphAeon PGLS Clock: t_MRCA = {pgls_res['t_mrca']:.2f} [{pgls_res['ci_mrca'][0]:.1f}, {pgls_res['ci_mrca'][1]:.1f}], μ = {pgls_res['mu']:.6f} subs/site/yr (R^2_gls = {pgls_res['r2']:.3f})")
 
-        # Fit Manifold Collapse
-        if method in ["all", "manifold"]:
-            manifold_res = run_manifold_variance_collapse(z_sub, sub_times)
-            if manifold_res is not None:
-                print(f"[✓] Manifold Collapse Clock: t_MRCA = {manifold_res['t_mrca']:.2f} (Variance expansion s = {manifold_res['slope']:.6f}/yr, R^2 = {manifold_res['r2']:.3f})")
+    # 5b. Non-Linear Clock Models: Restricted Natural Spline & Power-Law
+    spline_res = None
+    power_res = None
+
+    if clock_model in ["auto", "spline"]:
+        fit_times = sub_times if (run_neural and cov_matrix is not None) else times
+        fit_dists = sub_dists if (run_neural and cov_matrix is not None) else dists
+        spline_cov = cov_matrix if (run_neural and cov_matrix is not None) else None
+        try:
+            spline_res = run_restricted_spline_clock_dating(
+                fit_times, fit_dists, cov_matrix=spline_cov, ridge=effective_ridge, n_boot=min(500, n_bootstrap)
+            )
+            ratio_sym = "acceleration" if spline_res['rate_ratio'] > 1.0 else "deceleration"
+            if np.isnan(spline_res['t_mrca']) or spline_res['rate_ancestral'] <= 0:
+                t0_str = "n/a (ancestral rate <= 0)"
+            else:
+                t0_str = f"{spline_res['t_mrca']:.2f} [{spline_res['ci_mrca'][0]:.1f}, {spline_res['ci_mrca'][1]:.1f}]"
+            print(f"[✓] Restricted Spline Clock: t_MRCA = {t0_str}, μ_anc = {spline_res['rate_ancestral']:.6f}, μ_rec = {spline_res['rate_recent']:.6f} ({ratio_sym} {spline_res['rate_ratio']:.2f}x) (R^2 = {spline_res['r2']:.3f}, ΔAIC = {spline_res['delta_aic']:+.1f}, p = {spline_res['p_f_test']:.4f})")
+        except Exception as e:
+            print(f"[!] Notice: Restricted spline fitting fell back to linear ({e})")
+
+    elif clock_model == "power":
+        fit_times = sub_times if (run_neural and cov_matrix is not None) else times
+        fit_dists = sub_dists if (run_neural and cov_matrix is not None) else dists
+        power_cov = opt_lambda * cov_matrix + (1.0 - opt_lambda) * np.eye(len(fit_times)) if (run_neural and cov_matrix is not None) else None
+        try:
+            power_res = run_powerlaw_clock_dating(
+                fit_times, fit_dists, cov_matrix=power_cov, ridge=0.01, n_boot=min(500, n_bootstrap)
+            )
+            print(f"[✓] Power-Law Clock: t_MRCA = {power_res['t_mrca']:.2f} [{power_res['ci_mrca'][0]:.1f}, {power_res['ci_mrca'][1]:.1f}], θ = {power_res['theta']:.3f} [{power_res['ci_theta'][0]:.3f}, {power_res['ci_theta'][1]:.3f}], μ_mean = {power_res['rate_mean']:.6f} subs/site/yr (R^2 = {power_res['r2']:.3f}, ΔAIC = {power_res['delta_aic']:+.1f}, p = {power_res['p_f_test']:.4f})")
+        except Exception as e:
+            print(f"[!] Notice: Non-linear power-law fitting fell back to linear ({e})")
+
+    # Model Selection
+    selected_clock = "Linear"
+    if clock_model == "spline" and spline_res is not None:
+        active_model = spline_res
+        selected_clock = "Restricted Spline (forced)"
+    elif clock_model == "power" and power_res is not None:
+        active_model = power_res
+        selected_clock = "Power-Law (forced)"
+    elif clock_model == "linear":
+        active_model = pgls_res if pgls_res is not None else ols_res
+        selected_clock = "Linear (forced)"
+    else:  # auto
+        if spline_res is not None and spline_res['is_nonlinear_preferred']:
+            active_model = spline_res
+            ratio_str = f"acceleration ({spline_res['rate_ratio']:.2f}x)" if spline_res['rate_ratio'] > 1.0 else f"deceleration ({spline_res['rate_ratio']:.2f}x)"
+            selected_clock = f"Restricted Spline (rate {ratio_str} detected: F={spline_res['f_stat']:.2f}, p={spline_res['p_f_test']:.4f}, ΔAIC={spline_res['delta_aic']:+.1f})"
+        else:
+            active_model = pgls_res if pgls_res is not None else ols_res
+            sp_p = f"p={spline_res['p_f_test']:.4f}" if spline_res else "p=n/a"
+            selected_clock = f"Linear (parsimonious linear clock preferred; {sp_p})"
+
+    print(f"[✓] Clock Model Selection: {selected_clock}")
 
     # 6. Per-Taxon Residuals and Predictions
-    active_model = pgls_res if pgls_res is not None else ols_res
-    pred_dates = active_model['t_ref'] + (dists - active_model['d0']) / active_model['mu']
-    fitted_all = active_model['d0'] + active_model['mu'] * (times - active_model['t_ref'])
+    if active_model.get('method') == 'RESTRICTED_SPLINE':
+        b0 = active_model['beta_0']
+        b1 = active_model['beta_1']
+        b2 = active_model['beta_2']
+        knots_arr = np.array(active_model['knots'])
+        t_kn0 = knots_arr[0]
+        d_kn0 = b0 + b1 * t_kn0
+
+        B_all, _ = compute_rcs_basis(times, knots_arr)
+        fitted_all = b0 + b1 * times + (b2 * B_all[:, 0] if B_all.shape[1] > 0 else 0.0)
+
+        pred_dates = np.zeros(len(dists))
+        for idx_d, d_val in enumerate(dists):
+            if d_val <= d_kn0 or abs(b2) < 1e-12:
+                pred_dates[idx_d] = (d_val - b0) / max(1e-15, b1)
+            else:
+                def f_diff(t_cand):
+                    B_c, _ = compute_rcs_basis(np.array([t_cand]), knots_arr)
+                    return float(b0 + b1 * t_cand + b2 * B_c[0, 0] - d_val)
+                try:
+                    t_root_sol = optimize.brentq(f_diff, t_kn0, max(times) + 100.0)
+                    pred_dates[idx_d] = t_root_sol
+                except Exception:
+                    pred_dates[idx_d] = (d_val - b0) / max(1e-15, b1)
+    elif active_model.get('method') == 'POWER_LAW':
+        k_val = max(1e-12, active_model['k'])
+        th_val = max(1e-4, active_model['theta'])
+        t0_val = active_model['t_mrca']
+        fitted_all = k_val * (np.maximum(1e-6, times - t0_val) ** th_val)
+        pred_dates = t0_val + (np.maximum(0.0, dists) / k_val) ** (1.0 / th_val)
+    else:
+        fitted_all = active_model['d0'] + active_model['mu'] * (times - active_model['t_ref'])
+        pred_dates = active_model['t_ref'] + (dists - active_model['d0']) / max(1e-15, active_model['mu'])
+
     residuals = dists - fitted_all
     std_res = np.std(residuals) if np.std(residuals) > 1e-12 else 1.0
 
@@ -993,7 +1693,10 @@ def run_mrca_dating(
         'taxa': taxa,
         'ols': ols_res,
         'pgls': pgls_res,
-        'manifold': manifold_res,
+        'spline': spline_res,
+        'power': power_res,
+        'clock_model': clock_model,
+        'selected_clock': selected_clock,
         'taxa_records': taxon_records
     }
 
@@ -1010,8 +1713,11 @@ def run_mrca_dating(
             'timespan': results['timespan'],
             'elapsed_seconds': results['elapsed_seconds'],
             'ols': {k: v for k, v in ols_res.items() if k not in ['residuals', 'fitted']},
-            'pgls': {k: v for k, v in pgls_res.items() if k not in ['residuals', 'fitted']} if pgls_res else None,
-            'manifold': {k: v for k, v in manifold_res.items() if k not in ['timepoints', 'variances']} if manifold_res else None,
+            'pgls': {k: v for k, v in pgls_res.items() if k not in ['residuals', 'fitted', 'times']} if pgls_res else None,
+            'spline': {k: v for k, v in spline_res.items() if k not in ['residuals', 'fitted']} if spline_res else None,
+            'power': {k: v for k, v in power_res.items() if k not in ['residuals', 'fitted']} if power_res else None,
+            'clock_model': clock_model,
+            'selected_clock': selected_clock,
             'taxa_summary': taxon_records
         }
         json_file = out_p.with_suffix('.json') if not str(out_p).endswith('.json') else out_p
