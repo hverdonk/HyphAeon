@@ -16,6 +16,14 @@ from .epistasis import (
     extract_epistatic_sectors
 )
 from .disease import predict_disease_pathogenicity
+from .dating import (
+    run_mrca_dating,
+    run_ols_dating,
+    run_pgls_dating,
+    run_manifold_variance_collapse,
+    verify_coding_alignment,
+    parse_sample_dates,
+)
 
 __version__ = "1.0.0"
 __all__ = [
@@ -33,5 +41,11 @@ __all__ = [
     "compute_selection_dms_essm",
     "extract_epistatic_sectors",
     "predict_disease_pathogenicity",
+    "run_mrca_dating",
+    "run_ols_dating",
+    "run_pgls_dating",
+    "run_manifold_variance_collapse",
+    "verify_coding_alignment",
+    "parse_sample_dates",
     "PRESETS",
 ]

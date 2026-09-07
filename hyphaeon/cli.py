@@ -1083,6 +1083,73 @@ def cmd_splits(args):
                 writer.writerow([t, "Right", res['eigengap']])
         print(f"[✓] Split assignments saved to: {args.csv}")
 
+def cmd_dating(args):
+    """Executes Heterochronous Molecular Clock Calibration, Ancestor Dating (t_MRCA), and Latent Manifold Collapse."""
+    from .dating import run_mrca_dating, plot_mrca_dating
+    use_tn93 = getattr(args, "no_tree", False) or getattr(args, "use_tn93", False) or (getattr(args, "tree", None) == "tn93")
+    device = get_device(cpu=getattr(args, "cpu", False))
+    print(f"[*] Hardware device selected: {device.type.upper()}")
+
+    plot_requested = getattr(args, "plot", False) or (getattr(args, "plot_path", None) is not None)
+
+    res = run_mrca_dating(
+        alignment_path=args.alignment,
+        tree_path=getattr(args, "tree", None),
+        dates_source=getattr(args, "dates", None),
+        date_col=getattr(args, "date_col", None),
+        strain_col=getattr(args, "strain_col", None),
+        date_regex=getattr(args, "date_regex", None),
+        root_taxon=getattr(args, "root_taxon", None),
+        optimize_root=not getattr(args, "no_optimize_root", False),
+        use_tn93=use_tn93,
+        method=getattr(args, "method", "all"),
+        ridge=getattr(args, "ridge", 0.05),
+        n_bootstrap=getattr(args, "bootstrap", 1000),
+        weights=getattr(args, "weights", DEFAULT_WEIGHTS_ENV),
+        variant=getattr(args, "variant", DEFAULT_VARIANT_ENV),
+        device=device,
+        batch_size=getattr(args, "batch_size", None),
+        max_species=getattr(args, "max_species", None),
+        output_prefix=getattr(args, "output", None),
+        plot=plot_requested
+    )
+
+    print("\n" + "=" * 105)
+    print(f"{'Method / Estimator':<36} {'Estimated t_MRCA':<20} {'95% Confidence Interval':<26} {'Rate (μ / year)':<18} {'R^2':<6}")
+    print("-" * 105)
+
+    ols = res['ols']
+    ci_ols_str = f"[{ols['ci_mrca'][0]:.1f}, {ols['ci_mrca'][1]:.1f}]"
+    print(f"{'1. Standard OLS (TempEst RTT)':<36} {ols['t_mrca']:>7.2f}            {ci_ols_str:<26} {ols['mu']:>11.6f}      {ols['r2']:>5.3f}")
+
+    if res.get('pgls'):
+        pgls = res['pgls']
+        ci_pgls_str = f"[{pgls['ci_mrca'][0]:.1f}, {pgls['ci_mrca'][1]:.1f}]"
+        print(f"{'2. HyphAeon Attention PGLS':<36} {pgls['t_mrca']:>7.2f}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
+
+    if res.get('manifold'):
+        man = res['manifold']
+        print(f"{'3. Latent Manifold Collapse':<36} {man['t_mrca']:>7.2f}            {'[Non-Parametric Coalescent]':<26} {man['slope']:>11.6f} [Var/yr] {man['r2']:>5.3f}")
+
+    print("-" * 105)
+
+    outliers = [r for r in res['taxa_records'] if r['is_outlier']]
+    if outliers:
+        print(f"\n[*] Flagged Temporal Outliers (|Z| >= 2.5, possible latent proviruses, archival isolates, or lab artifacts):")
+        for o in outliers[:10]:
+            print(f"    • {o['taxon']}: Sampling Date={o['sampling_date']:.1f}, Predicted Date={o['predicted_date']:.1f} (Discrepancy: {o['temporal_residual']:+.2f} yr, Z={o['z_score']:+.2f})")
+        if len(outliers) > 10:
+            print(f"    ... and {len(outliers) - 10} more (see CSV for full table).")
+
+    if getattr(args, "csv", None):
+        csv_path = args.csv
+        pd.DataFrame(res['taxa_records']).to_csv(csv_path, index=False)
+        print(f"[✓] Per-taxon dating diagnostics saved to: {csv_path}")
+
+    plot_path = getattr(args, "plot_path", None)
+    if plot_path:
+        plot_mrca_dating(res, plot_path)
+
 def main():
 
     parser = argparse.ArgumentParser(
@@ -1280,6 +1347,35 @@ def main():
     splits_parser.add_argument("-o", "--output", help="Optional path to output derived hierarchical Newick tree (.nwk)")
     splits_parser.add_argument("-c", "--csv", help="Optional path to output split clade membership table (.csv)")
 
+    # 12. Heterochronous Molecular Clock & MRCA Dating Subcommand
+    date_parser = subparsers.add_parser(
+        "dating",
+        aliases=["date", "mrca", "clock"],
+        help="Calibrate heterochronous molecular clocks, date MRCA ancestor, and run latent manifold variance collapse"
+    )
+    date_parser.add_argument("-a", "--alignment", required=True, help="Path to in-frame codon FASTA or NEXUS alignment")
+    date_parser.add_argument("-t", "--tree", default=None, help="Optional Newick/NEXUS phylogenetic tree (optional if embedded, or if --no-tree/--use-tn93 is set)")
+    date_parser.add_argument("--no-tree", action="store_true", help="Skip phylogenetic tree and estimate pairwise evolutionary distances directly from alignment using TN93")
+    date_parser.add_argument("--use-tn93", action="store_true", help="Estimate pairwise distances directly from alignment using TN93 (skips tree)")
+    date_parser.add_argument("-d", "--dates", default=None, help="Path to Nextstrain Auspice JSON, metadata CSV/TSV, or omitted to auto-extract timestamps from FASTA headers")
+    date_parser.add_argument("--date-col", default=None, help="Column name for sample collection date in metadata CSV/TSV")
+    date_parser.add_argument("--strain-col", default=None, help="Column name for taxon / strain identifier in metadata CSV/TSV")
+    date_parser.add_argument("--date-regex", default=None, help="Optional regex with capture group to extract dates from sequence headers")
+    date_parser.add_argument("--root-taxon", default=None, help="Reference taxon to use as ancestral root founder (e.g. 'CONSENSUS', earliest taxon, or outgroup)")
+    date_parser.add_argument("--no-optimize-root", action="store_true", help="Disable heuristic root search when a tree is provided")
+    date_parser.add_argument("--method", choices=["all", "ols", "pgls", "manifold"], default="all", help="Dating estimator(s) to run (default: all)")
+    date_parser.add_argument("--ridge", type=float, default=0.05, help="Regularization parameter for PGLS cross-taxa attention covariance (default: 0.05)")
+    date_parser.add_argument("--bootstrap", type=int, default=1000, help="Number of bootstrap resamples for empirical confidence intervals (default: 1000)")
+    date_parser.add_argument("--plot", action="store_true", help="Generate publication-grade diagnostic PDF and PNG figures")
+    date_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. mrca_clock.pdf)")
+    date_parser.add_argument("-w", "--weights", default=DEFAULT_WEIGHTS_ENV, help="Path to local model weights file (overrides HF download)")
+    date_parser.add_argument("--model-variant", dest="variant", default=DEFAULT_VARIANT_ENV, help=f"Model variant to download from HF (default: {DEFAULT_VARIANT})")
+    date_parser.add_argument("-s", "--max-species", type=int, default=None, help="Maximum number of taxa to include")
+    date_parser.add_argument("-b", "--batch-size", type=int, default=None, help="Site batch size (default: adaptive hardware budget)")
+    date_parser.add_argument("--cpu", action="store_true", help="Force CPU execution")
+    date_parser.add_argument("-o", "--output", help="Optional path to output JSON results")
+    date_parser.add_argument("-c", "--csv", help="Optional path to output per-taxon CSV results")
+
     args = parser.parse_args()
     if args.command in ["meme", "predict", "site-selection"]:
         cmd_meme(args)
@@ -1299,6 +1395,8 @@ def main():
         cmd_temporal(args)
     elif args.command in ["splits", "split", "clades", "bisection"]:
         cmd_splits(args)
+    elif args.command in ["dating", "date", "mrca", "clock"]:
+        cmd_dating(args)
     elif args.command == "list-models":
         list_models()
     elif args.command == "evaluate":
