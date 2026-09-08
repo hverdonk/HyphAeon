@@ -2014,6 +2014,74 @@ def run_mrca_dating(
         times = np.array([dates_map[t] for t in taxa], dtype=np.float64)
         dists = np.array([tree_dists[t] for t in taxa], dtype=np.float64)
 
+        # In auto mode, check if tree patristic distances suffer from non-positive slope or negligible temporal correlation
+        if mode == "auto" and run_neural and len(times) >= 5:
+            std_t = np.std(times)
+            std_d = np.std(dists)
+            tree_slope = float(np.polyfit(times, dists, 1)[0]) if (std_t > 1e-7 and std_d > 1e-7) else 0.0
+            tree_r2 = float(np.corrcoef(times, dists)[0, 1] ** 2) if (std_t > 1e-7 and std_d > 1e-7) else 0.0
+
+            if tree_slope <= 1e-6 or tree_r2 < 0.02:
+                print(f"[!] Notice: Tree root-to-tip patristic regression has negligible temporal signal (slope={tree_slope:.2e}, R^2={tree_r2:.3f}).")
+                print(f"[*] Auto-evaluating continuous sequence representation space (latent convex hull)...")
+                try:
+                    if device is None:
+                        device = get_device()
+                    if model is None:
+                        print(f"[*] Loading HyphAeon transformer backbone on {device}...")
+                        model = load_model(weights=weights, variant=variant, device=device)
+
+                    c_lat, a_lat, _, _, _, aln_taxa_lat, _, tree_cache_lat = prepare_alignment(
+                        str(align_p), str(tree_path) if has_tree else None,
+                        model=model, device=device, max_species=max_species,
+                        prune_duplicates=False, use_tn93=False
+                    )
+                    cross_attn_lat, taxa_repr_lat = extract_cross_taxa_attentions_and_embeddings(
+                        model, c_lat.to(device), a_lat.to(device), tree_cache_lat, device=device
+                    )
+                    K_neural_lat = compute_neural_covariance_kernel(cross_attn_lat, taxa_repr_lat)
+
+                    aln_taxa_map_l = {t: i for i, t in enumerate(aln_taxa_lat)}
+                    sub_indices_l = [aln_taxa_map_l[t] for t in dated_taxa if t in aln_taxa_map_l]
+                    taxa_l = [dated_taxa[i] for i, t in enumerate(dated_taxa) if t in aln_taxa_map_l]
+                    times_l = np.array([dates_map[t] for t in taxa_l], dtype=np.float64)
+                    z_sub_l = taxa_repr_lat[sub_indices_l]
+
+                    char_mat_l = np.array([list(seq_dict[t]) for t in taxa_l])
+                    valid_counts_l = np.array([np.sum(np.isin(char_mat_l[i], list('ACGT'))) for i in range(len(taxa_l))])
+                    coverage_l = valid_counts_l / max(1, char_mat_l.shape[1])
+                    anchor_mask_l = (coverage_l >= 0.50)
+
+                    N_l = len(taxa_l)
+                    pairwise_phys_l = np.zeros((N_l, N_l), dtype=np.float64)
+                    for i in range(N_l):
+                        for j in range(i + 1, N_l):
+                            v = np.isin(char_mat_l[i], list('ACGT')) & np.isin(char_mat_l[j], list('ACGT'))
+                            diffs = np.sum((char_mat_l[i] != char_mat_l[j]) & v)
+                            tot = np.sum(v)
+                            pairwise_phys_l[i, j] = diffs / max(1, tot)
+                            pairwise_phys_l[j, i] = pairwise_phys_l[i, j]
+
+                    cand_lat_res = optimize_latent_convex_hull_root(
+                        z_sub_l, times_l, taxa_names=taxa_l, pairwise_phys_dists=pairwise_phys_l,
+                        anchor_mask=anchor_mask_l, device=device
+                    )
+                    lat_r2 = cand_lat_res.get('temporal_r2', 0.0)
+                    lat_r = cand_lat_res.get('temporal_r', 0.0)
+
+                    if lat_r > 0 and lat_r2 > tree_r2 + 0.05:
+                        print(f"[✓] Auto-Promoted Continuous Latent Distance Mode: Temporal signal improved from Tree R^2={tree_r2:.3f} to Latent R^2={lat_r2:.3f} (R={lat_r:+.3f}).")
+                        taxa = taxa_l
+                        times = times_l
+                        dists = cand_lat_res['dists']
+                        latent_root_res = cand_lat_res
+                        cov_matrix = K_neural_lat[sub_indices_l, :][:, sub_indices_l]
+                        z_sub = z_sub_l
+                        effective_dist_mode = "latent"
+                        root_desc = f"latent_convex_hull (promoted over tree: R^2={lat_r2:.3f} vs tree R^2={tree_r2:.3f})"
+                except Exception as e_lat:
+                    print(f"[*] Latent space auto-evaluation notice: {e_lat}")
+
     else:  # "tn93"
         print(f"[*] Estimating tree-free pairwise distances via TN93...")
         dists, root_desc = compute_tree_free_divergences(
@@ -2198,7 +2266,79 @@ def run_mrca_dating(
         except Exception as e:
             print(f"[!] Notice: Power-law clock fitting fell back to linear ({e})")
 
-    # Model Selection
+    # -------------------------------------------------------------
+    # Principled Automated Model Selection & Ensembling Framework
+    # -------------------------------------------------------------
+    ols_valid = ols_res is not None and not np.isnan(ols_res.get('t_mrca', np.nan)) and ols_res.get('mu', 0) > 0
+    pgls_valid = pgls_res is not None and not np.isnan(pgls_res.get('t_mrca', np.nan)) and pgls_res.get('mu', 0) > 0
+    spline_valid = spline_res is not None and not np.isnan(spline_res.get('t_mrca', np.nan)) and spline_res.get('rate_ancestral', 0) > 0
+
+    ols_g = float(ols_res.get('fieller_g', np.nan)) if (ols_res and ols_res.get('fieller_g') is not None) else np.nan
+    pgls_g = float(pgls_res.get('fieller_g', np.nan)) if (pgls_res and pgls_res.get('fieller_g') is not None) else np.nan
+
+    ols_bounded = (not np.isnan(ols_g)) and (ols_g < 1.0)
+    pgls_bounded = (not np.isnan(pgls_g)) and (pgls_g < 1.0)
+
+    mu_ols = float(ols_res.get('mu', 1e-12)) if ols_res else 1e-12
+    mu_pgls = float(pgls_res.get('mu', 1e-12)) if pgls_res else 1e-12
+    attr = float(mu_pgls / max(1e-12, mu_ols)) if (ols_valid and pgls_valid) else 1.0
+
+    # Clade-confounded attenuation indicator:
+    # Rate deflated by > 2x (attr < 0.50) AND PGLS variance explained degraded relative to OLS
+    r2_ols = float(ols_res.get('r2', 0.0)) if ols_res else 0.0
+    r2_pgls = float(pgls_res.get('r2', 0.0)) if pgls_res else 0.0
+    is_clade_attenuated = ols_bounded and (attr < 0.50) and (r2_pgls < 0.65 * r2_ols)
+
+    # Precision-Weighted Multi-Model Ensembling (Hartung-Knapp / Burnham & Anderson meta-averaging)
+    precisions = {}
+    candidate_models = {}
+    if ols_valid and ols_bounded:
+        ci_w = ols_res['ci_mrca'][1] - ols_res['ci_mrca'][0] if ols_res.get('ci_mrca') and not np.isneginf(ols_res['ci_mrca'][0]) and not np.isinf(ols_res['ci_mrca'][1]) else np.nan
+        if not np.isnan(ci_w) and ci_w > 0:
+            precisions['ols'] = 1.0 / (ci_w ** 2)
+            candidate_models['ols'] = ols_res
+
+    if pgls_valid and pgls_bounded and not is_clade_attenuated:
+        ci_w = pgls_res['ci_mrca'][1] - pgls_res['ci_mrca'][0] if pgls_res.get('ci_mrca') and not np.isneginf(pgls_res['ci_mrca'][0]) and not np.isinf(pgls_res['ci_mrca'][1]) else np.nan
+        if not np.isnan(ci_w) and ci_w > 0:
+            precisions['pgls'] = 1.0 / (ci_w ** 2)
+            candidate_models['pgls'] = pgls_res
+
+    if spline_valid and spline_res.get('is_nonlinear_preferred'):
+        ci_w = spline_res['ci_mrca'][1] - spline_res['ci_mrca'][0] if spline_res.get('ci_mrca') and not np.isneginf(spline_res['ci_mrca'][0]) and not np.isinf(spline_res['ci_mrca'][1]) else np.nan
+        if not np.isnan(ci_w) and ci_w > 0:
+            precisions['spline'] = 1.0 / (ci_w ** 2)
+            candidate_models['spline'] = spline_res
+
+    ensemble_t_mrca = None
+    ensemble_ci = None
+    model_weights = {}
+    if precisions:
+        tot_prec = sum(precisions.values())
+        model_weights = {m: float(precisions[m] / max(1e-12, tot_prec)) for m in precisions}
+        ensemble_t_mrca = float(sum(model_weights[m] * candidate_models[m]['t_mrca'] for m in model_weights))
+
+        # Total variance: within-model variance + between-model variance (Burnham & Anderson eq. 4.9)
+        tot_var = 0.0
+        for m, w_m in model_weights.items():
+            ci_m = candidate_models[m]['ci_mrca']
+            se_m = (ci_m[1] - ci_m[0]) / (2.0 * 1.96)
+            tot_var += w_m * (se_m ** 2 + (candidate_models[m]['t_mrca'] - ensemble_t_mrca) ** 2)
+        se_ens = float(np.sqrt(max(1e-12, tot_var)))
+        min_sample_time = float(np.min(times))
+        ensemble_ci = [float(ensemble_t_mrca - 1.96 * se_ens), min(min_sample_time, float(ensemble_t_mrca + 1.96 * se_ens))]
+    elif ols_valid:
+        model_weights = {'ols': 1.0}
+        ensemble_t_mrca = float(ols_res['t_mrca'])
+        ensemble_ci = ols_res.get('ci_mrca')
+
+    ensemble_res = {
+        't_mrca': ensemble_t_mrca,
+        'ci_mrca': ensemble_ci,
+        'weights': model_weights
+    }
+
+    # Model Selection Decision
     selected_clock = "Linear"
     if clock_model == "spline" and spline_res is not None:
         active_model = spline_res
@@ -2207,31 +2347,50 @@ def run_mrca_dating(
         active_model = power_res
         selected_clock = "Power-Law (forced)"
     elif clock_model == "linear":
-        if pgls_res is not None and not np.isnan(pgls_res['t_mrca']):
+        if pgls_valid and not is_clade_attenuated and (pgls_bounded or not ols_bounded):
             active_model = pgls_res
             selected_clock = "Linear (HyphAeon PGLS)"
-        elif ols_res is not None and not np.isnan(ols_res['t_mrca']):
+        elif ols_valid:
             active_model = ols_res
-            selected_clock = "Linear (OLS fallback; PGLS non-positive rate)"
+            selected_clock = "Linear (Standard OLS)"
         else:
             active_model = pgls_res if pgls_res is not None else ols_res
             selected_clock = "Linear (forced)"
     else:  # auto
-        if spline_res is not None and spline_res['is_nonlinear_preferred'] and not np.isnan(spline_res['t_mrca']):
+        # 1. Non-linear Spline test
+        if spline_valid and spline_res.get('is_nonlinear_preferred'):
             active_model = spline_res
             ratio_str = f"acceleration ({spline_res['rate_ratio']:.2f}x)" if spline_res['rate_ratio'] > 1.0 else f"deceleration ({spline_res['rate_ratio']:.2f}x)"
             selected_clock = f"Restricted Spline (rate {ratio_str} detected: F={spline_res['f_stat']:.2f}, p={spline_res['p_f_test']:.4f}, ΔAIC={spline_res['delta_aic']:+.1f})"
+        # 2. Linear arbitration: check Fieller identifiability
+        elif pgls_valid and not pgls_bounded and ols_bounded:
+            active_model = ols_res
+            selected_clock = f"Linear (OLS preferred: PGLS temporal slope non-significant, g={pgls_g:.2f} vs OLS g={ols_g:.3f})"
+        # 3. Linear arbitration: check clade-confounded attenuation
+        elif pgls_valid and is_clade_attenuated:
+            active_model = ols_res
+            selected_clock = f"Linear (OLS preferred: PGLS clade attenuation detected, rate deflated {1/attr:.1f}x from OLS {mu_ols:.2e} to {mu_pgls:.2e})"
+        # 4. Standard PGLS preference when calibrated and bounded
+        elif pgls_valid and pgls_bounded:
+            active_model = pgls_res
+            sp_p = f"p={spline_res['p_f_test']:.4f}" if spline_res else "p=n/a"
+            lam_val = pgls_res.get('pagel_lambda')
+            lam_str = f", λ*={lam_val:.4f}" if isinstance(lam_val, (float, int)) else ""
+            selected_clock = f"Linear PGLS (parsimonious linear clock preferred{lam_str}; {sp_p})"
+        elif ols_valid and ols_bounded:
+            active_model = ols_res
+            selected_clock = "Linear (Standard OLS)"
+        elif pgls_valid:
+            active_model = pgls_res
+            g_p_str = f"{pgls_g:.2f}" if not np.isnan(pgls_g) else "inf"
+            g_o_str = f"{ols_g:.2f}" if not np.isnan(ols_g) else "inf"
+            selected_clock = f"Linear PGLS (unbounded temporal signal: PGLS g={g_p_str}, OLS g={g_o_str}; slope p >= 0.05)"
+        elif ols_valid:
+            active_model = ols_res
+            selected_clock = "Linear (OLS fallback: PGLS non-positive rate)"
         else:
-            if pgls_res is not None and not np.isnan(pgls_res['t_mrca']):
-                active_model = pgls_res
-                sp_p = f"p={spline_res['p_f_test']:.4f}" if spline_res else "p=n/a"
-                selected_clock = f"Linear (parsimonious linear clock preferred; {sp_p})"
-            elif ols_res is not None and not np.isnan(ols_res['t_mrca']):
-                active_model = ols_res
-                selected_clock = "Linear (OLS fallback; PGLS non-positive rate)"
-            else:
-                active_model = pgls_res if pgls_res is not None else ols_res
-                selected_clock = "Linear (parsimonious linear clock; non-positive rate)"
+            active_model = pgls_res if pgls_res is not None else ols_res
+            selected_clock = "Linear (parsimonious linear clock; non-positive rate)"
 
     print(f"[✓] Clock Model Selection: {selected_clock}")
 
@@ -2301,6 +2460,11 @@ def run_mrca_dating(
 
     elapsed_time = time.time() - t0
 
+    active_model_name = 'spline' if (spline_res is not None and active_model == spline_res) else ('pgls' if (pgls_res is not None and active_model == pgls_res) else 'ols')
+    active_tmrca_val = float(active_model['t_mrca']) if (active_model and not np.isnan(active_model.get('t_mrca', np.nan))) else None
+    active_ci_val = active_model.get('ci_mrca') if active_model else None
+    active_mu_val = float(active_model.get('mu', active_model.get('rate_ancestral', 0.0))) if active_model else None
+
     results = {
         'alignment': str(align_p),
         'tree': str(tree_path) if has_tree else None,
@@ -2313,6 +2477,10 @@ def run_mrca_dating(
         'times': times,
         'dists': dists,
         'taxa': taxa,
+        'active_model': active_model_name,
+        't_mrca': active_tmrca_val,
+        'ci_mrca': active_ci_val,
+        'mu': active_mu_val,
         'ols': ols_res,
         'pgls': pgls_res,
         'spline': spline_res,
@@ -2320,6 +2488,7 @@ def run_mrca_dating(
         'clock_model': clock_model,
         'ci_method': ci_method,
         'selected_clock': selected_clock,
+        'ensemble': ensemble_res,
         'taxa_records': taxon_records
     }
 
@@ -2342,6 +2511,10 @@ def run_mrca_dating(
             'taxa_count': results['taxa_count'],
             'timespan': results['timespan'],
             'elapsed_seconds': results['elapsed_seconds'],
+            'active_model': active_model_name,
+            't_mrca': active_tmrca_val,
+            'ci_mrca': active_ci_val,
+            'mu': active_mu_val,
             'ols': {k: v for k, v in ols_res.items() if k not in ['residuals', 'fitted', 'times']},
             'pgls': {k: v for k, v in pgls_res.items() if k not in ['residuals', 'fitted', 'times']} if pgls_res else None,
             'spline': {k: v for k, v in spline_res.items() if k not in ['residuals', 'fitted']} if spline_res else None,
@@ -2349,6 +2522,7 @@ def run_mrca_dating(
             'clock_model': clock_model,
             'ci_method': ci_method,
             'selected_clock': selected_clock,
+            'ensemble': ensemble_res,
             'taxa_summary': taxon_records
         }
         json_file = out_p.with_suffix('.json') if not str(out_p).endswith('.json') else out_p

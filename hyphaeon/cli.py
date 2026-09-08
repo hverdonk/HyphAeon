@@ -1169,6 +1169,12 @@ def cmd_dating(args):
 
     print("-" * 105)
     print(f"[*] Selected Clock Model: {res.get('selected_clock', 'Linear')}")
+    if res.get('ensemble') and res['ensemble'].get('t_mrca') is not None:
+        ens = res['ensemble']
+        weights_str = ", ".join([f"{k.upper()}={v*100:.1f}%" for k, v in ens.get('weights', {}).items()])
+        ci_ens = ens.get('ci_mrca')
+        ci_ens_str = f" [{ci_ens[0]:.1f}, {ci_ens[1]:.1f}]" if (ci_ens and not np.isnan(ci_ens[0]) and not np.isnan(ci_ens[1])) else ""
+        print(f"[*] Model-Averaged Ensemble: t_MRCA = {ens['t_mrca']:.2f}{ci_ens_str} (Weights: {weights_str})")
     if res['ols'].get('fieller_g') is not None:
         g_ols = res['ols']['fieller_g']
         g_status = "significant temporal signal" if g_ols < 1.0 else "unbounded (slope p >= 0.05)"
