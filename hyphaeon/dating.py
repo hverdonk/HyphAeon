@@ -1058,6 +1058,7 @@ def run_ols_dating(
         'rmse': float(np.sqrt(np.mean(res ** 2))),
         'residuals': res,
         'fitted': X @ beta_ols,
+        'times': times,
         'n': n
     }
 
@@ -1807,7 +1808,10 @@ def plot_mrca_dating(
     # Panel B: Residual Error Diagnostics
     ax2 = fig.add_subplot(gs[1])
     res_ols = ols['residuals']
-    ax2.scatter(times, res_ols, color='#e63946', alpha=0.7, s=40, edgecolors='black', linewidth=0.5, label='OLS Residuals', zorder=3)
+    t_ols = ols.get('times', times)
+    if len(t_ols) != len(res_ols):
+        t_ols = times[:len(res_ols)]
+    ax2.scatter(t_ols, res_ols, color='#e63946', alpha=0.7, s=40, edgecolors='black', linewidth=0.5, label='OLS Residuals', zorder=3)
     if pgls:
         res_pgls = pgls['residuals']
         t_pgls = pgls.get('times', times)
@@ -2335,7 +2339,7 @@ def run_mrca_dating(
             'taxa_count': results['taxa_count'],
             'timespan': results['timespan'],
             'elapsed_seconds': results['elapsed_seconds'],
-            'ols': {k: v for k, v in ols_res.items() if k not in ['residuals', 'fitted']},
+            'ols': {k: v for k, v in ols_res.items() if k not in ['residuals', 'fitted', 'times']},
             'pgls': {k: v for k, v in pgls_res.items() if k not in ['residuals', 'fitted', 'times']} if pgls_res else None,
             'spline': {k: v for k, v in spline_res.items() if k not in ['residuals', 'fitted']} if spline_res else None,
             'power': {k: v for k, v in power_res.items() if k not in ['residuals', 'fitted']} if power_res else None,
