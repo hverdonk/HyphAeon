@@ -1095,6 +1095,7 @@ def cmd_dating(args):
     print(f"[*] Hardware device selected: {device.type.upper()}")
 
     plot_requested = getattr(args, "plot", False) or (getattr(args, "plot_path", None) is not None)
+    ci_method = getattr(args, "ci_method", "fieller")
 
     res = run_mrca_dating(
         alignment_path=args.alignment,
@@ -1107,9 +1108,11 @@ def cmd_dating(args):
         decay_gamma=getattr(args, "decay_gamma", None),
         optimize_root=not getattr(args, "no_optimize_root", False),
         use_tn93=use_tn93,
+        distance_mode=getattr(args, "distance_mode", "auto"),
         method=getattr(args, "method", "all"),
         clock_model=getattr(args, "clock_model", "auto"),
-        ridge=getattr(args, "ridge", 0.05),
+        ci_method=ci_method,
+        ridge=getattr(args, "ridge", "auto"),
         n_bootstrap=getattr(args, "bootstrap", 1000),
         weights=getattr(args, "weights", DEFAULT_WEIGHTS_ENV),
         variant=getattr(args, "variant", DEFAULT_VARIANT_ENV),
@@ -1120,19 +1123,29 @@ def cmd_dating(args):
         plot=plot_requested
     )
 
+    def format_ci_str(ci, mu):
+        if ci is None or np.isnan(ci[0]) or np.isnan(ci[1]) or mu <= 0:
+            return "[rate <= 0]" if mu <= 0 else "[n/a]"
+        if np.isneginf(ci[0]):
+            return f"[-inf, {ci[1]:.1f}]"
+        return f"[{ci[0]:.1f}, {ci[1]:.1f}]"
+
+    ci_label = f"95% CI ({res.get('ci_method', 'Fieller').capitalize()})"
     print("\n" + "=" * 105)
-    print(f"{'Method / Estimator':<36} {'Estimated t_MRCA':<20} {'95% Confidence Interval':<26} {'Rate (μ / year)':<18} {'R^2':<6}")
+    print(f"{'Method / Estimator':<36} {'Estimated t_MRCA':<20} {ci_label:<26} {'Rate (μ / year)':<18} {'R^2':<6}")
     print("-" * 105)
 
     ols = res['ols']
-    ci_ols_str = f"[{ols['ci_mrca'][0]:.1f}, {ols['ci_mrca'][1]:.1f}]"
-    print(f"{'1. Standard OLS (TempEst RTT)':<36} {ols['t_mrca']:>7.2f}            {ci_ols_str:<26} {ols['mu']:>11.6f}      {ols['r2']:>5.3f}")
+    ols_t0_str = f"{'n/a':>7}" if (np.isnan(ols['t_mrca']) or ols['mu'] <= 0) else f"{ols['t_mrca']:>7.2f}"
+    ci_ols_str = format_ci_str(ols['ci_mrca'], ols['mu'])
+    print(f"{'1. Standard OLS (TempEst RTT)':<36} {ols_t0_str}            {ci_ols_str:<26} {ols['mu']:>11.6f}      {ols['r2']:>5.3f}")
 
     curr_idx = 2
     if res.get('pgls'):
         pgls = res['pgls']
-        ci_pgls_str = f"[{pgls['ci_mrca'][0]:.1f}, {pgls['ci_mrca'][1]:.1f}]"
-        print(f"{f'{curr_idx}. HyphAeon Attention PGLS':<36} {pgls['t_mrca']:>7.2f}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
+        pgls_t0_str = f"{'n/a':>7}" if (np.isnan(pgls['t_mrca']) or pgls['mu'] <= 0) else f"{pgls['t_mrca']:>7.2f}"
+        ci_pgls_str = format_ci_str(pgls['ci_mrca'], pgls['mu'])
+        print(f"{f'{curr_idx}. HyphAeon Attention PGLS':<36} {pgls_t0_str}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
         curr_idx += 1
 
     if res.get('spline'):
@@ -1156,6 +1169,14 @@ def cmd_dating(args):
 
     print("-" * 105)
     print(f"[*] Selected Clock Model: {res.get('selected_clock', 'Linear')}")
+    if res['ols'].get('fieller_g') is not None:
+        g_ols = res['ols']['fieller_g']
+        g_status = "significant temporal signal" if g_ols < 1.0 else "unbounded (slope p >= 0.05)"
+        print(f"    OLS Fieller g-statistic: g = {g_ols:.4f} ({g_status})")
+    if res.get('pgls') and res['pgls'].get('fieller_g') is not None:
+        g_pgls = res['pgls']['fieller_g']
+        g_status = "significant temporal signal" if g_pgls < 1.0 else "unbounded (slope p >= 0.05)"
+        print(f"    PGLS Fieller g-statistic: g = {g_pgls:.4f} ({g_status})")
     if res.get('spline'):
         sp = res['spline']
         p_str = f"p={sp['p_f_test']:.4f}" if sp['p_f_test'] >= 0.0001 else "p<0.0001"
@@ -1166,11 +1187,32 @@ def cmd_dating(args):
         p_str = f"p={pwr['p_f_test']:.4f}" if pwr['p_f_test'] >= 0.0001 else "p<0.0001"
         print(f"    Power-Law Curvature: θ = {pwr['theta']:.3f} [{pwr['ci_theta'][0]:.3f}, {pwr['ci_theta'][1]:.3f}] | F = {pwr['f_stat']:.3f} ({p_str}) | ΔAIC = {pwr['delta_aic']:+.2f}")
 
+    if res.get('latent_root'):
+        lr = res['latent_root']
+        print(f"\n[*] Continuous Latent Convex Hull Root Optimization:")
+        print(f"    Isometric Calibration Scale: α = {lr['alpha']:.6f} subs/site per latent unit")
+        print(f"    Latent Temporal Alignment:  R = {lr['temporal_r']:+.4f} (R^2 = {lr['temporal_r2']:.3f})")
+        print(f"    Top Ancestral Anchor Taxa in Convex Hull:")
+        for anc in lr['anchor_taxa'][:5]:
+            print(f"      • {anc['taxon']:<25} (Weight: {anc['weight']*100:>5.1f}%, Sampling Date: {anc['date']:.1f})")
+
+    holdouts = [r for r in res['taxa_records'] if r.get('is_holdout', False)]
+    if holdouts:
+        print(f"\n[*] Out-of-Sample Holdout / Validation Predictions:")
+        for h in holdouts:
+            if not np.isnan(h['predicted_date']):
+                print(f"    • {h['taxon']}: Sampling Date={h['sampling_date']:.1f}, Predicted Date={h['predicted_date']:.1f} (Discrepancy: {h['temporal_residual']:+.2f} yr)")
+            else:
+                print(f"    • {h['taxon']}: Sampling Date={h['sampling_date']:.1f}, Root Div={h['root_divergence']:.4f}")
+
     outliers = [r for r in res['taxa_records'] if r['is_outlier']]
     if outliers:
         print(f"\n[*] Flagged Temporal Outliers (|Z| >= 2.5, possible latent proviruses, archival isolates, or lab artifacts):")
         for o in outliers[:10]:
-            print(f"    • {o['taxon']}: Sampling Date={o['sampling_date']:.1f}, Predicted Date={o['predicted_date']:.1f} (Discrepancy: {o['temporal_residual']:+.2f} yr, Z={o['z_score']:+.2f})")
+            if np.isnan(o['predicted_date']):
+                print(f"    • {o['taxon']}: Sampling Date={o['sampling_date']:.1f}, Root Div={o['root_divergence']:.4f} (Residual Z={o['z_score']:+.2f}, Rate <= 0)")
+            else:
+                print(f"    • {o['taxon']}: Sampling Date={o['sampling_date']:.1f}, Predicted Date={o['predicted_date']:.1f} (Discrepancy: {o['temporal_residual']:+.2f} yr, Z={o['z_score']:+.2f})")
         if len(outliers) > 10:
             print(f"    ... and {len(outliers) - 10} more (see CSV for full table).")
 
@@ -1558,6 +1600,7 @@ def main():
     date_parser.add_argument("-t", "--tree", default=None, help="Optional Newick/NEXUS phylogenetic tree (optional if embedded, or if --no-tree/--use-tn93 is set)")
     date_parser.add_argument("--no-tree", action="store_true", help="Skip phylogenetic tree and estimate pairwise evolutionary distances directly from alignment using TN93")
     date_parser.add_argument("--use-tn93", action="store_true", help="Estimate pairwise distances directly from alignment using TN93 (skips tree)")
+    date_parser.add_argument("--distance-mode", choices=["auto", "tree", "latent", "tn93"], default="auto", help="Root-to-tip distance calculation mode: 'auto' (tree if provided, else latent convex hull if neural model available, else tn93), 'tree' (patristic tree distances), 'latent' (continuous convex hull root optimization in sequence representation space), or 'tn93' (empirical TN93 consensus distances)")
     date_parser.add_argument("-d", "--dates", default=None, help="Path to Nextstrain Auspice JSON, metadata CSV/TSV, or omitted to auto-extract timestamps from FASTA headers")
     date_parser.add_argument("--date-col", default=None, help="Column name for sample collection date in metadata CSV/TSV")
     date_parser.add_argument("--strain-col", default=None, help="Column name for taxon / strain identifier in metadata CSV/TSV")
@@ -1570,6 +1613,7 @@ def main():
     date_parser.add_argument("--ridge", default="auto", help="Regularization parameter for PGLS neural covariance: 'auto' (exact REML profile likelihood estimation of Pagel's lambda) or float (default: auto)")
     date_parser.add_argument("--tune-ridge", action="store_true", help="(Compatibility flag) Automated REML regularization is active by default")
     date_parser.add_argument("--bootstrap", type=int, default=1000, help="Number of bootstrap resamples for empirical confidence intervals (default: 1000)")
+    date_parser.add_argument("--ci-method", choices=["fieller", "delta", "poisson", "residual-boot", "site-boot", "jackknife"], default="fieller", help="Confidence interval calculation method for t_MRCA: 'fieller' (default; exact analytical ratio-test inversion), 'delta' (asymptotic linear tangent), 'poisson' (finite sequence length Poisson substitution sampling), 'residual-boot' (Wild Rademacher residual bootstrap), 'site-boot' (full transformer site bootstrap), or 'jackknife' (leave-one-out leverage)")
     date_parser.add_argument("--plot", action="store_true", help="Generate publication-grade diagnostic PDF and PNG figures")
     date_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. mrca_clock.pdf)")
     date_parser.add_argument("-w", "--weights", default=DEFAULT_WEIGHTS_ENV, help="Path to local model weights file (overrides HF download)")
