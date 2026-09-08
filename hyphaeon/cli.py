@@ -1599,8 +1599,8 @@ def main():
     # 12. Heterochronous Molecular Clock & MRCA Dating Subcommand
     date_parser = subparsers.add_parser(
         "dating",
-        aliases=["date", "mrca", "clock"],
-        help="Calibrate heterochronous molecular clocks and date MRCA ancestor"
+        aliases=["date", "mrca", "clock", "chronaeon"],
+        help="Calibrate heterochronous molecular clocks and date MRCA ancestor (ChronAeon)"
     )
     date_parser.add_argument("-a", "--alignment", required=True, help="Path to in-frame codon FASTA or NEXUS alignment")
     date_parser.add_argument("-t", "--tree", default=None, help="Optional Newick/NEXUS phylogenetic tree (optional if embedded, or if --no-tree/--use-tn93 is set)")
@@ -1695,7 +1695,7 @@ def main():
         cmd_temporal(args)
     elif args.command in ["splits", "split", "clades", "bisection"]:
         cmd_splits(args)
-    elif args.command in ["dating", "date", "mrca", "clock"]:
+    elif args.command in ["dating", "date", "mrca", "clock", "chronaeon"]:
         cmd_dating(args)
     elif args.command in ["geo", "phylogeography", "spatial", "migration"]:
         cmd_geo(args)
