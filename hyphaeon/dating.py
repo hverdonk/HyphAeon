@@ -1676,6 +1676,7 @@ def run_restricted_spline_clock_dating(
         'beta_0': float(beta_sp[0]),
         'beta_1': float(beta_sp[1]),
         'beta_2': float(beta_sp[2]),
+        'beta': [float(beta_sp[0]), float(beta_sp[1]), float(beta_sp[2])],
         'ci_beta_2': ci_beta2,
         'knots': knots.tolist(),
         'rss': rss_sp,
@@ -2236,7 +2237,9 @@ def run_mrca_dating(
 
     # 6. Per-Taxon Residuals and Predictions
     if active_model.get('method') == 'RESTRICTED_SPLINE':
-        b0, b1, b2 = active_model['beta']
+        b0 = float(active_model.get('beta_0', active_model.get('beta', [0, 0, 0])[0]))
+        b1 = float(active_model.get('beta_1', active_model.get('beta', [0, 0, 0])[1]))
+        b2 = float(active_model.get('beta_2', active_model.get('beta', [0, 0, 0])[2]))
         knots_arr = np.array(active_model['knots'])
         B_all, _ = compute_rcs_basis(times, knots_arr)
         fitted_all = b0 + b1 * times + b2 * B_all[:, 0]
