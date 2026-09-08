@@ -211,15 +211,21 @@ def extract_tree_from_string_or_file(source: str) -> Optional[Phylo.BaseTree.Tre
 
     return None
 
-def has_nonzero_branch_lengths(tree: Phylo.BaseTree.Tree) -> bool:
+def has_nonzero_branch_lengths(tree: Phylo.BaseTree.Tree, min_pos_ratio: float = 0.05) -> bool:
     """
-    Returns True if the tree contains valid, positive branch lengths across most branches.
+    Returns True if the tree contains valid, numeric branch lengths.
+    A tree is considered to have branch lengths if the vast majority of branches
+    have numeric lengths (not None) and at least some branches have positive divergence
+    (default >= 5%, accommodating dense outbreak trees with many identical isolates).
     """
     branches = [c.branch_length for c in tree.find_clades() if c != tree.root]
     if not branches:
         return False
-    pos_branches = [b for b in branches if b is not None and b > 0.0]
-    return len(pos_branches) > 0 and (len(pos_branches) / len(branches) >= 0.5)
+    numeric_branches = [b for b in branches if b is not None]
+    if len(numeric_branches) < len(branches) * 0.5:
+        return False
+    pos_branches = [b for b in numeric_branches if b > 0.0]
+    return len(pos_branches) > 0 and (len(pos_branches) / len(numeric_branches) >= min_pos_ratio)
 
 def estimate_tree_branch_lengths_hyphy(seq_dict: Dict[str, str], tree_obj: Phylo.BaseTree.Tree) -> Optional[Phylo.BaseTree.Tree]:
     """
@@ -457,7 +463,8 @@ def compute_tn93_distance_matrix(
     with threshold=1.0.
     """
     n = len(taxa)
-    dist_mat = np.zeros((n, n), dtype=np.float32)
+    dist_mat = np.full((n, n), -1.0, dtype=np.float32)
+    np.fill_diagonal(dist_mat, 0.0)
     if n <= 1:
         return dist_mat
 
@@ -534,15 +541,14 @@ def compute_tn93_distance_matrix(
                 "(or install the tn93 binary from https://github.com/veg/tn93)."
             )
 
-    # Impute missing/zero off-diagonal distances (vectorized).
-    # Identical sequences are pruned upstream (prune_identical_sequences).
-    # Any zero off-diagonal entry represents a divergent pair whose distance
-    # exceeded the threshold or was saturated -> impute with max observed distance or 1.0.
+    # Impute missing off-diagonal distances (vectorized).
+    # Identical sequences (distance == 0.0) are preserved.
+    # Any negative entry (< 0.0) represents a divergent pair whose distance
+    # exceeded the threshold or was omitted -> impute with max observed distance or 1.0.
     np.fill_diagonal(dist_mat, 0.0)
-    off_zero = (dist_mat <= 0.0)
-    np.fill_diagonal(off_zero, False)
+    missing = (dist_mat < 0.0)
     max_d = float(dist_mat.max()) if dist_mat.max() > 0 else 1.0
-    dist_mat[off_zero] = max(1.0, max_d)
+    dist_mat[missing] = max(1.0, max_d)
     np.fill_diagonal(dist_mat, 0.0)
     return dist_mat
 
