@@ -1453,7 +1453,8 @@ def cmd_sieve(args):
         n_temporal_bins=args.n_bins,
         root_taxon=args.root_taxon,
         tolerance_days=args.tolerance_days,
-        z_threshold=args.z_threshold
+        z_threshold=args.z_threshold,
+        max_ambig_ratio=getattr(args, "max_ambig", 0.05)
     )
 
     # 2. Screen Streaming Sequences
@@ -1816,6 +1817,7 @@ def main():
     sieve_parser.add_argument("--root-taxon", default=None, help="Reference taxon to use as ancestral root (default: earliest sampled)")
     sieve_parser.add_argument("--tolerance-days", type=float, default=90.0, help="Maximum tolerated temporal error before flagging (default: 90.0 days)")
     sieve_parser.add_argument("--z-threshold", type=float, default=2.5, help="Studentized residual divergence Z threshold (default: 2.5)")
+    sieve_parser.add_argument("--max-ambig", type=float, default=0.05, help="Maximum tolerated fraction of ambiguous/missing bases (Ns) before flagging as SUS_LOW_QUALITY (default: 0.05 = 5%%)")
     sieve_parser.add_argument("-o", "--output", default=None, help="Output CSV path for diagnostic triage report (default: sieve_triage_report.csv)")
     sieve_parser.add_argument("--clean-out", default=None, help="Optional path to output filtered clean FASTA (PASS sequences only)")
     sieve_parser.add_argument("--sus-out", default=None, help="Optional path to output quarantined FASTA (SUS sequences)")

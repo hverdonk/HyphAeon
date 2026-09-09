@@ -142,11 +142,20 @@ def audit_benchmarks(benchmark_dir: str, output_csv: Optional[str] = None, z_thr
 
             if abs(stud_res) >= z_threshold:
                 n_sus += 1
-                anomaly_type = 'OVER_DIVERGED (Fast/Lab/Artifact)' if stud_res > 0 else 'UNDER_DIVERGED (Lag/Frozen/Misdated)'
                 taxon_id = taxa[i] if taxa is not None and i < len(taxa) else f'tip_{i}'
                 seq_match = seqs.get(taxon_id, '')
                 gaps = seq_match.count('-') if seq_match else -1
                 n_ambig = seq_match.count('N') if seq_match else -1
+                seq_len = len(seq_match) if seq_match else 1
+                ambig_ratio = n_ambig / max(1, seq_len) if seq_match else 0.0
+
+                if stud_res > 0:
+                    if n_ambig > 10 or ambig_ratio > 0.02 or gaps > 10:
+                        anomaly_type = f'SUS_LOW_QUALITY (Missing Data / {n_ambig} Ns)'
+                    else:
+                        anomaly_type = 'SUS_HYPERMUTATED (Biological Excess Divergence / Clean)'
+                else:
+                    anomaly_type = 'SUS_LAGGING_OR_FROZEN (Under-Diverged / Archival / Misdated)'
 
                 outlier_records.append({
                     'study_id': sid,
@@ -159,6 +168,7 @@ def audit_benchmarks(benchmark_dir: str, output_csv: Optional[str] = None, z_thr
                     'anomaly_type': anomaly_type,
                     'gaps': gaps,
                     'ambig_N': n_ambig,
+                    'ambig_pct': ambig_ratio * 100.0,
                     'study_status': status
                 })
 

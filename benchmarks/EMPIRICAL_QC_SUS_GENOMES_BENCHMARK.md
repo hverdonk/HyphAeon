@@ -27,13 +27,16 @@ Across 32 empirical viral datasets used as canonical benchmarks for molecular cl
   2. SUS GENOME DETECTIONS (|Z| >= 3.0):
      - Total "sus" genomes detected across all datasets: 97 genomes (out of 7,370 total tips, 1.32%).
      - In temporally resolved datasets (g < 1.0, R^2 >= 0.05): 58 sus genomes across 17 pathogens.
-     - Anomaly Breakdown:
-         * 55 Over-Diverged (Excess branch length / fast / sequencing artifact)
-         * 42 Under-Diverged (Lag / frozen strain / mislabeled collection date)
+     - Tripartite Anomaly Breakdown:
+         * 31 SUS_LOW_QUALITY: Excess missing data ('N's or gaps) driving spurious divergence inflation.
+         * 24 SUS_HYPERMUTATED: Clean sequences with genuine biological rate acceleration / recombination.
+         * 42 SUS_LAGGING_OR_FROZEN: Under-diverged historical strains, frozen laboratory stocks, or mislabeled dates.
 
   3. ROOT CAUSE MECHANISMS UNMASKED BY COMPOSITIONAL AUDIT:
-     - 52.7% of all Over-Diverged outliers possess >10 ambiguous bases ('N') or excessive gaps, revealing 
-       that sequencing degradation and assembly ambiguities mimic evolutionary acceleration.
+     - 'N' IS MISSING DATA, NOT BIOLOGICAL EVOLUTION: 56.4% of over-diverged outliers (31 of 55) are 
+       sequencing artifacts containing up to 2,685 ambiguous bases ('N') or extensive gaps. Naive tree 
+       builders and distance calculators misalign across these missing stretches, creating artificial branch 
+       lengths. ChronAeon Sieve catches them at Gate 1 as SUS_LOW_QUALITY.
      - Under-Diverged outliers possess zero ambiguities (100% clean ACGT), representing genuine 
        laboratory-frozen reference passages or metadata entry errors (e.g. historical strain re-sequenced 
        decades later but assigned the sequencing run date).

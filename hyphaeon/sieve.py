@@ -192,7 +192,8 @@ class ChronAeonSieve:
         root_seq: str,
         clock_params: Dict[str, Any],
         tolerance_days: float = 60.0,
-        z_threshold: float = 2.0
+        z_threshold: float = 2.0,
+        max_ambig_ratio: float = 0.05
     ):
         self.anchor_taxa = list(anchor_taxa)
         self.anchor_seqs = list(anchor_seqs)
@@ -201,6 +202,7 @@ class ChronAeonSieve:
         self.clock_params = clock_params
         self.tolerance_days = float(tolerance_days)
         self.z_threshold = float(z_threshold)
+        self.max_ambig_ratio = float(max_ambig_ratio)
 
         self.mu = float(clock_params['mu'])
         self.d0 = float(clock_params['d0'])
@@ -248,7 +250,8 @@ class ChronAeonSieve:
         root_taxon: Optional[str] = None,
         seed: int = 42,
         tolerance_days: float = 60.0,
-        z_threshold: float = 2.0
+        z_threshold: float = 2.0,
+        max_ambig_ratio: float = 0.05
     ) -> "ChronAeonSieve":
         """
         Extracts a stratified, high-diversity anchor skeleton and calibrates a pristine clock.
@@ -338,7 +341,8 @@ class ChronAeonSieve:
             root_seq=root_seq,
             clock_params=clock_params,
             tolerance_days=tolerance_days,
-            z_threshold=z_threshold
+            z_threshold=z_threshold,
+            max_ambig_ratio=max_ambig_ratio
         )
 
 
@@ -439,15 +443,15 @@ class ChronAeonSieve:
                 'elapsed_ms': (time.time() - t0) * 1000.0
             }
 
-        # 1. Quality Audit
+        # 1. Quality & Missing Data Audit ('N' is missing data)
         q_upper = query_seq.upper()
         n_ambig = sum(q_upper.count(c) for c in 'N?')
         ambig_ratio = n_ambig / max(1, len(q_upper))
-        if ambig_ratio > 0.20:
+        if ambig_ratio > self.max_ambig_ratio:
             return {
                 'query_id': query_id,
                 'status': 'SUS',
-                'sus_reason': f'SUS_DEGRADED_QUALITY ({ambig_ratio*100:.1f}% ambiguous Ns)',
+                'sus_reason': f'SUS_LOW_QUALITY (excess missing data: {ambig_ratio*100:.1f}% Ns > {self.max_ambig_ratio*100:.1f}% threshold)',
                 'reported_date': rep_date,
                 'predicted_date': np.nan,
                 'temporal_error_days': np.nan,
@@ -501,10 +505,13 @@ class ChronAeonSieve:
             status = "SUS"
             sus_reason = f"SUS_ARCHIVAL_OR_LAB_LEAK (d_root={d_root:.5f} ≈ 0, sampled {rep_date:.2f})"
 
-        # C. Hypermutated or severely degraded sequence
+        # C. Over-diverged: Distinguish biological hypermutation from missing data ('N') artifacts
         elif z_score > 3.0 and nn_dist > (2.0 * self.median_nn_dist):
             status = "SUS"
-            sus_reason = f"SUS_HYPERMUTATED_DEGRADED (Z={z_score:+.2f}, excess private mutations)"
+            if n_ambig > 10 or ambig_ratio > 0.02:
+                sus_reason = f"SUS_LOW_QUALITY (Z={z_score:+.2f}, divergence artifact driven by {n_ambig} missing 'N' bases)"
+            else:
+                sus_reason = f"SUS_HYPERMUTATED (Z={z_score:+.2f}, biological excess divergence with high sequence completeness)"
 
         # D. Split-window recombination check (5' vs 3' halves)
         elif self.seq_len >= 1000:
