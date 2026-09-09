@@ -1119,6 +1119,7 @@ def cmd_dating(args):
         device=device,
         batch_size=getattr(args, "batch_size", None),
         max_species=getattr(args, "max_species", None),
+        loocv=getattr(args, "loocv", False),
         output_prefix=getattr(args, "output", None),
         plot=plot_requested
     )
@@ -1192,6 +1193,44 @@ def cmd_dating(args):
         pwr = res['power']
         p_str = f"p={pwr['p_f_test']:.4f}" if pwr['p_f_test'] >= 0.0001 else "p<0.0001"
         print(f"    Power-Law Curvature: θ = {pwr['theta']:.3f} [{pwr['ci_theta'][0]:.3f}, {pwr['ci_theta'][1]:.3f}] | F = {pwr['f_stat']:.3f} ({p_str}) | ΔAIC = {pwr['delta_aic']:+.2f}")
+
+    if res.get('loocv'):
+        lv = res['loocv']
+        print("\n" + "=" * 105)
+        print(f"Leave-One-Out Cross-Validation (LOOCV) & Jackknife Uncertainty ({lv['method']}, N = {lv['n_taxa']} taxa)")
+        print("-" * 105)
+        print("Out-of-Sample Tip Date Recovery:")
+        if not np.isnan(lv.get('tip_mae_days', np.nan)):
+            print(f"  • Mean Absolute Error (MAE):          {lv['tip_mae_days']:>7.1f} days ({lv['tip_mae_years']:.4f} yr)")
+            print(f"  • Root Mean Squared Error (RMSE):     {lv['tip_rmse_days']:>7.1f} days ({lv['tip_rmse_years']:.4f} yr)")
+            print(f"  • Median Absolute Error:              {lv['tip_median_abs_error_days']:>7.1f} days")
+            print(f"  • 95% Tip Predictive Interval Width:  {lv['tip_pred_ci_95_days']:>7.1f} days ({lv['tip_pred_ci_95_years']:.4f} yr, ±{lv['tip_pred_ci_95_days']/2:.1f} d)")
+            print(f"  • Empirical 95% Error Bound:          {lv['tip_empirical_95_days']:>7.1f} days")
+            if not np.isnan(lv.get('tip_r2_pred', np.nan)):
+                print(f"  • Out-of-Sample Predictive R^2:       {lv['tip_r2_pred']:>7.3f}")
+        else:
+            print("  • Notice: Tip date inversion non-computable (rate <= 0).")
+
+        print("\nJackknife Root (t_MRCA) Uncertainty vs. Analytical Intervals:")
+        if not np.isnan(lv.get('jackknife_mean', np.nan)):
+            act_t0 = res.get('t_mrca')
+            act_t0_str = f"{act_t0:.2f}" if (act_t0 is not None and not np.isnan(act_t0)) else "n/a"
+            print(f"  • Full-Sample Estimated t_MRCA:       {act_t0_str}")
+            print(f"  • Jackknife Mean t_MRCA:              {lv['jackknife_mean']:.2f}")
+            print(f"  • Jackknife SE(t_MRCA):               {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
+            ci_j = lv['jackknife_ci']
+            print(f"  • Jackknife 95% CI:                   [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
+
+            if 'fieller_ci_width_years' in lv and not np.isnan(lv['fieller_ci_width_years']):
+                ratio_val = lv.get('fieller_to_jackknife_ratio', np.nan)
+                ratio_str = f"{ratio_val:.2f}x" if not np.isnan(ratio_val) else "n/a"
+                act_ci = res.get('ci_mrca')
+                act_ci_str = f"[{act_ci[0]:.2f}, {act_ci[1]:.2f}]" if act_ci else "n/a"
+                print(f"  • Fieller Analytical 95% CI:          {act_ci_str} (Width: {lv['fieller_ci_width_years']:.3f} yr / {lv['fieller_ci_width_days']:.1f} days)")
+                print(f"  • Fieller-to-Jackknife Width Ratio:   {ratio_str} (Non-parametric empirical calibration)")
+            print(f"  • Total Jackknife Root Spread:        {lv['jackknife_spread_days']:.1f} days across leave-one-out iterations")
+        else:
+            print("  • Notice: Jackknife root estimates non-computable (rate <= 0).")
 
     if res.get('latent_root'):
         lr = res['latent_root']
@@ -1394,6 +1433,89 @@ def cmd_r0(args):
         csv_path = args.csv
         pd.DataFrame(res["rt_skyline"]).to_csv(csv_path, index=False)
         print(f"[✓] Dynamic R(t) skyline saved to: {csv_path}")
+
+
+def cmd_sieve(args):
+    from .sieve import ChronAeonSieve
+    from .dataset import parse_alignment_sequences
+
+    print("=" * 80)
+    print("CHRONAEON SIEVE: HIGH-THROUGHPUT QUALITY CONTROL & CLOCK TRIAGE")
+    print("=" * 80)
+
+    # 1. Build Anchor Harness
+    sieve = ChronAeonSieve.build_from_alignment(
+        alignment_path=args.alignment,
+        dates_path=args.dates,
+        date_col=getattr(args, "date_col", None),
+        strain_col=getattr(args, "strain_col", None),
+        n_anchor=args.n_anchor,
+        n_temporal_bins=args.n_bins,
+        root_taxon=args.root_taxon,
+        tolerance_days=args.tolerance_days,
+        z_threshold=args.z_threshold
+    )
+
+    # 2. Screen Streaming Sequences
+    if not args.stream:
+        print("\n[!] No streaming sequences provided (--stream). Anchor harness built and verified.")
+        return
+
+    print(f"\n[*] Streaming sequences from: {args.stream}")
+    df_results = sieve.screen_stream(
+        stream_fasta=args.stream,
+        stream_dates=getattr(args, "stream_dates", None),
+        date_col=getattr(args, "date_col", None),
+        strain_col=getattr(args, "strain_col", None),
+        align_minimap2=getattr(args, "align_minimap2", False)
+    )
+
+    # 3. Print Summary
+    n_tot = len(df_results)
+    n_pass = int((df_results['status'] == 'PASS').sum())
+    n_sus = int((df_results['status'] == 'SUS').sum())
+    n_flag = int((df_results['status'] == 'FLAG_MISSING_DATE').sum())
+    mean_ms = float(df_results['elapsed_ms'].mean())
+
+    print("\n" + "=" * 80)
+    print(f"SIEVE TRIAGE SUMMARY (N={n_tot})")
+    print("-" * 80)
+    print(f"  • PASS (Analysis-Ready)  : {n_pass:>6} ({n_pass/max(1,n_tot)*100:>5.1f}%)")
+    print(f"  • SUS (Quarantined)      : {n_sus:>6} ({n_sus/max(1,n_tot)*100:>5.1f}%)")
+    if n_flag > 0:
+        print(f"  • MISSING DATE           : {n_flag:>6} ({n_flag/max(1,n_tot)*100:>5.1f}%)")
+    print(f"  • Throughput             : {1000.0/max(0.01, mean_ms):.1f} seq/s ({mean_ms:.2f} ms/seq)")
+
+    if n_sus > 0:
+        print("\nBreakdown of Quarantined Anomalies:")
+        sus_df = df_results[df_results['status'] == 'SUS']
+        categories = sus_df['sus_reason'].str.split().str[0].value_counts()
+        for cat, cnt in categories.items():
+            print(f"    - {cat:<28}: {cnt:>5}")
+
+    # 4. Save Outputs
+    out_csv = args.output or "sieve_triage_report.csv"
+    df_results.to_csv(out_csv, index=False)
+    print(f"\n[✓] Diagnostic triage report written to: {out_csv}")
+
+    # Optionally write segregated FASTAs
+    if getattr(args, "clean_out", None) or getattr(args, "sus_out", None):
+        stream_dict = parse_alignment_sequences(str(args.stream))
+        if getattr(args, "clean_out", None):
+            clean_ids = set(df_results[df_results['status'] == 'PASS']['query_id'])
+            with open(args.clean_out, "w") as f:
+                for qid in clean_ids:
+                    if qid in stream_dict:
+                        f.write(f">{qid}\n{stream_dict[qid]}\n")
+            print(f"[✓] Clean analysis-ready FASTA written to: {args.clean_out}")
+
+        if getattr(args, "sus_out", None):
+            sus_ids = set(df_results[df_results['status'] == 'SUS']['query_id'])
+            with open(args.sus_out, "w") as f:
+                for qid in sus_ids:
+                    if qid in stream_dict:
+                        f.write(f">{qid}\n{stream_dict[qid]}\n")
+            print(f"[✓] Quarantined anomalies FASTA written to: {args.sus_out}")
 
 
 def main():
@@ -1620,6 +1742,7 @@ def main():
     date_parser.add_argument("--tune-ridge", action="store_true", help="(Compatibility flag) Automated REML regularization is active by default")
     date_parser.add_argument("--bootstrap", type=int, default=1000, help="Number of bootstrap resamples for empirical confidence intervals (default: 1000)")
     date_parser.add_argument("--ci-method", choices=["fieller", "delta", "poisson", "residual-boot", "site-boot", "jackknife"], default="fieller", help="Confidence interval calculation method for t_MRCA: 'fieller' (default; exact analytical ratio-test inversion), 'delta' (asymptotic linear tangent), 'poisson' (finite sequence length Poisson substitution sampling), 'residual-boot' (Wild Rademacher residual bootstrap), 'site-boot' (full transformer site bootstrap), or 'jackknife' (leave-one-out leverage)")
+    date_parser.add_argument("--loocv", action="store_true", help="Perform leave-one-out cross-validation (LOOCV) for out-of-sample tip recovery accuracy and Jackknife root stability")
     date_parser.add_argument("--plot", action="store_true", help="Generate publication-grade diagnostic PDF and PNG figures")
     date_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. mrca_clock.pdf)")
     date_parser.add_argument("-w", "--weights", default=DEFAULT_WEIGHTS_ENV, help="Path to local model weights file (overrides HF download)")
@@ -1676,6 +1799,28 @@ def main():
     r0_parser.add_argument("-o", "--output", help="Optional path to output JSON results")
     r0_parser.add_argument("-c", "--csv", help="Optional path to output dynamic R(t) skyline CSV")
 
+    # 12. ChronAeon Sieve: High-Throughput Streaming QC & Clock Manifold Triage
+    sieve_parser = subparsers.add_parser(
+        "sieve",
+        aliases=["qc-stream", "stream-qc", "chronaeon-sieve"],
+        help="Streaming high-throughput quality control and molecular clock outlier triage (ChronAeon Sieve)"
+    )
+    sieve_parser.add_argument("-a", "--alignment", required=True, help="Path to reference FASTA or anchor alignment")
+    sieve_parser.add_argument("-d", "--dates", default=None, help="Path to reference metadata CSV/TSV containing collection dates")
+    sieve_parser.add_argument("-s", "--stream", default=None, help="Path to incoming FASTA file of streaming sequences to screen")
+    sieve_parser.add_argument("--stream-dates", default=None, help="Optional metadata CSV/TSV for streaming sequences (auto-extracted from FASTA if omitted)")
+    sieve_parser.add_argument("--date-col", default=None, help="Column name for sample collection date")
+    sieve_parser.add_argument("--strain-col", default=None, help="Column name for taxon / strain identifier")
+    sieve_parser.add_argument("--n-anchor", type=int, default=512, help="Number of anchor taxa for reference skeleton (default: 512)")
+    sieve_parser.add_argument("--n-bins", type=int, default=32, help="Number of temporal bins for stratified sampling (default: 32)")
+    sieve_parser.add_argument("--root-taxon", default=None, help="Reference taxon to use as ancestral root (default: earliest sampled)")
+    sieve_parser.add_argument("--tolerance-days", type=float, default=90.0, help="Maximum tolerated temporal error before flagging (default: 90.0 days)")
+    sieve_parser.add_argument("--z-threshold", type=float, default=2.5, help="Studentized residual divergence Z threshold (default: 2.5)")
+    sieve_parser.add_argument("-o", "--output", default=None, help="Output CSV path for diagnostic triage report (default: sieve_triage_report.csv)")
+    sieve_parser.add_argument("--clean-out", default=None, help="Optional path to output filtered clean FASTA (PASS sequences only)")
+    sieve_parser.add_argument("--sus-out", default=None, help="Optional path to output quarantined FASTA (SUS sequences)")
+    sieve_parser.add_argument("--align", "--minimap2", dest="align_minimap2", action="store_true", help="Dynamically align raw, unaligned streaming sequences to root reference using minimap2")
+
     args = parser.parse_args()
     if args.command in ["meme", "predict", "site-selection"]:
         cmd_meme(args)
@@ -1701,6 +1846,8 @@ def main():
         cmd_geo(args)
     elif args.command in ["r0", "rt", "phylodynamics", "growth"]:
         cmd_r0(args)
+    elif args.command in ["sieve", "qc-stream", "stream-qc", "chronaeon-sieve"]:
+        cmd_sieve(args)
     elif args.command == "list-models":
         list_models()
     elif args.command == "evaluate":

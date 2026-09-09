@@ -937,6 +937,206 @@ def compute_residual_bootstrap_mrca_interval(
     return [np.nan, np.nan]
 
 
+def run_dating_loocv(
+    times: np.ndarray,
+    dists: np.ndarray,
+    taxa: Optional[List[str]] = None,
+    cov_matrix: Optional[np.ndarray] = None,
+    ridge: float = 0.05,
+    pagel_lambda: Optional[float] = None,
+    method: str = "ols",
+    min_time: Optional[float] = None,
+) -> Dict[str, Any]:
+    """
+    Executes Leave-One-Out Cross-Validation (LOOCV) and Jackknife root uncertainty analysis.
+
+    For each tip i in {1, ..., N}:
+      1. Withholds tip i and fits the heterochronous clock model on the remaining N - 1 tips.
+      2. Generates out-of-sample prediction of tip i's sampling date (t_hat_i) from its root divergence.
+      3. Computes out-of-sample prediction residual e_t = t_hat_i - t_i.
+      4. Records the leave-one-out root estimate t_MRCA^{(-i)}.
+
+    Metrics computed:
+      - Tip Date Out-of-Sample MAE & RMSE (in days and years)
+      - Empirical 95% Tip Predictive Interval
+      - Non-parametric Jackknife SE(t_MRCA) and Jackknife 95% CI
+      - Hat matrix diagonal leverages (h_ii)
+      - Comparison against Fieller's theorem analytical CI width
+    """
+    times = np.asarray(times, dtype=np.float64)
+    dists = np.asarray(dists, dtype=np.float64)
+    n = len(times)
+    if n < 4:
+        raise ValueError(f"At least 4 dated taxa are required for LOOCV (got N={n}).")
+
+    if min_time is None:
+        min_time = float(np.min(times))
+
+    # Full sample fit for reference
+    t_ref_full = float(np.mean(times))
+    X_full = np.column_stack([times - t_ref_full, np.ones(n)])
+
+    # Calculate leverage h_ii
+    try:
+        XtX_inv = la.inv(X_full.T @ X_full)
+        H_diag = np.sum((X_full @ XtX_inv) * X_full, axis=1)
+    except Exception:
+        H_diag = np.full(n, np.nan)
+
+    pred_dates = np.full(n, np.nan)
+    pred_dists = np.full(n, np.nan)
+    loocv_mu = np.full(n, np.nan)
+    loocv_d0 = np.full(n, np.nan)
+    jack_tmrca = np.full(n, np.nan)
+    err_dates = np.full(n, np.nan)
+    err_dists = np.full(n, np.nan)
+
+    use_pgls = (str(method).lower() == "pgls" and cov_matrix is not None and cov_matrix.shape == (n, n))
+
+    for i in range(n):
+        idx_train = np.delete(np.arange(n), i)
+        t_tr = times[idx_train]
+        d_tr = dists[idx_train]
+        n_tr = len(t_tr)
+        t_ref_i = float(np.mean(t_tr))
+        x_tr = t_tr - t_ref_i
+        X_tr = np.column_stack([x_tr, np.ones(n_tr)])
+
+        if not use_pgls:
+            # Fast OLS fit
+            beta_i, _, _, _ = la.lstsq(X_tr, d_tr)
+            mu_i, d0_i = float(beta_i[0]), float(beta_i[1])
+            blup_corr = 0.0
+        else:
+            # PGLS fit
+            C_tr = cov_matrix[idx_train, :][:, idx_train]
+            if pagel_lambda is not None and pagel_lambda < 1.0:
+                C_tr = pagel_lambda * C_tr + (1.0 - pagel_lambda) * np.eye(n_tr)
+            C_tr = C_tr + ridge * np.eye(n_tr)
+
+            try:
+                L_tr = la.cholesky(C_tr, lower=True)
+                X_rot = la.solve_triangular(L_tr, X_tr, lower=True)
+                d_rot = la.solve_triangular(L_tr, d_tr, lower=True)
+                beta_i, _, _, _ = la.lstsq(X_rot, d_rot)
+                mu_i, d0_i = float(beta_i[0]), float(beta_i[1])
+
+                # Kriging / BLUP out-of-sample adjustment
+                k_i = cov_matrix[i, idx_train]
+                if pagel_lambda is not None and pagel_lambda < 1.0:
+                    k_i = pagel_lambda * k_i
+                alpha = la.cho_solve((L_tr, True), d_tr - X_tr @ beta_i)
+                blup_corr = float(k_i @ alpha)
+            except Exception:
+                # Fallback to OLS for this leave-out step if singular
+                beta_i, _, _, _ = la.lstsq(X_tr, d_tr)
+                mu_i, d0_i = float(beta_i[0]), float(beta_i[1])
+                blup_corr = 0.0
+
+        loocv_mu[i] = mu_i
+        loocv_d0[i] = d0_i
+
+        # Root estimate for Jackknife
+        if mu_i > 1e-12:
+            t0_cand = t_ref_i - (d0_i / mu_i)
+            jack_tmrca[i] = t0_cand
+
+        # Predicted divergence at actual time t_i
+        d_hat_i = d0_i + mu_i * (times[i] - t_ref_i) + blup_corr
+        pred_dists[i] = d_hat_i
+        err_dists[i] = dists[i] - d_hat_i
+
+        # Predicted sampling date from divergence d_i
+        if mu_i > 1e-12:
+            t_hat_i = t_ref_i + (dists[i] - blup_corr - d0_i) / mu_i
+            pred_dates[i] = t_hat_i
+            err_dates[i] = t_hat_i - times[i]
+
+    # Compute tip predictive performance
+    valid_mask = ~np.isnan(pred_dates)
+    n_valid = int(np.sum(valid_mask))
+
+    if n_valid >= 3:
+        err_yr = err_dates[valid_mask]
+        err_days = err_yr * 365.25
+        mae_days = float(np.mean(np.abs(err_days)))
+        rmse_days = float(np.sqrt(np.mean(err_days ** 2)))
+        mae_years = float(np.mean(np.abs(err_yr)))
+        rmse_years = float(np.sqrt(np.mean(err_yr ** 2)))
+        med_ae_days = float(np.median(np.abs(err_days)))
+        pred_ci_95_days = float(2.0 * 1.96 * rmse_days)
+        pred_ci_95_years = float(2.0 * 1.96 * rmse_years)
+        emp_95_days = float(np.percentile(np.abs(err_days), 95) * 2.0)
+
+        # Predictive R^2
+        ss_tot_t = float(np.sum((times[valid_mask] - np.mean(times[valid_mask])) ** 2))
+        ss_res_t = float(np.sum(err_yr ** 2))
+        r2_pred = float(max(-10.0, 1.0 - (ss_res_t / max(1e-12, ss_tot_t))))
+    else:
+        mae_days = rmse_days = mae_years = rmse_years = med_ae_days = np.nan
+        pred_ci_95_days = pred_ci_95_years = emp_95_days = r2_pred = np.nan
+
+    # Jackknife Root (t_MRCA) Uncertainty Analysis
+    valid_jack = jack_tmrca[~np.isnan(jack_tmrca)]
+    n_jack = len(valid_jack)
+
+    if n_jack >= 3:
+        jack_mean = float(np.mean(valid_jack))
+        # Tukey (1958) / Efron (1982) Jackknife standard error:
+        jack_var = float(((n_jack - 1) / n_jack) * np.sum((valid_jack - jack_mean) ** 2))
+        jack_se = float(np.sqrt(max(1e-15, jack_var)))
+        t_crit = float(stats.t.ppf(0.975, df=max(1, n_jack - 1)))
+
+        full_tmrca_est = jack_mean
+        ci_jack = [float(full_tmrca_est - t_crit * jack_se), min(min_time, float(full_tmrca_est + t_crit * jack_se))]
+        ci_jack_width_yr = float(ci_jack[1] - ci_jack[0])
+        ci_jack_width_days = float(ci_jack_width_yr * 365.25)
+        jack_spread_days = float((np.max(valid_jack) - np.min(valid_jack)) * 365.25)
+    else:
+        jack_mean = jack_se = ci_jack_width_yr = ci_jack_width_days = jack_spread_days = np.nan
+        ci_jack = [np.nan, np.nan]
+
+    taxa_list = taxa if (taxa and len(taxa) == n) else [f"taxon_{i+1}" for i in range(n)]
+    records = []
+    for i in range(n):
+        records.append({
+            'taxon': taxa_list[i],
+            'sampling_date': float(times[i]),
+            'root_divergence': float(dists[i]),
+            'predicted_date': float(pred_dates[i]) if not np.isnan(pred_dates[i]) else None,
+            'predicted_divergence': float(pred_dists[i]) if not np.isnan(pred_dists[i]) else None,
+            'loocv_error_years': float(err_dates[i]) if not np.isnan(err_dates[i]) else None,
+            'loocv_error_days': float(err_dates[i] * 365.25) if not np.isnan(err_dates[i]) else None,
+            'divergence_error': float(err_dists[i]) if not np.isnan(err_dists[i]) else None,
+            'jackknife_tmrca': float(jack_tmrca[i]) if not np.isnan(jack_tmrca[i]) else None,
+            'leverage': float(H_diag[i]) if not np.isnan(H_diag[i]) else None,
+            'loocv_rate': float(loocv_mu[i]) if not np.isnan(loocv_mu[i]) else None
+        })
+
+    return {
+        'method': method.upper(),
+        'n_taxa': n,
+        'n_valid_predictions': n_valid,
+        'tip_mae_days': mae_days,
+        'tip_rmse_days': rmse_days,
+        'tip_mae_years': mae_years,
+        'tip_rmse_years': rmse_years,
+        'tip_median_abs_error_days': med_ae_days,
+        'tip_pred_ci_95_days': pred_ci_95_days,
+        'tip_pred_ci_95_years': pred_ci_95_years,
+        'tip_empirical_95_days': emp_95_days,
+        'tip_r2_pred': r2_pred,
+        'jackknife_mean': jack_mean,
+        'jackknife_se_years': jack_se,
+        'jackknife_se_days': jack_se * 365.25 if not np.isnan(jack_se) else np.nan,
+        'jackknife_ci': ci_jack,
+        'jackknife_ci_width_years': ci_jack_width_yr,
+        'jackknife_ci_width_days': ci_jack_width_days,
+        'jackknife_spread_days': jack_spread_days,
+        'records': records
+    }
+
+
 def run_ols_dating(
     times: np.ndarray,
     dists: np.ndarray,
@@ -1025,6 +1225,9 @@ def run_ols_dating(
                     times, dists, beta_ols, X.T @ X, X, np.eye(n), np.eye(n), np.eye(n),
                     t_ref, n_boot=n_boot, seed=seed, min_time=min_time
                 )
+            elif ci_method_lower in ["jackknife", "jack", "loocv"]:
+                loocv_tmp = run_dating_loocv(times, dists, method="ols", min_time=min_time)
+                ci_mrca = loocv_tmp['jackknife_ci']
             else:
                 # Default: Fieller's theorem
                 ci_mrca = ci_fieller
@@ -1175,6 +1378,9 @@ def run_pgls_dating(
                     times, dists, beta_gls, Xt_Cinv_X, X, C_inv, C_half, C_inv_half,
                     t_ref, n_boot=n_boot, seed=seed, min_time=min_time
                 )
+            elif ci_method_lower in ["jackknife", "jack", "loocv"]:
+                loocv_tmp = run_dating_loocv(times, dists, cov_matrix=cov_matrix, ridge=ridge, pagel_lambda=pagel_lambda, method="pgls", min_time=min_time)
+                ci_mrca = loocv_tmp['jackknife_ci']
             else:
                 # Default: Fieller's theorem
                 ci_mrca = ci_fieller
@@ -1869,6 +2075,7 @@ def run_mrca_dating(
     batch_size: Optional[int] = None,
     max_species: Optional[int] = None,
     allow_stop_codons: bool = True,
+    loocv: bool = False,
     output_prefix: Optional[str] = None,
     plot: bool = False
 ) -> Dict[str, Any]:
@@ -2127,6 +2334,7 @@ def run_mrca_dating(
 
     # 5. HyphAeon Neural Attention PGLS (if requested)
     pgls_res = None
+    effective_ridge = 0.05
     opt_lambda = 0.95
 
     if run_neural:
@@ -2465,6 +2673,55 @@ def run_mrca_dating(
     active_ci_val = active_model.get('ci_mrca') if active_model else None
     active_mu_val = float(active_model.get('mu', active_model.get('rate_ancestral', 0.0))) if active_model else None
 
+    # 6b. Leave-One-Out Cross-Validation (LOOCV) if requested
+    loocv_res = None
+    if loocv and len(train_idx) >= 4:
+        train_taxa_list = [taxa[i] for i in train_idx]
+        train_t_arr = times[train_idx]
+        train_d_arr = dists[train_idx]
+        loocv_method = "pgls" if (active_model_name == 'pgls' and cov_matrix is not None) else "ols"
+        cov_for_loocv = cov_train if (loocv_method == "pgls" and 'cov_train' in locals()) else None
+
+        print(f"[*] Running Leave-One-Out Cross-Validation (LOOCV) ({loocv_method.upper()}, N={len(train_idx)} taxa)...")
+        loocv_res = run_dating_loocv(
+            times=train_t_arr,
+            dists=train_d_arr,
+            taxa=train_taxa_list,
+            cov_matrix=cov_for_loocv,
+            ridge=effective_ridge,
+            pagel_lambda=opt_lambda if 'opt_lambda' in locals() else None,
+            method=loocv_method,
+            min_time=float(np.min(times))
+        )
+
+        # Compare with Fieller analytical interval
+        if active_ci_val and not np.isnan(active_ci_val[0]) and not np.isneginf(active_ci_val[0]) and not np.isnan(active_ci_val[1]):
+            fieller_w = float(active_ci_val[1] - active_ci_val[0])
+            loocv_res['fieller_ci_width_years'] = fieller_w
+            loocv_res['fieller_ci_width_days'] = fieller_w * 365.25
+            if loocv_res.get('jackknife_ci_width_years') and not np.isnan(loocv_res['jackknife_ci_width_years']) and loocv_res['jackknife_ci_width_years'] > 0:
+                loocv_res['fieller_to_jackknife_ratio'] = float(fieller_w / loocv_res['jackknife_ci_width_years'])
+
+        loocv_map = {r['taxon']: r for r in loocv_res['records']}
+        for tr in taxon_records:
+            t_name = tr['taxon']
+            if t_name in loocv_map:
+                rec = loocv_map[t_name]
+                tr['loocv_predicted_date'] = rec['predicted_date']
+                tr['loocv_error_days'] = rec['loocv_error_days']
+                tr['jackknife_tmrca'] = rec['jackknife_tmrca']
+                tr['leverage'] = rec['leverage']
+            else:
+                tr['loocv_predicted_date'] = None
+                tr['loocv_error_days'] = None
+                tr['jackknife_tmrca'] = None
+                tr['leverage'] = None
+
+        print(f"[✓] LOOCV Tip Date MAE = {loocv_res['tip_mae_days']:.1f} days (RMSE = {loocv_res['tip_rmse_days']:.1f} days, 95% Pred Interval = {loocv_res['tip_pred_ci_95_days']:.1f} days)")
+        if not np.isnan(loocv_res.get('jackknife_se_years', np.nan)):
+            ci_j = loocv_res['jackknife_ci']
+            print(f"[✓] Jackknife t_MRCA = {loocv_res['jackknife_mean']:.2f} [{ci_j[0]:.1f}, {ci_j[1]:.1f}] (SE = {loocv_res['jackknife_se_years']:.4f} yr / {loocv_res['jackknife_se_days']:.1f} days)")
+
     results = {
         'alignment': str(align_p),
         'tree': str(tree_path) if has_tree else None,
@@ -2489,6 +2746,7 @@ def run_mrca_dating(
         'ci_method': ci_method,
         'selected_clock': selected_clock,
         'ensemble': ensemble_res,
+        'loocv': loocv_res,
         'taxa_records': taxon_records
     }
 
@@ -2523,6 +2781,7 @@ def run_mrca_dating(
             'ci_method': ci_method,
             'selected_clock': selected_clock,
             'ensemble': ensemble_res,
+            'loocv': {k: v for k, v in loocv_res.items() if k != 'records'} if loocv_res else None,
             'taxa_summary': taxon_records
         }
         json_file = out_p.with_suffix('.json') if not str(out_p).endswith('.json') else out_p
