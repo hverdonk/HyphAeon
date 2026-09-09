@@ -472,20 +472,23 @@ class ChronAeonSieve:
                 'elapsed_ms': (time.time() - t0) * 1000.0
             }
 
-        # 1. Quality & Missing Data Audit ('N' is missing data)
+        # 1. Quality & Missing Data Audit (Any non-ACGTU character, gap, or ambiguity is missing data)
         q_upper = query_seq.upper()
-        n_ambig = sum(q_upper.count(c) for c in 'N?')
-        ambig_ratio = n_ambig / max(1, len(q_upper))
-        if ambig_ratio > self.max_ambig_ratio:
+        n_missing = sum(1 for c in q_upper if c not in 'ACGTU')
+        missing_ratio = n_missing / max(1, len(q_upper))
+        if missing_ratio > self.max_ambig_ratio:
             return {
                 'query_id': query_id,
                 'status': 'SUS',
-                'sus_reason': f'SUS_LOW_QUALITY (excess missing data: {ambig_ratio*100:.1f}% Ns > {self.max_ambig_ratio*100:.1f}% threshold)',
+                'sus_reason': f'SUS_LOW_QUALITY (excess missing/degenerate data: {missing_ratio*100:.1f}% > {self.max_ambig_ratio*100:.1f}% threshold)',
                 'reported_date': rep_date,
                 'predicted_date': np.nan,
                 'temporal_error_days': np.nan,
+                'temporal_error_years': np.nan,
                 'divergence_z': np.nan,
+                'root_divergence': np.nan,
                 'nearest_neighbor': None,
+                'nn_date': np.nan,
                 'nn_distance': np.nan,
                 'elapsed_ms': (time.time() - t0) * 1000.0
             }
@@ -537,8 +540,8 @@ class ChronAeonSieve:
         # C. Over-diverged: Distinguish biological hypermutation from missing data ('N') artifacts
         elif z_score > 2.5 and (nn_dist > (1.25 * self.median_nn_dist) or abs(nn_date - rep_date) <= 1.5):
             status = "SUS"
-            if n_ambig > 10 or ambig_ratio > 0.02:
-                sus_reason = f"SUS_LOW_QUALITY (Z={z_score:+.2f}, divergence artifact driven by {n_ambig} missing 'N' bases)"
+            if n_missing > 10 or missing_ratio > 0.02:
+                sus_reason = f"SUS_LOW_QUALITY (Z={z_score:+.2f}, divergence artifact driven by {n_missing} missing/degenerate bases)"
             else:
                 sus_reason = f"SUS_HYPERMUTATED (Z={z_score:+.2f}, biological excess divergence with high sequence completeness)"
 
