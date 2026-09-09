@@ -43,7 +43,7 @@ import pandas as pd
 import scipy.stats as stats
 
 from .dataset import parse_alignment_sequences
-from .temporal import parse_date_to_decimal
+from .temporal import parse_date_to_decimal, extract_date_from_string
 from .dating import run_ols_dating, compute_fieller_mrca_interval
 
 
@@ -266,23 +266,48 @@ class ChronAeonSieve:
         elif dates_path is not None:
             df = pd.read_csv(dates_path)
             s_col = strain_col if strain_col and strain_col in df.columns else df.columns[0]
-            d_col = date_col if date_col and date_col in df.columns else df.columns[1]
+            d_col = date_col if date_col and date_col in df.columns else ("collection_date" if "collection_date" in df.columns else df.columns[1])
             for _, r in df.iterrows():
                 parsed = parse_date_to_decimal(str(r[d_col]))
                 if parsed is not None:
-                    dates_map[str(r[s_col]).strip("'\"")] = parsed
+                    raw_id = str(r[s_col]).strip("'\"")
+                    dates_map[raw_id] = parsed
+            # Also map headers that have pipe-delimited prefixes or fallback to header date
+            for t in taxa_all:
+                if t not in dates_map:
+                    prefix = t.split("|")[0].strip()
+                    if prefix in dates_map:
+                        dates_map[t] = dates_map[prefix]
+                    else:
+                        parsed = parse_date_to_decimal(t)
+                        if parsed is None or np.isnan(parsed):
+                            parsed = extract_date_from_string(t)
+                        if parsed is not None and not np.isnan(parsed):
+                            dates_map[t] = parsed
         else:
             # Attempt FASTA header extraction
             for t in taxa_all:
                 parsed = parse_date_to_decimal(t)
-                if parsed is not None:
+                if parsed is None or np.isnan(parsed):
+                    parsed = extract_date_from_string(t)
+                if parsed is not None and not np.isnan(parsed):
                     dates_map[t] = parsed
 
-        dated_taxa = [t for t in taxa_all if t in dates_map and not np.isnan(dates_map[t])]
-        if len(dated_taxa) < 10:
-            raise ValueError(f"Fewer than 10 dated taxa found in candidate pool ({len(dated_taxa)} valid).")
+        # Filter for dated taxa with sufficient sequence completeness
+        dated_taxa = []
+        for t in taxa_all:
+            if t in dates_map and not np.isnan(dates_map[t]):
+                s = seq_dict[t].upper()
+                ambig_cnt = sum(s.count(c) for c in 'N-?')
+                if ambig_cnt / max(1, len(s)) <= max_ambig_ratio:
+                    dated_taxa.append(t)
 
-        print(f"[*] Valid dated sequences: {len(dated_taxa)}/{len(taxa_all)}.")
+        if len(dated_taxa) < 10:
+            dated_taxa = [t for t in taxa_all if t in dates_map and not np.isnan(dates_map[t])]
+            if len(dated_taxa) < 10:
+                raise ValueError(f"Fewer than 10 dated taxa found in candidate pool ({len(dated_taxa)} valid).")
+
+        print(f"[*] Valid dated sequences: {len(dated_taxa)}/{len(taxa_all)} (filtered for completeness <= {max_ambig_ratio*100:.1f}% missing).")
 
         # Stratified Temporal Selection
         rng = np.random.default_rng(seed)
@@ -428,6 +453,10 @@ class ChronAeonSieve:
         """
         t0 = time.time()
         rep_date = parse_date_to_decimal(str(reported_date)) if isinstance(reported_date, str) else float(reported_date)
+        if rep_date is None or np.isnan(rep_date):
+            rep_date = extract_date_from_string(str(reported_date))
+        if rep_date is None or np.isnan(rep_date):
+            rep_date = extract_date_from_string(query_id)
 
         if rep_date is None or np.isnan(rep_date):
             return {
@@ -506,7 +535,7 @@ class ChronAeonSieve:
             sus_reason = f"SUS_ARCHIVAL_OR_LAB_LEAK (d_root={d_root:.5f} ≈ 0, sampled {rep_date:.2f})"
 
         # C. Over-diverged: Distinguish biological hypermutation from missing data ('N') artifacts
-        elif z_score > 3.0 and nn_dist > (2.0 * self.median_nn_dist):
+        elif z_score > 2.5 and (nn_dist > (1.25 * self.median_nn_dist) or abs(nn_date - rep_date) <= 1.5):
             status = "SUS"
             if n_ambig > 10 or ambig_ratio > 0.02:
                 sus_reason = f"SUS_LOW_QUALITY (Z={z_score:+.2f}, divergence artifact driven by {n_ambig} missing 'N' bases)"
@@ -589,18 +618,21 @@ class ChronAeonSieve:
             cmd = [mm2_bin, "-c", "--eqx", "-x", "asm5", ref_fa, q_fa]
             proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        mapped_qids = set()
+        aligned_buffers = {qid: ["-"] * self.seq_len for qid in query_dict}
+        total_matches = {qid: 0 for qid in query_dict}
+
         for line in proc.stdout.splitlines():
             if not line:
                 continue
             parts = line.split('\t')
             qid = parts[0]
-            if qid in mapped_qids:
+            if qid not in query_dict:
                 continue
 
             strand = parts[4]
             tstart = int(parts[7])
             matches = int(parts[9])
+            total_matches[qid] += matches
 
             cigar = None
             for tag in parts[12:]:
@@ -608,9 +640,7 @@ class ChronAeonSieve:
                     cigar = tag[5:]
                     break
 
-            if matches < (min_identity * self.seq_len) or cigar is None:
-                failed_dict[qid] = f"SUS_NON_TARGET_CONTAMINANT (minimap2 low identity: {matches}/{self.seq_len} matches)"
-                mapped_qids.add(qid)
+            if cigar is None:
                 continue
 
             q_seq = "".join(query_dict[qid].split())
@@ -618,7 +648,6 @@ class ChronAeonSieve:
                 rc_map = str.maketrans("ACGTNacgtn", "TGCANtgcan")
                 q_seq = q_seq.translate(rc_map)[::-1]
 
-            out = ["-"] * self.seq_len
             ops = re.findall(r"(\d+)([=XIDMSH])", cigar)
             r_pos = tstart
             q_pos = int(parts[2])
@@ -628,7 +657,7 @@ class ChronAeonSieve:
                 if op in ("=", "X", "M"):
                     for i in range(l):
                         if 0 <= r_pos + i < self.seq_len and q_pos + i < len(q_seq):
-                            out[r_pos + i] = q_seq[q_pos + i]
+                            aligned_buffers[qid][r_pos + i] = q_seq[q_pos + i]
                     r_pos += l
                     q_pos += l
                 elif op == "D":
@@ -638,12 +667,15 @@ class ChronAeonSieve:
                 elif op == "S":
                     q_pos += l
 
-            aligned_dict[qid] = "".join(out)
-            mapped_qids.add(qid)
-
         for qid in query_dict:
-            if qid not in mapped_qids:
-                failed_dict[qid] = "SUS_NON_TARGET_CONTAMINANT (minimap2 unmapped / completely foreign sequence)"
+            m = total_matches[qid]
+            if m < (min_identity * self.seq_len):
+                if m == 0:
+                    failed_dict[qid] = "SUS_NON_TARGET_CONTAMINANT (minimap2 unmapped / completely foreign sequence)"
+                else:
+                    failed_dict[qid] = f"SUS_NON_TARGET_CONTAMINANT (minimap2 low identity: {m}/{self.seq_len} matches)"
+            else:
+                aligned_dict[qid] = "".join(aligned_buffers[qid])
 
         return aligned_dict, failed_dict
 
@@ -653,15 +685,19 @@ class ChronAeonSieve:
         stream_dates: Optional[Union[str, Path, Dict[str, float]]] = None,
         date_col: Optional[str] = None,
         strain_col: Optional[str] = None,
-        align_minimap2: bool = False
+        align_minimap2: bool = False,
+        clean_fasta_out: Optional[Union[str, Path]] = None,
+        sus_fasta_out: Optional[Union[str, Path]] = None
     ) -> pd.DataFrame:
         """
         Screens an incoming batch of streaming sequences, returning a diagnostic DataFrame.
         If align_minimap2 is True, raw unaligned sequences are dynamically mapped and coordinate-
         standardized against the ancestral reference using minimap2.
+        If clean_fasta_out or sus_fasta_out are provided, writes segregated FASTAs directly.
         """
         t_start = time.time()
         stream_dict = parse_alignment_sequences(str(stream_fasta))
+        raw_dict = dict(stream_dict)
         dates_map = {}
 
         if isinstance(stream_dates, dict):
@@ -672,12 +708,28 @@ class ChronAeonSieve:
             d_col = date_col if date_col and date_col in df_d.columns else df_d.columns[1]
             for _, r in df_d.iterrows():
                 p = parse_date_to_decimal(str(r[d_col]))
-                if p is not None:
-                    dates_map[str(r[s_col]).strip("'\"")] = p
+                if p is None or np.isnan(p):
+                    p = extract_date_from_string(str(r[d_col]))
+                if p is not None and not np.isnan(p):
+                    raw_id = str(r[s_col]).strip("'\"")
+                    dates_map[raw_id] = p
+            for k in stream_dict:
+                if k not in dates_map:
+                    prefix = k.split("|")[0].strip()
+                    if prefix in dates_map:
+                        dates_map[k] = dates_map[prefix]
+                    else:
+                        p = parse_date_to_decimal(k)
+                        if p is None or np.isnan(p):
+                            p = extract_date_from_string(k)
+                        if p is not None and not np.isnan(p):
+                            dates_map[k] = p
         else:
             for k in stream_dict:
                 p = parse_date_to_decimal(k)
-                if p is not None:
+                if p is None or np.isnan(p):
+                    p = extract_date_from_string(k)
+                if p is not None and not np.isnan(p):
                     dates_map[k] = p
 
         pre_failed = {}
@@ -727,4 +779,22 @@ class ChronAeonSieve:
         n_pass = int(np.sum(df_res['status'] == 'PASS'))
         n_sus = int(np.sum(df_res['status'] == 'SUS'))
         print(f"[✓] Sieve Complete in {elapsed:.2f}s ({rate_tot:.1f} seq/s): PASS={n_pass} ({n_pass/max(1,n_tot)*100:.1f}%), SUS={n_sus} ({n_sus/max(1,n_tot)*100:.1f}%).")
+
+        # Export segregated FASTAs if requested
+        if clean_fasta_out:
+            clean_ids = set(df_res[df_res['status'] == 'PASS']['query_id'])
+            with open(clean_fasta_out, "w") as f:
+                for qid in clean_ids:
+                    s = stream_dict.get(qid, raw_dict.get(qid, ""))
+                    f.write(f">{qid}\n{s}\n")
+            print(f"[✓] Clean analysis-ready FASTA written to: {clean_fasta_out}")
+
+        if sus_fasta_out:
+            sus_ids = set(df_res[df_res['status'] != 'PASS']['query_id'])
+            with open(sus_fasta_out, "w") as f:
+                for qid in sus_ids:
+                    s = stream_dict.get(qid, raw_dict.get(qid, ""))
+                    f.write(f">{qid}\n{s}\n")
+            print(f"[✓] Quarantined FASTA written to: {sus_fasta_out}")
+
         return df_res
