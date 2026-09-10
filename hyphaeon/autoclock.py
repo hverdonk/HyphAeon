@@ -1442,9 +1442,12 @@ class HierarchicalAutoClock:
             return node_dict
 
         # STOPPING CRITERION 5: Spectral Graph Modularity / Cheeger Bottleneck
-        if max_gap < self.min_eigengap:
+        # In Nyström mode on massive datasets (N > 2500), eigenvalues are compressed,
+        # so we scale the minimum eigengap threshold or check if AICc overwhelmingly supports splitting.
+        effective_min_eigengap = self.min_eigengap if n_c <= 2500 else min(self.min_eigengap, 0.0005)
+        if max_gap < effective_min_eigengap and delta_aicc < 100.0:
             node_dict["is_leaf"] = True
-            node_dict["stopping_reason"] = f"no_spectral_bottleneck (max_gap={max_gap:.4f} < {self.min_eigengap})"
+            node_dict["stopping_reason"] = f"no_spectral_bottleneck (max_gap={max_gap:.4f} < {effective_min_eigengap})"
             self._log(f"{indent}  └── STOP: {node_dict['stopping_reason']} (rate={node_fit['mu']:.2e}, R2={node_fit['r2']:.3f})")
             return node_dict
 

@@ -443,7 +443,7 @@ def parse_sample_dates(
 
         elif source_path.suffix.lower() in ['.csv', '.tsv', '.txt']:
             sep = '\t' if source_path.suffix.lower() in ['.tsv', '.txt'] else ','
-            df = pd.read_csv(source_path, sep=sep)
+            df = pd.read_csv(source_path, sep=sep, dtype=str)
 
             if not strain_col:
                 cand_strains = ['strain', 'taxon', 'taxa', 'name', 'id', 'genome_id', 'seq_id', 'accession', 'sequence']
