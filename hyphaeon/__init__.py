@@ -44,6 +44,15 @@ from .autoclock import (
     HierarchicalAutoClock,
     run_hierarchical_autoclock,
 )
+from .sketch import (
+    CanonicalMinHashSketcher,
+    AlignmentFreeBinner,
+    AlignmentFreeCentrifuge,
+)
+from .alignment import (
+    ReferenceCodonAligner,
+    ReferenceGuidedCodonThreader,
+)
 
 __version__ = "1.0.0"
 __all__ = [
@@ -83,4 +92,9 @@ __all__ = [
     "run_autoclock_deconvolution",
     "HierarchicalAutoClock",
     "run_hierarchical_autoclock",
+    "CanonicalMinHashSketcher",
+    "AlignmentFreeBinner",
+    "AlignmentFreeCentrifuge",
+    "ReferenceCodonAligner",
+    "ReferenceGuidedCodonThreader",
 ]

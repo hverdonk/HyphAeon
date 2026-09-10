@@ -1278,6 +1278,28 @@ def cmd_dating(args):
     if plot_path:
         plot_mrca_dating(res, plot_path)
 
+    alluvial_requested = getattr(args, "alluvial", False) or (getattr(args, "alluvial_path", None) is not None)
+    if alluvial_requested:
+        alluvial_path = getattr(args, "alluvial_path", None)
+        if not alluvial_path:
+            if getattr(args, "output", None):
+                base = os.path.splitext(args.output)[0]
+                alluvial_path = f"{base}_alluvial.png"
+            elif getattr(args, "alignment", None):
+                base = os.path.splitext(args.alignment)[0]
+                alluvial_path = f"{base}_alluvial.png"
+            else:
+                alluvial_path = "chronaeon_alluvial_phylogeny.png"
+        from .dating import plot_alluvial_phylogeny
+        plot_alluvial_phylogeny(
+            dating_results=res,
+            output_path=alluvial_path,
+            alignment_path=alignment,
+            tree_path=getattr(args, "tree", None),
+            dates_source=getattr(args, "dates", None),
+            color_by=getattr(args, "color_by", None),
+        )
+
 
 def cmd_geo(args):
     """Executes Fast Discrete Phylogeography & Spatial Transmission Network Inference."""
@@ -1840,6 +1862,9 @@ def main():
     date_parser.add_argument("--loocv", action="store_true", help="Perform leave-one-out cross-validation (LOOCV) for out-of-sample tip recovery accuracy and Jackknife root stability")
     date_parser.add_argument("--plot", action="store_true", help="Generate publication-grade diagnostic PDF and PNG figures")
     date_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot (e.g. mrca_clock.pdf)")
+    date_parser.add_argument("--alluvial", action="store_true", help="Generate continuous manifold alluvial / river-flow phylogeny plot")
+    date_parser.add_argument("--alluvial-path", default=None, help="Custom output path for alluvial / river-flow plot (PNG or PDF)")
+    date_parser.add_argument("--color-by", default=None, help="Column name in metadata CSV to color streamlines by (e.g. 'city', 'country', 'subtype')")
     date_parser.add_argument("-w", "--weights", default=DEFAULT_WEIGHTS_ENV, help="Path to local model weights file (overrides HF download)")
     date_parser.add_argument("--model-variant", dest="variant", default=DEFAULT_VARIANT_ENV, help=f"Model variant to download from HF (default: {DEFAULT_VARIANT})")
     date_parser.add_argument("-s", "--max-species", type=int, default=None, help="Maximum number of taxa to include")

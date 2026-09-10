@@ -678,7 +678,9 @@ def compute_tn93_distance_matrix(
             out_csv = os.path.join(tmpdir, "distances.csv")
             with open(tmp_fa, "w") as f:
                 for t in taxa:
-                    f.write(f">{t}\n{seq_dict[t]}\n")
+                    # Sanitize non-standard gap/missing characters (e.g. LANL MASE '*' -> '-')
+                    s_clean = seq_dict[t].replace('*', '-')
+                    f.write(f">{t}\n{s_clean}\n")
             
             # Call tn93 with higher threshold so divergent pairs are not omitted
             cmd = [tn93_bin, "-t", f"{threshold:.1f}", "-l", "1", "-q", "-o", out_csv, tmp_fa]
@@ -783,10 +785,12 @@ def compute_tn93_cross_distance_matrix(
 
             with open(tmp_all, "w") as f:
                 for t in taxa_all:
-                    f.write(f">{t}\n{seq_dict[t]}\n")
+                    s_clean = seq_dict[t].replace('*', '-')
+                    f.write(f">{t}\n{s_clean}\n")
             with open(tmp_lm, "w") as f:
                 for t in taxa_landmarks:
-                    f.write(f">{t}\n{seq_dict[t]}\n")
+                    s_clean = seq_dict[t].replace('*', '-')
+                    f.write(f">{t}\n{s_clean}\n")
 
             cmd = [tn93_bin, "-s", tmp_lm, "-t", f"{threshold:.1f}", "-l", "1", "-q", "-o", out_csv, tmp_all]
             binary_success = False

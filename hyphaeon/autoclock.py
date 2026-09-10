@@ -570,6 +570,9 @@ class AutoClockDeconvolution:
             bic = -2.0 * total_log_lik + p * np.log(n)
             gap_k = self.eigengaps[k - 1] if k - 1 < len(self.eigengaps) else 0.0
 
+            n_valid_clusters = sum(1 for cnt in counts if cnt >= self.min_cluster_size)
+            is_non_degenerate = (k == 1) or (n_valid_clusters >= 2)
+
             eval_records.append({
                 "K": k,
                 "logL": total_log_lik,
@@ -579,6 +582,7 @@ class AutoClockDeconvolution:
                 "eigengap": gap_k,
                 "valid_clocks": len(community_fits),
                 "cluster_sizes": list(counts),
+                "is_non_degenerate": is_non_degenerate,
             })
             self._log(f"[✓] K={k:2d}: logL={total_log_lik:8.2f} | RSS={total_rss:.6f} | AICc={aicc:8.2f} | Eigengap={gap_k:.5f} | Sizes={list(counts)} ({time.time() - t_k0:.1f}s)")
 
@@ -611,8 +615,12 @@ class AutoClockDeconvolution:
         # Count near-zero eigenvalues (multiplicity of 0 indicates number of disconnected graph components C)
         n_zero_evals = int(np.sum(self.eigenvalues[:self.max_k + 1] < 1e-4))
 
-        # Check if there is a dominant spectral cliff (drop ratio >= 3.0 with significant gap or extreme ratio)
-        cliff_candidates = [i for i in range(1, len(ratios) - 1) if ratios[i] >= 3.0 and (gaps[i] >= 0.04 or ratios[i] >= 10.0)]
+        # Check if there is a dominant spectral cliff among non-degenerate partitions
+        cliff_candidates = [
+            i for i in range(1, len(ratios) - 1)
+            if ratios[i] >= 3.0 and (gaps[i] >= 0.04 or ratios[i] >= 10.0)
+            and bool(ms_df.loc[i, "is_non_degenerate"])
+        ]
 
         if cliff_candidates:
             # Pick the macro cliff candidate
@@ -622,25 +630,30 @@ class AutoClockDeconvolution:
             self.optimal_k = k_cliff
             self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Dominant Eigengap Drop Cliff: {cliff_ratio:.1f}x drop at K={k_cliff})")
         else:
-            k_bic = int(ms_df.sort_values("BIC").iloc[0]["K"])
-            k_aicc = int(ms_df.sort_values("AICc").iloc[0]["K"])
-            aicc_k1 = float(ms_df.loc[ms_df["K"] == 1, "AICc"].values[0])
-            min_aicc = float(ms_df["AICc"].min())
-            delta_aicc_k1 = aicc_k1 - min_aicc
-
-            zero_match = ms_df.loc[ms_df["K"] == n_zero_evals, "AICc"].values
-            if n_zero_evals > 1 and n_zero_evals <= self.max_k and len(zero_match) > 0 and zero_match[0] < aicc_k1:
-                self.optimal_k = n_zero_evals
-                self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Disconnected Graph Components C={n_zero_evals})")
-            elif k_aicc == 1 or (max_gap < 0.05 and delta_aicc_k1 < 20.0 and n_zero_evals <= 1):
+            valid_ms_df = ms_df[ms_df["is_non_degenerate"]]
+            if valid_ms_df.empty or (len(valid_ms_df) == 1 and 1 in valid_ms_df["K"].values):
                 self.optimal_k = 1
-                self._log(f"\n[★] Selected Optimal Partition: K* = 1 (Single Clock Preferred; max gap = {max_gap:.5f}, delta_AICc = {delta_aicc_k1:.1f})")
-            elif k_bic > 1 and k_bic <= k_aicc:
-                self.optimal_k = k_bic
-                self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Bayesian Information Criterion BIC)")
+                self._log(f"\n[★] Selected Optimal Partition: K* = 1 (Single Clock Preferred; all K>1 partitions degenerate)")
             else:
-                self.optimal_k = k_aicc
-                self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Minimum AICc Criterion)")
+                k_bic = int(valid_ms_df.sort_values("BIC").iloc[0]["K"])
+                k_aicc = int(valid_ms_df.sort_values("AICc").iloc[0]["K"])
+                aicc_k1 = float(ms_df.loc[ms_df["K"] == 1, "AICc"].values[0])
+                min_aicc = float(valid_ms_df["AICc"].min())
+                delta_aicc_k1 = aicc_k1 - min_aicc
+
+                zero_match = valid_ms_df.loc[valid_ms_df["K"] == n_zero_evals, "AICc"].values
+                if n_zero_evals > 1 and n_zero_evals <= self.max_k and len(zero_match) > 0 and zero_match[0] < aicc_k1:
+                    self.optimal_k = n_zero_evals
+                    self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Disconnected Graph Components C={n_zero_evals})")
+                elif k_aicc == 1 or (max_gap < 0.05 and delta_aicc_k1 < 20.0 and n_zero_evals <= 1):
+                    self.optimal_k = 1
+                    self._log(f"\n[★] Selected Optimal Partition: K* = 1 (Single Clock Preferred; max gap = {max_gap:.5f}, delta_AICc = {delta_aicc_k1:.1f})")
+                elif k_bic > 1 and k_bic <= k_aicc:
+                    self.optimal_k = k_bic
+                    self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Bayesian Information Criterion BIC)")
+                else:
+                    self.optimal_k = k_aicc
+                    self._log(f"\n[★] Selected Optimal Partition: K* = {self.optimal_k} (Minimum AICc Criterion)")
 
     def calibrate_optimal_communities(self) -> None:
         """Calibrate final independent ChronAeon molecular clocks for optimal communities."""
