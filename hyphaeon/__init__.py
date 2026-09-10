@@ -4,7 +4,7 @@ Phenotype-Genotype Association Mapping, and Epistatic Sector Mining.
 """
 
 from .model import PhyloAxialTransformer
-from .dataset import load_alignment_and_tree, parse_alignment_sequences, compute_tn93_distance_matrix
+from .dataset import load_alignment_and_tree, parse_alignment_sequences, compute_tn93_distance_matrix, parse_beast_xml
 from .phenotype import run_phenotype_association, resolve_phenotype_vector, PRESETS
 from .epistasis import (
     run_epistasis_analysis,
@@ -38,6 +38,12 @@ from .r0 import (
     plot_r0_diagnostics,
     PATHOGEN_PRESETS,
 )
+from .autoclock import (
+    AutoClockDeconvolution,
+    run_autoclock_deconvolution,
+    HierarchicalAutoClock,
+    run_hierarchical_autoclock,
+)
 
 __version__ = "1.0.0"
 __all__ = [
@@ -45,6 +51,7 @@ __all__ = [
     "load_alignment_and_tree",
     "compute_tn93_distance_matrix",
     "parse_alignment_sequences",
+    "parse_beast_xml",
     "run_phenotype_association",
     "resolve_phenotype_vector",
     "run_epistasis_analysis",
@@ -72,4 +79,8 @@ __all__ = [
     "plot_r0_diagnostics",
     "PATHOGEN_PRESETS",
     "PRESETS",
+    "AutoClockDeconvolution",
+    "run_autoclock_deconvolution",
+    "HierarchicalAutoClock",
+    "run_hierarchical_autoclock",
 ]

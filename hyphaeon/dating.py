@@ -26,6 +26,7 @@ import math
 import re
 import datetime
 import copy
+from io import StringIO
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union, Any
 
@@ -54,7 +55,9 @@ except ImportError:
 from .dataset import (
     parse_alignment_sequences,
     compute_tn93_distance_matrix,
+    compute_tn93_cross_distance_matrix,
     load_alignment_and_tree,
+    parse_beast_xml,
     GENETIC_CODE,
     CODON_TO_AA,
 )
@@ -131,15 +134,15 @@ def compute_attention_covariance_kernel(
 
 def verify_coding_alignment(
     seq_dict: Dict[str, str],
-    allow_stop_codons: bool = True
+    allow_stop_codons: bool = True,
+    auto_trim_trailing: bool = True
 ) -> Tuple[int, int]:
     """
-    Strictly verifies that sequences form an aligned, in-frame coding dataset.
-
+    Validates that a nucleotide MSA is suitable for HyphAeon codon modeling.
     Requirements:
     - Non-empty alignment.
     - All sequences must possess identical aligned lengths.
-    - Aligned sequence length must be a multiple of 3 (L_nt % 3 == 0).
+    - Aligned sequence length must be a multiple of 3 (L_nt % 3 == 0). Auto-trims trailing nucleotides if auto_trim_trailing=True.
     - Checks for internal stop codons (TAA, TAG, TGA).
 
     Returns:
@@ -159,11 +162,18 @@ def verify_coding_alignment(
         raise ValueError(f"Sequence '{first_taxon}' has length 0.")
 
     if l_nt % 3 != 0:
-        raise ValueError(
-            f"HyphAeon is a codon-level foundation model and strictly requires in-frame coding sequences. "
-            f"Sequence '{first_taxon}' has length {l_nt} nt ({l_nt % 3} remainder modulo 3). "
-            f"Please verify open reading frames and remove non-coding flanking regions or frameshift indels."
-        )
+        rem = l_nt % 3
+        if auto_trim_trailing:
+            print(f"[!] Notice: Alignment length ({l_nt} nt) is not divisible by 3. Auto-trimming {rem} trailing nucleotide(s).")
+            for t in taxa:
+                seq_dict[t] = seq_dict[t][:-rem]
+            l_nt = len(seq_dict[first_taxon])
+        else:
+            raise ValueError(
+                f"HyphAeon is a codon-level foundation model and strictly requires in-frame coding sequences. "
+                f"Sequence '{first_taxon}' has length {l_nt} nt ({rem} remainder modulo 3). "
+                f"Please verify open reading frames and remove non-coding flanking regions or frameshift indels."
+            )
 
     num_codons = l_nt // 3
 
@@ -420,12 +430,23 @@ def parse_sample_dates(
                     elif isinstance(v, dict) and 'year' in v:
                         dates_map[k] = _parse_timestamp_flexible(v['year'])
 
+        elif source_path.suffix.lower() in ['.xml', '.xml.gz']:
+            beast_res = parse_beast_xml(source_path)
+            for t in taxa:
+                t_clean = t.strip("'\"")
+                if t_clean in beast_res['dates']:
+                    dates_map[t] = beast_res['dates'][t_clean]
+                elif t_clean.startswith('seq_') and t_clean[4:] in beast_res['dates']:
+                    dates_map[t] = beast_res['dates'][t_clean[4:]]
+                elif f"seq_{t_clean}" in beast_res['dates']:
+                    dates_map[t] = beast_res['dates'][f"seq_{t_clean}"]
+
         elif source_path.suffix.lower() in ['.csv', '.tsv', '.txt']:
             sep = '\t' if source_path.suffix.lower() in ['.tsv', '.txt'] else ','
             df = pd.read_csv(source_path, sep=sep)
 
             if not strain_col:
-                cand_strains = ['strain', 'taxon', 'taxa', 'name', 'id', 'accession', 'sequence']
+                cand_strains = ['strain', 'taxon', 'taxa', 'name', 'id', 'genome_id', 'seq_id', 'accession', 'sequence']
                 for c in df.columns:
                     if c.lower() in cand_strains:
                         strain_col = c
@@ -434,7 +455,7 @@ def parse_sample_dates(
                     strain_col = df.columns[0]
 
             if not date_col:
-                cand_dates = ['date', 'year', 'time', 'num_date', 'collection_date', 'sampling_date']
+                cand_dates = ['date', 'year', 'time', 'num_date', 'decimal_date', 'collection_date', 'sampling_date']
                 for c in df.columns:
                     if c.lower() in cand_dates:
                         date_col = c
@@ -485,7 +506,10 @@ def extract_tree_root_to_tip(
     if not HAS_BIOPHYLO:
         raise ImportError("Bio.Phylo is required to extract distances from phylogenetic trees.")
 
-    tree = Phylo.read(tree_path, 'newick')
+    if isinstance(tree_path, str) and (tree_path.strip().startswith('(') or not os.path.exists(tree_path)):
+        tree = Phylo.read(StringIO(tree_path), 'newick')
+    else:
+        tree = Phylo.read(tree_path, 'newick')
     taxa_set = set(taxa)
 
     # Explicit user rooting
@@ -617,11 +641,9 @@ def compute_tree_free_divergences(
 
     # Case 1: User explicitly specified an existing taxon as root (e.g. outgroup or specific strain)
     if root_taxon and root_taxon in seq_dict:
-        eval_taxa = [root_taxon] + [t for t in dated_taxa if t != root_taxon]
-        dist_mat = compute_tn93_distance_matrix(seq_dict, eval_taxa)
-        # Distance from root (index 0) to each dated taxon
-        div_dict = {eval_taxa[i]: dist_mat[0, i] for i in range(1, len(eval_taxa))}
-        divergences = np.array([div_dict[t] for t in dated_taxa if t != root_taxon], dtype=np.float64)
+        eval_taxa = [t for t in dated_taxa if t != root_taxon]
+        cross_mat = compute_tn93_cross_distance_matrix(seq_dict, eval_taxa, [root_taxon])
+        divergences = cross_mat[:, 0].astype(np.float64)
         return divergences, f"explicit_root_{root_taxon}"
 
     # Case 2: User requested unweighted modal consensus
@@ -629,9 +651,8 @@ def compute_tree_free_divergences(
         con_seq = generate_consensus_sequence(seq_dict, dated_taxa)
         aug_dict = dict(seq_dict)
         aug_dict['__SYNTHETIC_CONSENSUS__'] = con_seq
-        eval_taxa = ['__SYNTHETIC_CONSENSUS__'] + dated_taxa
-        dist_mat = compute_tn93_distance_matrix(aug_dict, eval_taxa)
-        divergences = np.array([dist_mat[0, i + 1] for i in range(len(dated_taxa))], dtype=np.float64)
+        cross_mat = compute_tn93_cross_distance_matrix(aug_dict, dated_taxa, ['__SYNTHETIC_CONSENSUS__'])
+        divergences = cross_mat[:, 0].astype(np.float64)
         return divergences, "unweighted_modal_consensus_root"
 
     # Case 3: Anchor on earliest sampled cohort
@@ -641,19 +662,29 @@ def compute_tree_free_divergences(
         min_date = valid_dates[0][1]
         earliest_taxa = [t for t, d in valid_dates if abs(d - min_date) < 1e-4]
 
-        dist_mat = compute_tn93_distance_matrix(seq_dict, dated_taxa)
-        taxa_idx = {t: i for i, t in enumerate(dated_taxa)}
-        earliest_indices = [taxa_idx[t] for t in earliest_taxa]
-
-        if len(earliest_indices) == 1:
-            root_idx = earliest_indices[0]
-            divergences = dist_mat[root_idx, :].copy()
-            root_desc = f"earliest_taxon_{dated_taxa[root_idx]}"
+        if len(dated_taxa) > 2500 or len(earliest_taxa) <= 10:
+            cross_mat = compute_tn93_cross_distance_matrix(seq_dict, dated_taxa, earliest_taxa)
+            if len(earliest_taxa) == 1:
+                divergences = cross_mat[:, 0].astype(np.float64)
+                root_desc = f"earliest_taxon_{earliest_taxa[0]}"
+            else:
+                divergences = np.mean(cross_mat, axis=1).astype(np.float64)
+                root_desc = f"earliest_cohort_n{len(earliest_taxa)}"
+            return divergences, root_desc
         else:
-            divergences = np.mean(dist_mat[earliest_indices, :], axis=0)
-            root_desc = f"earliest_cohort_n{len(earliest_indices)}"
+            dist_mat = compute_tn93_distance_matrix(seq_dict, dated_taxa)
+            taxa_idx = {t: i for i, t in enumerate(dated_taxa)}
+            earliest_indices = [taxa_idx[t] for t in earliest_taxa]
 
-        return divergences, root_desc
+            if len(earliest_indices) == 1:
+                root_idx = earliest_indices[0]
+                divergences = dist_mat[root_idx, :].copy()
+                root_desc = f"earliest_taxon_{dated_taxa[root_idx]}"
+            else:
+                divergences = np.mean(dist_mat[earliest_indices, :], axis=0)
+                root_desc = f"earliest_cohort_n{len(earliest_indices)}"
+
+            return divergences, root_desc
 
     # Case 4 (Default & Recommended for Tree-Free): Time-Decay Weighted Consensus
     decay_seq, eff_gamma = generate_time_decay_consensus_sequence(
@@ -661,9 +692,8 @@ def compute_tree_free_divergences(
     )
     aug_dict = dict(seq_dict)
     aug_dict['__TIME_DECAY_ROOT__'] = decay_seq
-    eval_taxa = ['__TIME_DECAY_ROOT__'] + dated_taxa
-    dist_mat = compute_tn93_distance_matrix(aug_dict, eval_taxa)
-    divergences = np.array([dist_mat[0, i + 1] for i in range(len(dated_taxa))], dtype=np.float64)
+    cross_mat = compute_tn93_cross_distance_matrix(aug_dict, dated_taxa, ['__TIME_DECAY_ROOT__'])
+    divergences = cross_mat[:, 0].astype(np.float64)
     root_desc = f"time_decay_consensus_root (γ={eff_gamma:.4f})"
     return divergences, root_desc
 
@@ -1295,12 +1325,26 @@ def run_pgls_dating(
     x = times - t_ref
     X = np.column_stack([x, np.ones(n)])
 
-    w_raw, v = la.eigh(cov_matrix)
-    w_pos = np.maximum(w_raw, 0.0)
-
+    v = None
+    w_pos = None
     if isinstance(ridge, str) and str(ridge).lower() == "auto":
         reml_res = estimate_reml_pagel_lambda(times, dists, cov_matrix)
         pagel_lambda = reml_res['best_lambda']
+        if 'w_K' in reml_res and 'V' in reml_res and reml_res['V'].shape[0] == n:
+            w_pos = reml_res['w_K']
+            v = reml_res['V']
+
+    if v is None:
+        if n > 2500:
+            from scipy.sparse.linalg import eigsh
+            k_eig = min(n - 2, 250)
+            w_raw, v = eigsh(cov_matrix.astype(np.float32), k=k_eig, which='LM', tol=1e-4)
+            idx = np.argsort(w_raw)
+            w_pos = np.maximum(w_raw[idx], 0.0)
+            v = v[:, idx]
+        else:
+            w_raw, v = la.eigh(cov_matrix)
+            w_pos = np.maximum(w_raw, 0.0)
 
     # Either Pagel's lambda covariance: C = lambda * K + (1 - lambda) * I
     # or additive ridge covariance: C = K + ridge * I
@@ -1312,20 +1356,25 @@ def run_pgls_dating(
         w_c = w_pos + float(ridge)
 
     inv_w = 1.0 / np.maximum(w_c, 1e-12)
-    C_inv = v @ np.diag(inv_w) @ v.T
-    C_half = v @ np.diag(np.sqrt(np.maximum(w_c, 1e-12))) @ v.T
-    C_inv_half = v @ np.diag(1.0 / np.sqrt(np.maximum(w_c, 1e-12))) @ v.T
 
-    # GLS solution: beta = (X^T C^-1 X)^-1 X^T C^-1 d
-    Xt_Cinv = X.T @ C_inv
-    Xt_Cinv_X = Xt_Cinv @ X
-    beta_gls = la.solve(Xt_Cinv_X, Xt_Cinv @ dists)
+    # O(N) Exact Spectral Vector Projection: avoids allocating N x N dense C_inv, C_half, C_inv_half
+    Z = v.T @ X                # (k, 2)
+    u = v.T @ dists            # (k,)
+    v_one = np.sum(v, axis=0)  # (k,)
+
+    Z_scaled = Z * inv_w[:, None]
+    Xt_Cinv_X = Z.T @ Z_scaled   # (2, 2) exact!
+    Xt_Cinv_d = Z_scaled.T @ u   # (2,) exact!
+
+    beta_gls = la.solve(Xt_Cinv_X, Xt_Cinv_d)
 
     mu_gls = float(beta_gls[0])
     d0_gls = float(beta_gls[1])
 
     residuals = dists - X @ beta_gls
-    sigma2_gls = float((residuals.T @ C_inv @ residuals) / max(1, n - 2))
+    res_proj = u - Z @ beta_gls
+    ss_res = float(np.sum((res_proj ** 2) * inv_w))
+    sigma2_gls = float(ss_res / max(1, n - 2))
     cov_beta = sigma2_gls * la.inv(Xt_Cinv_X)
 
     se_mu = float(np.sqrt(max(1e-15, cov_beta[0, 0])))
@@ -1369,11 +1418,15 @@ def run_pgls_dating(
             if ci_method_lower in ["delta", "linear"]:
                 ci_mrca = ci_analytical
             elif ci_method_lower in ["poisson"]:
+                C_inv = v @ np.diag(inv_w) @ v.T
                 ci_mrca = compute_poisson_mrca_interval(
                     times, dists, Xt_Cinv_X, X, C_inv, t_ref,
                     seq_len=seq_len or 1000, n_boot=n_boot, seed=seed, min_time=min_time
                 )
             elif ci_method_lower in ["residual-boot", "wild"]:
+                C_inv = v @ np.diag(inv_w) @ v.T
+                C_half = v @ np.diag(np.sqrt(np.maximum(w_c, 1e-12))) @ v.T
+                C_inv_half = v @ np.diag(1.0 / np.sqrt(np.maximum(w_c, 1e-12))) @ v.T
                 ci_mrca = compute_residual_bootstrap_mrca_interval(
                     times, dists, beta_gls, Xt_Cinv_X, X, C_inv, C_half, C_inv_half,
                     t_ref, n_boot=n_boot, seed=seed, min_time=min_time
@@ -1385,12 +1438,12 @@ def run_pgls_dating(
                 # Default: Fieller's theorem
                 ci_mrca = ci_fieller
 
-    # Generalized R^2 (Buse 1973)
-    one_Cinv_one = float(np.ones(n).T @ C_inv @ np.ones(n))
-    weighted_mean = float(np.ones(n).T @ C_inv @ dists) / max(1e-12, one_Cinv_one)
-    tot_residuals = dists - weighted_mean
-    ss_tot = float(tot_residuals.T @ C_inv @ tot_residuals)
-    ss_res = float(residuals.T @ C_inv @ residuals)
+    # Generalized R^2 (Buse 1973) via O(N) spectral projection
+    one_Cinv_one = float(np.sum((v_one ** 2) * inv_w))
+    one_Cinv_d = float(np.sum(v_one * u * inv_w))
+    weighted_mean = one_Cinv_d / max(1e-12, one_Cinv_one)
+    tot_res_proj = u - weighted_mean * v_one
+    ss_tot = float(np.sum((tot_res_proj ** 2) * inv_w))
     r2_gls = float(max(0.0, 1.0 - (ss_res / max(1e-12, ss_tot))))
 
     return {
@@ -1436,6 +1489,18 @@ def estimate_reml_pagel_lambda(
     independent tip variance. Computed in O(N) using spectral projection.
     """
     n = len(times)
+    if n > 2000:
+        # Stratified subsampling across temporal range to estimate scalar phylogenetic signal without OOM
+        sub_idx = np.linspace(0, n - 1, 1500, dtype=int)
+        times_sub = times[sub_idx]
+        dists_sub = dists[sub_idx]
+        cov_sub = cov_matrix[sub_idx, :][:, sub_idx]
+        reml_sub = estimate_reml_pagel_lambda(times_sub, dists_sub, cov_sub)
+        return {
+            'best_lambda': reml_sub['best_lambda'],
+            'status': 'OPTIMAL_REML_SUBSAMPLED'
+        }
+
     t_ref = float(np.mean(times))
     x = times - t_ref
     X = np.column_stack([x, np.ones(n)])
@@ -1476,7 +1541,9 @@ def estimate_reml_pagel_lambda(
 
     return {
         'best_lambda': opt_lambda,
-        'status': 'OPTIMAL_REML'
+        'status': 'OPTIMAL_REML',
+        'w_K': w_K,
+        'V': V
     }
 
 
@@ -2049,7 +2116,7 @@ def plot_mrca_dating(
 # =========================================================================
 
 def run_mrca_dating(
-    alignment_path: Union[str, Path],
+    alignment_path: Optional[Union[str, Path]] = None,
     tree_path: Optional[Union[str, Path]] = None,
     dates_source: Optional[Union[str, Path, Dict[str, float]]] = None,
     date_col: Optional[str] = None,
@@ -2077,16 +2144,42 @@ def run_mrca_dating(
     allow_stop_codons: bool = True,
     loocv: bool = False,
     output_prefix: Optional[str] = None,
-    plot: bool = False
+    plot: bool = False,
+    beast_path: Optional[Union[str, Path]] = None
 ) -> Dict[str, Any]:
     """
     Executes end-to-end molecular clock calibration and MRCA dating on time-stamped sequences.
+    Directly ingests FASTA, NEXUS, or BEAST 1.x / 2.x XML configuration files.
 
     Returns:
         Structured dictionary with model parameters, confidence intervals,
         per-taxon predictions, and model diagnostics.
     """
     t0 = time.time()
+
+    # Ingest BEAST XML if specified via beast_path or alignment_path
+    target_xml = beast_path or (alignment_path if (alignment_path and str(alignment_path).lower().endswith(('.xml', '.xml.gz'))) else None)
+    if target_xml is not None:
+        target_xml_p = Path(target_xml)
+        if not target_xml_p.exists():
+            raise FileNotFoundError(f"BEAST XML file not found: {target_xml}")
+        beast_data = parse_beast_xml(target_xml)
+        n_xml_seqs = len(beast_data.get('sequences', {}))
+        n_xml_dates = len(beast_data.get('dates', {}))
+        has_xml_tree = bool(beast_data.get('tree_newick'))
+        print(f"[*] Ingested BEAST XML ({beast_data.get('version', 'BEAST')}): {n_xml_seqs} sequences, {n_xml_dates} dates, starting tree={'present' if has_xml_tree else 'none'}.")
+
+        if alignment_path is None:
+            alignment_path = target_xml
+        if dates_source is None and n_xml_dates > 0:
+            dates_source = beast_data['dates']
+        if tree_path is None and has_xml_tree and not use_tn93:
+            tree_path = beast_data['tree_newick']
+            print(f"[*] Auto-detected embedded starting tree from BEAST XML.")
+
+    if alignment_path is None:
+        raise ValueError("No sequence alignment provided. Please specify an alignment file (-a/--alignment) or a BEAST XML (--beast).")
+
     align_p = Path(alignment_path)
     if not align_p.exists():
         raise FileNotFoundError(f"Alignment file not found: {align_p}")
@@ -2122,7 +2215,10 @@ def run_mrca_dating(
         )
 
     # 3. Compute Patristic, Latent Convex Hull, or TN93 Tree-Free Divergences
-    has_tree = (tree_path is not None and Path(tree_path).exists() and not use_tn93)
+    has_tree = (tree_path is not None and not use_tn93 and (
+        (isinstance(tree_path, (str, Path)) and os.path.exists(str(tree_path))) or
+        (isinstance(tree_path, str) and tree_path.strip().startswith('('))
+    ))
     run_neural = method in ["all", "pgls"]
     mode = str(distance_mode).lower().strip()
 
@@ -2212,7 +2308,8 @@ def run_mrca_dating(
         root_desc = f"latent_convex_hull (α={latent_root_res['alpha']:.5f} subs/site/unit, R={latent_root_res['temporal_r']:+.3f})"
 
     elif effective_dist_mode == "tree":
-        print(f"[*] Computing patristic tree distances from: {tree_path}...")
+        tree_desc = "embedded starting tree" if (isinstance(tree_path, str) and tree_path.strip().startswith('(')) else str(tree_path)
+        print(f"[*] Computing patristic tree distances from: {tree_desc}...")
         tree_dists, root_desc = extract_tree_root_to_tip(
             str(tree_path), dated_taxa, dates_map,
             root_taxon=root_taxon, optimize_root=optimize_root
@@ -2338,7 +2435,10 @@ def run_mrca_dating(
     opt_lambda = 0.95
 
     if run_neural:
-        if cov_matrix is None:
+        if cov_matrix is None and len(taxa) > 1500 and not has_tree:
+            print(f"[*] Large cohort (N={len(taxa)}): Skipping full transformer cross-attention to prevent memory exhaustion; using high-speed OLS and spline dating.")
+            run_neural = False
+        elif cov_matrix is None:
             if device is None:
                 device = get_device()
             if model is None:

@@ -1090,6 +1090,13 @@ def cmd_splits(args):
 def cmd_dating(args):
     """Executes Heterochronous Molecular Clock Calibration and Ancestor Dating (t_MRCA)."""
     from .dating import run_mrca_dating, plot_mrca_dating
+
+    alignment = getattr(args, "alignment", None)
+    beast_file = getattr(args, "beast", None)
+    if not alignment and not beast_file:
+        print("[!] Error: You must provide either an alignment file (-a/--alignment) or a BEAST XML configuration file (--beast).")
+        sys.exit(1)
+
     use_tn93 = getattr(args, "no_tree", False) or getattr(args, "use_tn93", False) or (getattr(args, "tree", None) == "tn93")
     device = get_device(cpu=getattr(args, "cpu", False))
     print(f"[*] Hardware device selected: {device.type.upper()}")
@@ -1098,7 +1105,7 @@ def cmd_dating(args):
     ci_method = getattr(args, "ci_method", "fieller")
 
     res = run_mrca_dating(
-        alignment_path=args.alignment,
+        alignment_path=alignment,
         tree_path=getattr(args, "tree", None),
         dates_source=getattr(args, "dates", None),
         date_col=getattr(args, "date_col", None),
@@ -1121,7 +1128,8 @@ def cmd_dating(args):
         max_species=getattr(args, "max_species", None),
         loocv=getattr(args, "loocv", False),
         output_prefix=getattr(args, "output", None),
-        plot=plot_requested
+        plot=plot_requested,
+        beast_path=beast_file,
     )
 
     def format_ci_str(ci, mu):
@@ -1519,6 +1527,91 @@ def cmd_sieve(args):
             print(f"[✓] Quarantined anomalies FASTA written to: {args.sus_out}")
 
 
+def cmd_autoclock(args):
+    """Subcommand handler for ChronAeon AutoClock (unsupervised multi-clock community deconvolution)."""
+    import shutil
+    from .autoclock import AutoClockDeconvolution
+
+    print("=" * 80)
+    print("CHRONAEON AUTOCLOCK: UNSUPERVISED MULTI-CLOCK COMMUNITY DECONVOLUTION")
+    print("=" * 80)
+
+    alignment = getattr(args, "alignment", None)
+    beast_file = getattr(args, "beast", None)
+    dates_source = getattr(args, "dates", None)
+    if beast_file:
+        if not alignment:
+            alignment = beast_file
+        if not dates_source:
+            dates_source = beast_file
+
+    if not alignment:
+        print("[!] Error: You must provide either an alignment file (-a/--alignment) or a BEAST XML configuration file (--beast).")
+        sys.exit(1)
+
+    is_hierarchical = getattr(args, "hierarchical", False)
+    if is_hierarchical:
+        print("[*] Hierarchical recursive mode enabled (--hierarchical).")
+        from .autoclock import HierarchicalAutoClock
+        engine = HierarchicalAutoClock(
+            alignment_path=alignment,
+            dates_source=dates_source,
+            date_col=getattr(args, "date_col", None),
+            strain_col=getattr(args, "strain_col", None),
+            date_regex=getattr(args, "date_regex", None),
+            max_depth=getattr(args, "max_depth", 3),
+            min_leaf_size=getattr(args, "min_leaf_size", 25),
+            min_delta_aicc=getattr(args, "min_delta_aicc", 15.0),
+            max_k_per_node=getattr(args, "max_k", 6),
+            manifold=getattr(args, "manifold", "transformer"),
+            weights=getattr(args, "weights", None),
+            device=getattr(args, "device", None),
+            kernel_bandwidth=getattr(args, "kernel_bandwidth", None),
+            output_dir=getattr(args, "output_dir", None) or (Path(args.output).parent if getattr(args, "output", None) else None),
+            allow_stop_codons=not getattr(args, "disallow_stop_codons", False),
+            quiet=getattr(args, "quiet", False),
+            n_landmarks=getattr(args, "n_landmarks", "auto"),
+            max_memory_mb=getattr(args, "max_memory_mb", 1024.0),
+        )
+    else:
+        engine = AutoClockDeconvolution(
+            alignment_path=alignment,
+            dates_source=dates_source,
+            date_col=getattr(args, "date_col", None),
+            strain_col=getattr(args, "strain_col", None),
+            date_regex=getattr(args, "date_regex", None),
+            max_k=getattr(args, "max_k", 6),
+            manifold=getattr(args, "manifold", "transformer"),
+            weights=getattr(args, "weights", None),
+            device=getattr(args, "device", None),
+            kernel_bandwidth=getattr(args, "kernel_bandwidth", None),
+            min_cluster_size=getattr(args, "min_cluster_size", 5),
+            output_dir=getattr(args, "output_dir", None) or (Path(args.output).parent if getattr(args, "output", None) else None),
+            allow_stop_codons=not getattr(args, "disallow_stop_codons", False),
+            quiet=getattr(args, "quiet", False),
+            n_landmarks=getattr(args, "n_landmarks", "auto"),
+            max_memory_mb=getattr(args, "max_memory_mb", 1024.0),
+        )
+
+    results = engine.run(
+        plot=getattr(args, "plot", False) or (getattr(args, "plot_path", None) is not None),
+        plot_path=getattr(args, "plot_path", None)
+    )
+
+    if getattr(args, "output", None) and not str(args.output).endswith("/"):
+        out_p = Path(args.output)
+        if out_p.suffix.lower() == ".json":
+            with open(out_p, "w") as f:
+                json.dump(results, f, indent=2, default=str)
+            print(f"[✓] AutoClock JSON summary copied to: {out_p}")
+
+    if getattr(args, "csv", None):
+        shutil.copyfile(results["classified_metadata_path"], args.csv)
+        print(f"[✓] AutoClock classified metadata copied to: {args.csv}")
+
+    print("\n[✓] ChronAeon AutoClock execution completed successfully.")
+
+
 def main():
 
     parser = argparse.ArgumentParser(
@@ -1725,7 +1818,8 @@ def main():
         aliases=["date", "mrca", "clock", "chronaeon"],
         help="Calibrate heterochronous molecular clocks and date MRCA ancestor (ChronAeon)"
     )
-    date_parser.add_argument("-a", "--alignment", required=True, help="Path to in-frame codon FASTA or NEXUS alignment")
+    date_parser.add_argument("-a", "--alignment", default=None, help="Path to in-frame codon FASTA or NEXUS alignment (or BEAST XML)")
+    date_parser.add_argument("--beast", default=None, help="Path to BEAST 1.x or BEAST 2.x XML configuration file containing sequences and tip sampling dates")
     date_parser.add_argument("-t", "--tree", default=None, help="Optional Newick/NEXUS phylogenetic tree (optional if embedded, or if --no-tree/--use-tn93 is set)")
     date_parser.add_argument("--no-tree", action="store_true", help="Skip phylogenetic tree and estimate pairwise evolutionary distances directly from alignment using TN93")
     date_parser.add_argument("--use-tn93", action="store_true", help="Estimate pairwise distances directly from alignment using TN93 (skips tree)")
@@ -1823,6 +1917,37 @@ def main():
     sieve_parser.add_argument("--sus-out", default=None, help="Optional path to output quarantined FASTA (SUS sequences)")
     sieve_parser.add_argument("--align", "--minimap2", dest="align_minimap2", action="store_true", help="Dynamically align raw, unaligned streaming sequences to root reference using minimap2")
 
+    # 13. ChronAeon AutoClock: Unsupervised Multi-Clock Community Deconvolution
+    autoclock_parser = subparsers.add_parser(
+        "autoclock",
+        aliases=["auto-clock", "multi-clock", "deconvolve", "communities"],
+        help="Unsupervised multi-clock community deconvolution and outlier triage (ChronAeon AutoClock)"
+    )
+    autoclock_parser.add_argument("-a", "--alignment", default=None, help="Path to in-frame codon FASTA, NEXUS, or BEAST XML alignment")
+    autoclock_parser.add_argument("--beast", default=None, help="Path to BEAST 1.x or BEAST 2.x XML configuration file containing sequences and tip sampling dates")
+    autoclock_parser.add_argument("-d", "--dates", default=None, help="Path to sample collection dates (CSV, TSV, Auspice JSON, or auto-extracted from FASTA headers)")
+    autoclock_parser.add_argument("--date-col", default=None, help="Column name for sample collection date in metadata CSV/TSV")
+    autoclock_parser.add_argument("--strain-col", default=None, help="Column name for taxon / strain identifier in metadata CSV/TSV")
+    autoclock_parser.add_argument("--date-regex", default=None, help="Optional regex with capture group to extract dates from headers")
+    autoclock_parser.add_argument("-k", "--max-k", type=int, default=6, help="Maximum candidate number of clock communities to evaluate (default: 6)")
+    autoclock_parser.add_argument("--manifold", choices=["transformer", "distance", "tn93", "auto"], default="transformer", help="Embedding manifold for spectral partitioning: 'transformer' (neural latent representations) or 'distance'/'tn93' (analytic pairwise continuous distance) (default: transformer)")
+    autoclock_parser.add_argument("--weights", default=None, help="Path to custom model weights file or checkpoint")
+    autoclock_parser.add_argument("--device", default=None, help="Execution hardware device ('cuda', 'mps', 'cpu')")
+    autoclock_parser.add_argument("--kernel-bandwidth", type=float, default=None, help="Spectral affinity kernel bandwidth sigma for distance manifold (default: adaptive 10th percentile)")
+    autoclock_parser.add_argument("--min-cluster-size", type=int, default=5, help="Minimum community size to consider a valid clock branch (default: 5)")
+    autoclock_parser.add_argument("--output-dir", default=None, help="Directory to write community models, triage, and plots")
+    autoclock_parser.add_argument("-o", "--output", default=None, help="Optional path to output JSON summary")
+    autoclock_parser.add_argument("-c", "--csv", default=None, help="Optional path to output classified metadata CSV")
+    autoclock_parser.add_argument("-H", "--hierarchical", action="store_true", help="Enable recursive hierarchical multi-clock community deconvolution")
+    autoclock_parser.add_argument("--max-depth", type=int, default=3, help="Maximum recursion depth for hierarchical deconvolution (default: 3)")
+    autoclock_parser.add_argument("--min-leaf-size", type=int, default=25, help="Minimum leaf community size for hierarchical deconvolution (default: 25)")
+    autoclock_parser.add_argument("--min-delta-aicc", type=float, default=15.0, help="Minimum AICc improvement (AICc(K=1) - min AICc(K>=2)) required to justify splitting a subcommunity (default: 15.0)")
+    autoclock_parser.add_argument("--n-landmarks", default="auto", help="Number of landmark sequences for Nyström low-rank approximation ('auto' or integer, default: auto)")
+    autoclock_parser.add_argument("--max-memory-mb", type=float, default=1024.0, help="Maximum RAM budget (MB) for adaptive landmark matrix allocation (default: 1024.0)")
+    autoclock_parser.add_argument("--plot", action="store_true", help="Generate publication diagnostic figures (.png and .pdf)")
+    autoclock_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot")
+    autoclock_parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging")
+
     args = parser.parse_args()
     if args.command in ["meme", "predict", "site-selection"]:
         cmd_meme(args)
@@ -1850,6 +1975,8 @@ def main():
         cmd_r0(args)
     elif args.command in ["sieve", "qc-stream", "stream-qc", "chronaeon-sieve"]:
         cmd_sieve(args)
+    elif args.command in ["autoclock", "auto-clock", "multi-clock", "deconvolve", "communities"]:
+        cmd_autoclock(args)
     elif args.command == "list-models":
         list_models()
     elif args.command == "evaluate":
