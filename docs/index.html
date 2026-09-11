@@ -828,11 +828,17 @@
 
     .eff-stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-top: 24px;
       padding-top: 24px;
       border-top: 1px solid var(--border-subtle);
+    }
+
+    @media (max-width: 640px) {
+      .eff-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .eff-stat {
@@ -3031,7 +3037,7 @@
       <span class="chapter-tag">Radical Efficiency &bull; Pure Browser Inference</span>
       <h2 class="chapter-heading">You Don't Have to Be Big <br><span class="text-gradient">To Succeed.</span></h2>
       <p class="chapter-lead">
-        Modern machine learning often assumes that bigger is always better. HyphAeon takes the opposite path: by embedding the exact geometry of evolutionary divergence into transformer attention, it achieves state-of-the-art inference in just <strong>1.91 million parameters</strong>.
+        Modern machine learning often assumes that bigger is always better. HyphAeon takes the opposite path: by embedding the exact geometry of evolutionary divergence into transformer attention, it achieves state-of-the-art inference in just <strong>1.91 million parameters</strong>&mdash;and was trained from scratch for <strong>&lt;$200 in Google Cloud credits</strong>.
       </p>
 
       <div class="efficiency-grid">
@@ -3047,7 +3053,7 @@
               HyphAeon embeds tree metric geometry (4D Classical MDS), continuous-time Markov substitution kernels ($e^{-\lambda D_{ij}}$), and strict synonymous/non-synonymous block-diagonal linear projections directly into its attention layers. 
             </p>
             <p>
-              The result? A complete foundation model that fits in a <strong>7.6 MB checkpoint</strong>&mdash;small enough to run instantly on standard consumer hardware. Maximum likelihood without the wait.
+              The result? A complete foundation model that fits in a <strong>7.6 MB checkpoint</strong> and required <strong>&lt;$200 in Google Cloud compute credits</strong> to train from scratch on commodity hardware. True democratized foundation modeling without the supercomputing budget.
             </p>
           </div>
           <div class="eff-stats">
@@ -3060,8 +3066,12 @@
               <span class="eff-lbl">Model Weight</span>
             </div>
             <div class="eff-stat">
+              <span class="eff-num">&lt;$200</span>
+              <span class="eff-lbl">Training (GCP)</span>
+            </div>
+            <div class="eff-stat">
               <span class="eff-num">0 Cloud</span>
-              <span class="eff-lbl">Dependencies</span>
+              <span class="eff-lbl">At Inference</span>
             </div>
           </div>
         </div>
