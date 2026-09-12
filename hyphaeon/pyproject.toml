@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hyphaeon"
+version = "0.2.0"
+authors = [
+  { name="Sergei L. Kosakovsky Pond", email="spond@temple.edu" },
+]
+description = "HyphAeon: A Deep-Time Phylogenetic Foundation Model for Multi-Scale Evolutionary, Structural, and Clinical Genomics"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "aeon-core>=0.1.0",
+    "torch>=2.0.0",
+    "biopython>=1.80",
+    "numpy>=1.22.0",
+    "scipy>=1.9.0",
+    "pandas>=1.5.0",
+    "networkx>=3.0",
+    "matplotlib>=3.5",
+]
+
+[project.optional-dependencies]
+tn93 = ["tn93>=1.2.0"]
+dev = ["pytest>=7.0"]
+model_eval = ["pytest>=7.0", "scikit-learn>=1.0"]
+all = ["tn93>=1.2.0", "pytest>=7.0", "scikit-learn>=1.0"]
+
+[project.scripts]
+hyphaeon = "hyphaeon.cli:main"
+
+[tool.setuptools]
+packages = ["hyphaeon", "hyphaeon.model_eval", "hyphaeon.model_eval.calibration", "hyphaeon.model_eval.concordance", "hyphaeon.model_eval.invariance", "hyphaeon.model_eval.stability"]
+
+[tool.setuptools.package-dir]
+hyphaeon = "src/hyphaeon"
+"hyphaeon.model_eval" = "src/hyphaeon/model_eval"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[project.urls]
+"Homepage" = "https://github.com/veg/HyphAeon"
+"Bug Tracker" = "https://github.com/veg/HyphAeon/issues"
