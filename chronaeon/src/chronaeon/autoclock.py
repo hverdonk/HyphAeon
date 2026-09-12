@@ -1794,7 +1794,7 @@ class HierarchicalAutoClock:
         # (D) Goodness-of-Fit Residual Dispersion
         ax_d = fig.add_subplot(gs[1, 1])
         res_data = [valid_df[valid_df["leaf_community_id"] == lid]["residual"].values for lid in c_lids]
-        bp = ax_d.boxplot(res_data, vert=False, patch_artist=True, labels=c_lids,
+        bp = ax_d.boxplot(res_data, vert=False, patch_artist=True, tick_labels=c_lids,
                           boxprops=dict(facecolor="#93c5fd", alpha=0.7, edgecolor="#1e293b"),
                           medianprops=dict(color="#b91c1c", lw=1.8),
                           flierprops=dict(marker='o', markersize=3, alpha=0.4))

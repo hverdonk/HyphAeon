@@ -168,7 +168,7 @@ def test_cli_r0_example(tmp_path):
     cmd = [
         sys.executable,
         "-m",
-        "hyphaeon.cli",
+        "chronaeon.cli",
         "r0",
         "--example",
         "--output",

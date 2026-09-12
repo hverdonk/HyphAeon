@@ -31,7 +31,7 @@ try:
 except ImportError:
     _HAS_TN93 = False
 
-EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
+EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "examples")
 EXPECTED_DIR = os.path.join(EXAMPLES_DIR, "expected_results")
 
 EXPECTED_COLUMNS = ["site", "hyphaeon_lrt", "p_value", "q_value", "is_invariable"]
