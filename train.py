@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from hyphaeon.model import PhyloAxialTransformer, decode_soft_ordinal_lrt
+from aeon_core.model import PhyloAxialTransformer, decode_soft_ordinal_lrt
 from hyphaeon.training_data import GeneTensorsDataset
 
 

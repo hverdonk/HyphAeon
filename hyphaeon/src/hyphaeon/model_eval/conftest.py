@@ -17,12 +17,12 @@ import pytest
 import torch
 
 # Make the package and this directory importable.
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from aeon_core.model import PhyloAxialTransformer
-from hyphaeon import dataset as ds
+from aeon_core import dataset as ds
 from aeon_core.inference import load_model
 
 EXAMPLES_DIR = REPO_ROOT / "examples"

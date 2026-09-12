@@ -41,7 +41,7 @@ from aeon_core._progress import ChunkProgress
 DEFAULT_VARIANT_ENV = os.environ.get("HYPHAEON_VARIANT", DEFAULT_VARIANT)
 
 # Default to package model.safetensors if it exists, otherwise check HYPHAEON_WEIGHTS
-_local_repo_weights = Path(__file__).resolve().parent.parent / "model.safetensors"
+_local_repo_weights = Path(__file__).resolve().parent.parent.parent.parent / "model.safetensors"
 DEFAULT_WEIGHTS_ENV = os.environ.get("HYPHAEON_WEIGHTS", str(_local_repo_weights) if _local_repo_weights.exists() else None)
 
 def determine_adaptive_batch_size(num_species: int, total_sites: int, device: torch.device, user_batch_size: int = None) -> int:

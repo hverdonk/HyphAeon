@@ -94,7 +94,7 @@ def resolve_weights_path(
     if weights:
         if os.path.exists(weights):
             return weights
-        pkg_root_weights = Path(__file__).resolve().parent.parent / weights
+        pkg_root_weights = Path(__file__).resolve().parent.parent.parent.parent / weights
         if pkg_root_weights.exists():
             return str(pkg_root_weights)
 

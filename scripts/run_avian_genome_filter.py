@@ -23,9 +23,9 @@ from scipy.stats import hypergeom, chi2, cauchy
 from Bio import Phylo
 
 sys.path.insert(0, 'hyphaeon_repo')
-from hyphaeon.weights import load_arch_config, load_weights
-from hyphaeon.model import PhyloAxialTransformer
-from hyphaeon.dataset import load_alignment_and_tree, CODON_TO_AA, parse_alignment_sequences
+from aeon_core.weights import load_arch_config, load_weights
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.dataset import load_alignment_and_tree, CODON_TO_AA, parse_alignment_sequences
 
 def calc_pvals(lrts):
     pvals = np.full(len(lrts), 2.0 / 3.0, dtype=np.float32)

@@ -1,17 +1,16 @@
 import os
 import sys
 from pathlib import Path
-import tempfile
 import pytest
 import torch
 
-REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+REPO_ROOT = str(Path(__file__).resolve().parent.parent.parent)
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from aeon_core.model import PhyloAxialTransformer
 
-EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
+EXAMPLES_DIR = os.path.join(REPO_ROOT, "examples")
 EXPECTED_DIR = os.path.join(EXAMPLES_DIR, "expected_results")
 
 
@@ -27,19 +26,7 @@ def expected_dir():
 
 @pytest.fixture(scope="session")
 def dummy_weights(tmp_path_factory):
-    """A tiny checkpoint with random weights and minimal architecture.
-
-    Real pretrained weights (23 MB) won't always live in the repo — they'll
-    move to Hugging Face / GitHub releases, and new model versions will ship
-    different weights. Package tests should not depend on them. This fixture
-    builds a minimal model (embed_dim=8, 1 layer, 1 head), saves it as a
-    checkpoint with the same structure the CLI expects, and returns the path.
-
-    The forward pass produces meaningless but finite, well-shaped output —
-    enough to exercise the full CLI code path (checkpoint loading, model
-    instantiation, inference, post-processing, output writing) without
-    coupling tests to any particular pretrained model.
-    """
+    """A tiny checkpoint with random weights and minimal architecture."""
     model = PhyloAxialTransformer(embed_dim=8, num_layers=1, num_heads=1, window_size=1)
     ckpt_path = str(tmp_path_factory.mktemp("weights") / "dummy.pt")
     torch.save({

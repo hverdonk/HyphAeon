@@ -31,7 +31,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from hyphaeon.sieve import ChronAeonSieve
+from chronaeon.triage import ChronAeonSieve
 
 
 BENCHMARK_DIR = REPO_ROOT / "benchmarks" / "sars2_chronaeon_sieve"

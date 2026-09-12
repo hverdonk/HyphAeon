@@ -29,8 +29,8 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from hyphaeon.sieve import ChronAeonSieve
-from hyphaeon.temporal import parse_date_to_decimal, extract_date_from_string
+from chronaeon.triage import ChronAeonSieve
+from aeon_core.temporal import parse_date_to_decimal, extract_date_from_string
 
 BASE_URL = "https://www.bv-brc.org/api"
 BENCHMARK_DIR = REPO_ROOT / "benchmarks" / "sars2_chronaeon_sieve"

@@ -5,10 +5,10 @@ import torch
 import numpy as np
 import pandas as pd
 from scipy import stats
-from hyphaeon.model import PhyloAxialTransformer
-from hyphaeon.weights import load_arch_config, load_weights
-from hyphaeon.dataset import load_alignment_and_tree
-from hyphaeon.stats import pvals_from_lrt_meme, benjamini_hochberg, cauchy_combination_p
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.weights import load_arch_config, load_weights
+from aeon_core.dataset import load_alignment_and_tree
+from aeon_core.stats import pvals_from_lrt_meme, benjamini_hochberg, cauchy_combination_p
 
 base_dir = '/Users/sergei/Projects/TOGA_MEME/benchmark/orthomam_v12'
 masked_cds_dir = os.path.join(base_dir, 'masked_cds')
