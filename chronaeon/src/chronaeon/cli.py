@@ -571,6 +571,82 @@ def cmd_autoclock(args):
     print("\n[✓] ChronAeon AutoClock execution completed successfully.")
 
 
+def cmd_sketch(args):
+    """Alignment-free MinHash sketching and sequence binning."""
+    from .sketch import AlignmentFreeBinner
+    from aeon_core.dataset import parse_alignment_sequences
+
+    seqs = parse_alignment_sequences(args.alignment)
+    binner = AlignmentFreeBinner(
+        k=args.kmer,
+        sketch_size=args.sketch_size,
+        alignable_threshold=args.alignable_threshold,
+        quarantine_threshold=args.quarantine_threshold,
+        min_bin_size=args.min_bin_size,
+        quiet=args.quiet,
+    )
+    results = binner.bin_dataset(seqs)
+
+    import json
+    output = {
+        "bins": results["bins"],
+        "quarantined": results["quarantined"],
+        "n_bins": len(results["bins"]),
+        "n_quarantined": len(results["quarantined"]),
+        "n_total": len(seqs),
+    }
+    if args.output:
+        with open(args.output, "w") as f:
+            json.dump(output, f, indent=2, default=str)
+        print(f"[✓] Sketch binning results written to: {args.output}")
+    else:
+        print(json.dumps(output, indent=2, default=str))
+
+
+def cmd_align(args):
+    """Reference-guided codon-aware alignment threading."""
+    from .alignment import ReferenceCodonAligner
+    from aeon_core.dataset import parse_alignment_sequences
+
+    ref_seqs = parse_alignment_sequences(args.reference)
+    if len(ref_seqs) != 1:
+        print(f"[!] Error: reference file must contain exactly one sequence (got {len(ref_seqs)})")
+        return
+    ref_name = next(iter(ref_seqs))
+    ref_seq = ref_seqs[ref_name]
+
+    query_seqs = parse_alignment_sequences(args.query)
+    aligner = ReferenceCodonAligner(
+        ref_seq=ref_seq,
+        ref_name=ref_name,
+        open_gap_score=args.open_gap,
+        extend_gap_score=args.extend_gap,
+    )
+    results = aligner.align_batch(
+        query_seqs,
+        max_workers=args.threads,
+        quiet=args.quiet,
+    )
+
+    if args.output:
+        from pathlib import Path
+        out = Path(args.output)
+        with open(out, "w") as f:
+            for taxon, seq in results["aligned_seqs"].items():
+                f.write(f">{taxon}\n{seq}\n")
+        n_failed = len(results["failed"])
+        print(f"[✓] Aligned {len(results['aligned_seqs'])}/{len(query_seqs)} sequences to '{ref_name}' ({aligner.l_ref_nt} bp)")
+        if n_failed:
+            print(f"[!] {n_failed} sequences failed alignment:")
+            for taxon, reason in results["failed"].items():
+                print(f"    {taxon}: {reason}")
+        print(f"[✓] Aligned sequences written to: {out}")
+    else:
+        print(f"[✓] Aligned {len(results['aligned_seqs'])}/{len(query_seqs)} sequences to '{ref_name}' ({aligner.l_ref_nt} bp)")
+        if results["failed"]:
+            print(f"[!] {len(results['failed'])} sequences failed alignment")
+
+
 def main():
     import argparse
 
@@ -621,7 +697,7 @@ def main():
     date_parser.add_argument("-c", "--csv", help="Optional path to output per-taxon CSV results")
 
     # 2. Phylogeography Subcommand
-    geo_parser = subparsers.add_parser("phylogeo", aliases=["geo", "phylogeography", "spatial", "migration"], help="Run discrete phylogeography & spatial transmission network inference")
+    geo_parser = subparsers.add_parser("phylogeo", aliases=["geo", "phylogeography", "spatial", "migration", "dispersal"], help="Run discrete phylogeography & spatial transmission network inference")
     geo_parser.add_argument("--example", "--run-example", action="store_true", help="Execute the built-in worked benchmark example (Avian Influenza A/H5N1 across 7 Chinese provinces from Lemey et al. 2009)")
     geo_parser.add_argument("-a", "--alignment", required=False, default=None, help="Path to FASTA alignment (required unless --example is set)")
     geo_parser.add_argument("-g", "--metadata", required=False, default=None, help="Path to metadata CSV/TSV or Auspice JSON containing location labels (required unless --example is set)")
@@ -669,7 +745,7 @@ def main():
     # 4. ChronAeon Sieve: High-Throughput Streaming QC & Clock Manifold Triage
     triage_parser = subparsers.add_parser(
         "triage",
-        aliases=["sieve", "qc-stream", "stream-qc", "chronaeon-sieve"],
+        aliases=["sieve", "qc-stream", "stream-qc", "chronaeon-sieve", "radar", "qc"],
         help="Streaming high-throughput quality control and molecular clock outlier triage"
     )
     triage_parser.add_argument("-a", "--alignment", required=True, help="Path to reference FASTA or anchor alignment")
@@ -720,17 +796,50 @@ def main():
     autoclock_parser.add_argument("--plot-path", default=None, help="Custom output path for diagnostic plot")
     autoclock_parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging")
 
+    # 6. Alignment-Free MinHash Sketching & Binning
+    sketch_parser = subparsers.add_parser(
+        "sketch",
+        aliases=["cluster", "bin", "centrifuge"],
+        help="Alignment-free MinHash sketching and sequence binning",
+    )
+    sketch_parser.add_argument("-a", "--alignment", required=True, help="Path to FASTA file of unaligned sequences to bin")
+    sketch_parser.add_argument("-k", "--kmer", type=int, default=15, help="K-mer size for MinHash sketching (default: 15)")
+    sketch_parser.add_argument("--sketch-size", type=int, default=1024, help="MinHash sketch size (default: 1024)")
+    sketch_parser.add_argument("--alignable-threshold", type=float, default=0.12, help="Jaccard similarity threshold for alignable binning (default: 0.12)")
+    sketch_parser.add_argument("--quarantine-threshold", type=float, default=0.02, help="Jaccard similarity threshold below which sequences are quarantined (default: 0.02)")
+    sketch_parser.add_argument("--min-bin-size", type=int, default=5, help="Minimum bin size to retain (default: 5)")
+    sketch_parser.add_argument("-o", "--output", default=None, help="Optional path to output JSON binning results")
+    sketch_parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging")
+
+    # 7. Reference-Guided Codon Alignment
+    align_parser = subparsers.add_parser(
+        "align",
+        aliases=["thread", "codon-align"],
+        help="Reference-guided codon-aware alignment threading",
+    )
+    align_parser.add_argument("-r", "--reference", required=True, help="Path to reference CDS FASTA (single sequence)")
+    align_parser.add_argument("-q", "--query", required=True, help="Path to query CDS FASTA (unaligned sequences)")
+    align_parser.add_argument("--open-gap", type=float, default=-10.0, help="Gap opening penalty (default: -10.0)")
+    align_parser.add_argument("--extend-gap", type=float, default=-1.0, help="Gap extension penalty (default: -1.0)")
+    align_parser.add_argument("--threads", type=int, default=4, help="Number of parallel worker threads (default: 4)")
+    align_parser.add_argument("-o", "--output", default=None, help="Optional path to output aligned FASTA")
+    align_parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging")
+
     args = parser.parse_args()
     if args.command in ["date", "dating", "mrca", "clock", "chronaeon"]:
         cmd_dating(args)
-    elif args.command in ["phylogeo", "geo", "phylogeography", "spatial", "migration"]:
+    elif args.command in ["phylogeo", "geo", "phylogeography", "spatial", "migration", "dispersal"]:
         cmd_phylogeo(args)
     elif args.command in ["dynamics", "r0", "rt", "phylodynamics", "growth"]:
         cmd_dynamics(args)
-    elif args.command in ["triage", "sieve", "qc-stream", "stream-qc", "chronaeon-sieve"]:
+    elif args.command in ["triage", "sieve", "qc-stream", "stream-qc", "chronaeon-sieve", "radar", "qc"]:
         cmd_triage(args)
     elif args.command in ["autoclock", "auto-clock", "multi-clock", "deconvolve", "communities"]:
         cmd_autoclock(args)
+    elif args.command in ["sketch", "cluster", "bin", "centrifuge"]:
+        cmd_sketch(args)
+    elif args.command in ["align", "thread", "codon-align"]:
+        cmd_align(args)
     else:
         parser.print_help()
 

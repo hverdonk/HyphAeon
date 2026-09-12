@@ -115,7 +115,7 @@ class TestHyphaeonGeo:
         out_geojson = tmp_path / "example_res.geojson"
         
         test_args = [
-            "hyphaeon", "geo", "--example", "--no-neural",
+            "chronaeon", "geo", "--example", "--no-neural",
             "--n-perms", "100",
             "-o", str(out_json),
             "--geojson", str(out_geojson),

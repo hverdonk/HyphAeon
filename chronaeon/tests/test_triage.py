@@ -1,11 +1,6 @@
-#!/usr/bin/env python3
-import sys
 from pathlib import Path
 import tempfile
-import numpy as np
 
-REPO_ROOT = Path('/Users/sergei/Projects/TOGA_MEME/axomeme_repo')
-sys.path.insert(0, str(REPO_ROOT))
 from chronaeon.triage import ChronAeonSieve
 
 def test_chronaeon_sieve_quality_and_missing_data():
@@ -61,7 +56,3 @@ def test_chronaeon_sieve_quality_and_missing_data():
         assert res_iupac['status'] == 'SUS'
         assert "SUS_LOW_QUALITY" in res_iupac['sus_reason']
 
-        print("All Gate 1 quality & missing data tests passed successfully!")
-
-if __name__ == '__main__':
-    test_chronaeon_sieve_quality_and_missing_data()
