@@ -20,7 +20,7 @@ jobs:
     # Not a release gate for the package, but failures here ARE real
     # signals — the model has a behavior problem worth investigating.
     # All known issues are left as FAILED (not xfailed) so they're
-    # visible in CI. See model_eval/README.md for the full results table.
+    # visible in CI. See hyphaeon/src/hyphaeon/model_eval/README.md for the full results table.
 
     steps:
       - uses: actions/checkout@v4
@@ -37,11 +37,12 @@ jobs:
         run: pip install -e aeon-core/ -e hyphaeon/[model_eval]
 
       # Pinned to the exact versions the committed model_eval/_cache/
+      # (now at hyphaeon/src/hyphaeon/model_eval/_cache/)
       # HyPhy MEME results were generated with. The cache key includes the
       # hyphy version string, so any drift here causes cache misses (CI
       # would then re-run MEME live instead of using the cache — slow, and
       # not necessarily reproducing the exact same numbers). Bump both the
-      # pin and the cache together; see model_eval/README.md.
+      # pin and the cache together; see hyphaeon/src/hyphaeon/model_eval/README.md.
       - name: Install HyPhy and seq-gen
         run: |
           mamba create -n model_eval_tools -c bioconda -c conda-forge \

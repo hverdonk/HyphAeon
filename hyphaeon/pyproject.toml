@@ -38,12 +38,8 @@ all = ["tn93>=1.2.0", "pytest>=7.0", "scikit-learn>=1.0"]
 [project.scripts]
 hyphaeon = "hyphaeon.cli:main"
 
-[tool.setuptools]
-packages = ["hyphaeon", "hyphaeon.model_eval", "hyphaeon.model_eval.calibration", "hyphaeon.model_eval.concordance", "hyphaeon.model_eval.invariance", "hyphaeon.model_eval.stability"]
-
-[tool.setuptools.package-dir]
-hyphaeon = "src/hyphaeon"
-"hyphaeon.model_eval" = "src/hyphaeon/model_eval"
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
