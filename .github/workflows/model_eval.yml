@@ -5,14 +5,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'model_eval/**'
-      - 'hyphaeon/model.py'
-      - 'hyphaeon/dataset.py'
+      - 'hyphaeon/src/hyphaeon/model_eval/**'
+      - 'aeon-core/src/aeon_core/model.py'
+      - 'aeon-core/src/aeon_core/dataset.py'
   pull_request:
     paths:
-      - 'model_eval/**'
-      - 'hyphaeon/model.py'
-      - 'hyphaeon/dataset.py'
+      - 'hyphaeon/src/hyphaeon/model_eval/**'
+      - 'aeon-core/src/aeon_core/model.py'
+      - 'aeon-core/src/aeon_core/dataset.py'
 
 jobs:
   model_eval:
@@ -34,7 +34,7 @@ jobs:
         run: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install package and test dependencies
-        run: pip install -e .[model_eval]
+        run: pip install -e aeon-core/ -e hyphaeon/[model_eval]
 
       # Pinned to the exact versions the committed model_eval/_cache/
       # HyPhy MEME results were generated with. The cache key includes the
@@ -52,14 +52,14 @@ jobs:
       - name: Run model behavior tests
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: pytest model_eval/ -v -rs
+        run: pytest hyphaeon/src/hyphaeon/model_eval/ -v -rs
 
       - name: Upload report artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: model_eval_reports
-          path: model_eval/_artifacts/
+          path: hyphaeon/src/hyphaeon/model_eval/_artifacts/
           if-no-files-found: ignore
 
       - name: Upload MEME cache
@@ -67,5 +67,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: meme_cache
-          path: model_eval/_cache/
+          path: hyphaeon/src/hyphaeon/model_eval/_cache/
           if-no-files-found: ignore

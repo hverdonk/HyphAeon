@@ -23,7 +23,7 @@ _local_repo_weights = Path(__file__).resolve().parent.parent.parent.parent / "mo
 DEFAULT_WEIGHTS_ENV = os.environ.get("CHRONAEON_WEIGHTS", os.environ.get("HYPHAEON_WEIGHTS", str(_local_repo_weights) if _local_repo_weights.exists() else None))
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-EXAMPLES_DIR = _REPO_ROOT / "examples"
+EXAMPLES_DIR = _REPO_ROOT / "chronaeon" / "examples"
 
 
 def cmd_dating(args):
