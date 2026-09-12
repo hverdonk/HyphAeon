@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from Bio import Phylo, SeqIO
 
-from .dataset import compute_tn93_distance_matrix, parse_alignment_sequences
+from aeon_core.dataset import compute_tn93_distance_matrix, parse_alignment_sequences
 
 
 # =========================================================================
@@ -769,8 +769,8 @@ def run_phylogeography_analysis(
         root_probs, trans_obs = reconstruct_ancestral_states_parsimony(tree, loc_map, unique_locs)
     else:
         # Neural attention mode
-        from .inference import get_device, load_model, prepare_alignment
-        from .splits import extract_cross_taxa_attentions_and_embeddings
+        from aeon_core.inference import get_device, load_model, prepare_alignment
+        from aeon_core.splits import extract_cross_taxa_attentions_and_embeddings
 
         if device is None:
             device = get_device()

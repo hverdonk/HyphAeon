@@ -114,7 +114,7 @@ class TestClockDatingModels:
 
     def test_parse_beast_1_xml(self, tmp_path):
         """Test parsing of BEAST 1.x XML alignment, sampling dates, and starting tree."""
-        from hyphaeon.dataset import parse_beast_xml
+        from aeon_core.dataset import parse_beast_xml
 
         xml_content = """<?xml version="1.0" standalone="yes"?>
 <beast version="1.10.4">
@@ -147,7 +147,7 @@ class TestClockDatingModels:
 
     def test_parse_beast_2_xml(self, tmp_path):
         """Test parsing of BEAST 2.x XML data and TraitSet date trait values."""
-        from hyphaeon.dataset import parse_beast_xml
+        from aeon_core.dataset import parse_beast_xml
 
         xml_content = """<beast version="2.6" namespace="beast.evolution.alignment:beast.evolution.tree">
     <data id="h1n1" name="alignment">

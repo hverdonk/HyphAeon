@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from scipy.stats import chi2
 
-from hyphaeon.stats import (
+from aeon_core.stats import (
     pvals_from_lrt_meme,
     pvals_from_lrt_self_liang,
     benjamini_hochberg,

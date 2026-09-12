@@ -10,8 +10,8 @@ Answers two core biological questions for positively selected codons:
 
 import numpy as np
 import torch
-from .dataset import CODON_TO_AA, AA_MAP, GENETIC_CODE
-from ._progress import ChunkProgress
+from aeon_core.dataset import CODON_TO_AA, AA_MAP, GENETIC_CODE
+from aeon_core._progress import ChunkProgress
 
 INV_GENETIC_CODE = {v: k for k, v in GENETIC_CODE.items()}
 

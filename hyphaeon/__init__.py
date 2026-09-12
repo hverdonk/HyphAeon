@@ -3,8 +3,8 @@ HyphAeon: Ultra-Fast Neural Inference of Episodic Selection,
 Phenotype-Genotype Association Mapping, and Epistatic Sector Mining.
 """
 
-from .model import PhyloAxialTransformer
-from .dataset import load_alignment_and_tree, parse_alignment_sequences, compute_tn93_distance_matrix, parse_beast_xml
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.dataset import load_alignment_and_tree, parse_alignment_sequences, compute_tn93_distance_matrix, parse_beast_xml
 from .phenotype import run_phenotype_association, resolve_phenotype_vector, PRESETS
 from .epistasis import (
     run_epistasis_analysis,

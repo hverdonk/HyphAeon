@@ -22,17 +22,17 @@ import pandas as pd
 from scipy.stats import hypergeom
 
 import torch
-from .stats import pvals_from_lrt_meme as calc_asymptotic_pvals, benjamini_hochberg as calc_fdr_qvals, cauchy_combination_p as calc_cauchy_omnibus_p
+from aeon_core.stats import pvals_from_lrt_meme as calc_asymptotic_pvals, benjamini_hochberg as calc_fdr_qvals, cauchy_combination_p as calc_cauchy_omnibus_p
 
-from .model import PhyloAxialTransformer
-from .dataset import (
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.dataset import (
     load_alignment_and_tree,
     parse_alignment_sequences,
     CODON_TO_AA,
     GENETIC_CODE,
 )
-from .weights import resolve_weights_path, DEFAULT_VARIANT
-from .inference import get_device, load_model
+from aeon_core.weights import resolve_weights_path, DEFAULT_VARIANT
+from aeon_core.inference import get_device, load_model
 from .epistasis import compute_adaptive_safe_batch_size
 
 def cleanup_device_memory(device: torch.device):

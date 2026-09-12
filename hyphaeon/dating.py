@@ -52,7 +52,7 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
-from .dataset import (
+from aeon_core.dataset import (
     parse_alignment_sequences,
     compute_tn93_distance_matrix,
     compute_tn93_cross_distance_matrix,
@@ -61,18 +61,18 @@ from .dataset import (
     GENETIC_CODE,
     CODON_TO_AA,
 )
-from .inference import (
+from aeon_core.inference import (
     load_model,
     get_device,
     prepare_alignment,
 )
 from scipy.spatial.distance import pdist, squareform
-from .splits import (
+from aeon_core.splits import (
     extract_cross_taxa_attentions_and_embeddings,
     compute_fused_affinity_matrix,
 )
-from .temporal import parse_date_to_decimal, parse_dates_from_auspice_json, extract_date_from_string
-from .io import ensure_parent_directory, write_json, write_csv
+from aeon_core.temporal import parse_date_to_decimal, parse_dates_from_auspice_json, extract_date_from_string
+from aeon_core.io import ensure_parent_directory, write_json, write_csv
 
 
 def compute_neural_covariance_kernel(

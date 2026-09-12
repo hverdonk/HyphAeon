@@ -364,7 +364,7 @@ class TestCanonicalCodons:
         assert set(CANONICAL_AA_TO_CODON.keys()) == standard
 
     def test_all_codons_are_valid(self):
-        from hyphaeon.dataset import CODON_TO_AA
+        from aeon_core.dataset import CODON_TO_AA
         for aa, codon in CANONICAL_AA_TO_CODON.items():
             assert codon in CODON_TO_AA, f"{codon} not in CODON_TO_AA"
             assert CODON_TO_AA[codon] == aa, f"{codon} maps to {CODON_TO_AA[codon]}, expected {aa}"

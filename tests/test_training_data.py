@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import pytest
 
-from hyphaeon.dataset import load_alignment_and_tree
+from aeon_core.dataset import load_alignment_and_tree
 from hyphaeon.training_data import (
     GeneTensorsDataset,
     TRAINING_SCHEMA_VERSION,

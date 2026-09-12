@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 import torch
 
-from hyphaeon.weights import (
+from aeon_core.weights import (
     HF_REPO_ID,
     DEFAULT_VARIANT,
     get_variant_filename,

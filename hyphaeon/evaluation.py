@@ -22,7 +22,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 from scipy.stats import pearsonr, rankdata, spearmanr
 
-from .io import ensure_parent_directory
+from aeon_core.io import ensure_parent_directory
 
 
 class EvaluationError(ValueError):

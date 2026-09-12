@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 import torch
-from hyphaeon.dataset import load_alignment_and_tree
+from aeon_core.dataset import load_alignment_and_tree
 
 try:
     import tn93  # noqa: F401
@@ -119,7 +119,7 @@ class TestLoadAlignmentAndTreeFasta:
 
     @pytest.mark.skipif(not _HAS_TN93, reason="tn93 package not installed")
     def test_compute_tn93_distance_matrix_direct(self):
-        from hyphaeon.dataset import compute_tn93_distance_matrix
+        from aeon_core.dataset import compute_tn93_distance_matrix
         seq_dict = {
             "s1": "ATGAAATTT",
             "s2": "ATGAAATTC",

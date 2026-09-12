@@ -8,9 +8,11 @@ import os
 import numpy as np
 import pytest
 
-from hyphaeon.temporal import (
+from aeon_core.temporal import (
     parse_date_to_decimal,
     extract_date_from_string,
+)
+from hyphaeon.temporal import (
     parse_temporal_metadata,
 )
 

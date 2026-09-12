@@ -9,7 +9,7 @@ REPO_ROOT = str(Path(__file__).resolve().parent.parent)
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from hyphaeon.model import PhyloAxialTransformer
+from aeon_core.model import PhyloAxialTransformer
 
 EXAMPLES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
 EXPECTED_DIR = os.path.join(EXAMPLES_DIR, "expected_results")

@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 import torch
 
-from hyphaeon.model import BustedMultiTaskHead, PhyloAxialTransformer
+from aeon_core.model import BustedMultiTaskHead, PhyloAxialTransformer
 
 
 # ---------------------------------------------------------------------------

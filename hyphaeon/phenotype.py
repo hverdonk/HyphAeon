@@ -23,17 +23,17 @@ import scipy.stats as stats
 import torch
 from Bio import Phylo
 
-from .dataset import (
+from aeon_core.dataset import (
     AA_MAP,
     CODON_TO_AA,
     load_alignment_and_tree,
     parse_alignment_sequences,
     extract_tree_from_string_or_file
 )
-from .model import PhyloAxialTransformer
-from .stats import cauchy_combination_p, benjamini_hochberg
-from .inference import get_device, load_model
-from .weights import (
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.stats import cauchy_combination_p, benjamini_hochberg
+from aeon_core.inference import get_device, load_model
+from aeon_core.weights import (
     load_weights,
     load_arch_config,
     resolve_weights_path,

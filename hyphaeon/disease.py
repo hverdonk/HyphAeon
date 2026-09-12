@@ -25,16 +25,16 @@ import torch
 from Bio.Seq import Seq
 from Bio.Align import PairwiseAligner
 
-from .dataset import (
+from aeon_core.dataset import (
     AA_MAP,
     GENETIC_CODE,
     parse_alignment_sequences,
     get_codon_token,
     get_aa_token
 )
-from .model import PhyloAxialTransformer
-from .inference import get_device, load_model, compute_adaptive_safe_batch_size
-from ._progress import ChunkProgress
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.inference import get_device, load_model, compute_adaptive_safe_batch_size
+from aeon_core._progress import ChunkProgress
 
 REV_AA_MAP = {v: k for k, v in AA_MAP.items()}
 

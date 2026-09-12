@@ -5,10 +5,12 @@ import pandas as pd
 import pytest
 import torch
 
-from hyphaeon.temporal import (
+from aeon_core.temporal import (
     parse_date_to_decimal,
     extract_date_from_string,
     parse_dates_from_auspice_json,
+)
+from hyphaeon.temporal import (
     parse_temporal_metadata,
     infer_root_sequence,
 )

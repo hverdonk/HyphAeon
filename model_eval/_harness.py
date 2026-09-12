@@ -25,7 +25,7 @@ from Bio import Phylo
 from Bio.Phylo.BaseTree import Clade
 
 from hyphaeon import dataset as ds
-from hyphaeon.stats import pvals_from_lrt_meme as pvals_from_lrt
+from aeon_core.stats import pvals_from_lrt_meme as pvals_from_lrt
 from hyphaeon.attribution import attribute_selection
 from hyphaeon.inference import predict_site_lrts
 

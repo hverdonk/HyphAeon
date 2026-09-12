@@ -15,10 +15,10 @@ from Bio import Phylo
 from hyphaeon.splits import (
     run_spectral_splits,
     spectral_bisection,
-    compute_fused_affinity_matrix,
     tree_dict_to_newick,
     get_all_clade_taxa,
 )
+from aeon_core.splits import compute_fused_affinity_matrix
 
 try:
     import tn93  # noqa: F401

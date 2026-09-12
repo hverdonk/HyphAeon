@@ -24,7 +24,7 @@ import torch
 import networkx as nx
 from Bio import Phylo
 
-from .dataset import (
+from aeon_core.dataset import (
     AA_MAP,
     GENETIC_CODE,
     CODON_TO_AA,
@@ -32,11 +32,11 @@ from .dataset import (
     get_codon_token,
     get_aa_token
 )
-from .model import PhyloAxialTransformer
-from .weights import load_weights, load_arch_config
-from .stats import pvals_from_lrt_self_liang, benjamini_hochberg
-from .inference import get_device, load_model, get_device_memory_budget, compute_adaptive_safe_batch_size
-from ._progress import ChunkProgress
+from aeon_core.model import PhyloAxialTransformer
+from aeon_core.weights import load_weights, load_arch_config
+from aeon_core.stats import pvals_from_lrt_self_liang, benjamini_hochberg
+from aeon_core.inference import get_device, load_model, get_device_memory_budget, compute_adaptive_safe_batch_size
+from aeon_core._progress import ChunkProgress
 
 REV_AA_MAP = {v: k for k, v in AA_MAP.items()}
 
@@ -172,7 +172,7 @@ def compute_branch_coselection_network(
     cesi_vals = sim_arr * np.sqrt(np.maximum(lrts[s1_arr], 0.1) * np.maximum(lrts[s2_arr], 0.1))
 
     # Proper Global Benjamini-Hochberg FDR over all M_total hypothesis tests
-    from .stats import benjamini_hochberg
+    from aeon_core.stats import benjamini_hochberg
     q_vals = benjamini_hochberg(p_vals).astype(np.float32)
     
     pass_filter = (

@@ -42,7 +42,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from .dataset import (
+from aeon_core.dataset import (
     compute_tn93_distance_matrix,
     compute_tn93_cross_distance_matrix,
     parse_alignment_sequences,
@@ -373,8 +373,8 @@ class AutoClockDeconvolution:
         if self.manifold in ["transformer", "neural"] or (self.manifold == "auto" and n <= 1000):
             try:
                 import torch
-                from .inference import load_model, prepare_alignment, get_device
-                from .splits import extract_cross_taxa_attentions_and_embeddings
+                from aeon_core.inference import load_model, prepare_alignment, get_device
+                from aeon_core.splits import extract_cross_taxa_attentions_and_embeddings
                 from .dating import compute_neural_covariance_kernel
 
                 dev = get_device() if self.device is None else torch.device(self.device)

@@ -42,8 +42,8 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
-from .dataset import parse_alignment_sequences
-from .temporal import parse_date_to_decimal, extract_date_from_string
+from aeon_core.dataset import parse_alignment_sequences
+from aeon_core.temporal import parse_date_to_decimal, extract_date_from_string
 from .dating import run_ols_dating, compute_fieller_mrca_interval
 
 

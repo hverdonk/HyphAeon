@@ -20,9 +20,9 @@ import scipy.stats as stats
 import torch
 import networkx as nx
 
-from .model import PhyloAxialTransformer, BustedMultiTaskHead
-from .dataset import load_alignment_and_tree
-from .weights import (
+from aeon_core.model import PhyloAxialTransformer, BustedMultiTaskHead
+from aeon_core.dataset import load_alignment_and_tree
+from aeon_core.weights import (
     resolve_weights_path,
     load_arch_config,
     load_weights,
@@ -32,10 +32,11 @@ from .weights import (
 )
 from .phenotype import run_phenotype_association, PRESETS
 from .epistasis import run_epistasis_analysis, run_epistatic_sector_mining
-from .stats import pvals_from_lrt_meme, pvals_from_lrt_self_liang, benjamini_hochberg, cauchy_combination_p
-from .inference import get_device, load_model, prepare_alignment, predict_site_lrts, compute_adaptive_safe_batch_size
-from .io import ensure_parent_directory, write_json, write_csv, format_pq
-from ._progress import ChunkProgress
+from aeon_core.stats import pvals_from_lrt_meme, pvals_from_lrt_self_liang, benjamini_hochberg, cauchy_combination_p
+from aeon_core.inference import get_device, load_model, prepare_alignment, compute_adaptive_safe_batch_size
+from .inference import predict_site_lrts
+from aeon_core.io import ensure_parent_directory, write_json, write_csv, format_pq
+from aeon_core._progress import ChunkProgress
 
 DEFAULT_VARIANT_ENV = os.environ.get("HYPHAEON_VARIANT", DEFAULT_VARIANT)
 
@@ -112,7 +113,7 @@ def cmd_meme(args):
     cleaned_alignment_path = None
     if getattr(args, "filter", False):
         print("\n[*] Running Automated Alignment Error Screening (Hypergeometric Patch + Counterfactual Outlier Attribution)...")
-        from .dataset import parse_alignment_sequences, CODON_TO_AA
+        from aeon_core.dataset import parse_alignment_sequences, CODON_TO_AA
         from .filter import scan_hypergeometric_patches
 
         # 1. Hypergeometric Scan for selective patches
@@ -1006,7 +1007,7 @@ def cmd_filter(args):
 
 def cmd_temporal(args):
     """Executes continuous temporal attribution regression, two-stage statistical filtering, and dynamic wave decomposition."""
-    from .temporal import run_temporal_surveillance
+    from .temporal import run_temporal_surveillance  # hyphaeon-specific
 
     use_tn93 = getattr(args, "no_tree", False) or getattr(args, "use_tn93", False) or (getattr(args, "tree", None) == "tn93")
 
@@ -1049,7 +1050,7 @@ def cmd_temporal(args):
 
 def cmd_splits(args):
     """Executes Spectral Graph Bisection via Cross-Taxa Attention Maps & MDS Fusion."""
-    from .splits import run_spectral_splits
+    from .splits import run_spectral_splits  # hyphaeon-specific
     use_tn93 = getattr(args, "no_tree", False) or getattr(args, "use_tn93", False) or (getattr(args, "tree", None) == "tn93")
     res = run_spectral_splits(
         alignment_path=args.alignment,
@@ -1467,7 +1468,7 @@ def cmd_r0(args):
 
 def cmd_sieve(args):
     from .sieve import ChronAeonSieve
-    from .dataset import parse_alignment_sequences
+    from aeon_core.dataset import parse_alignment_sequences
 
     print("=" * 80)
     print("CHRONAEON SIEVE: HIGH-THROUGHPUT QUALITY CONTROL & CLOCK TRIAGE")
