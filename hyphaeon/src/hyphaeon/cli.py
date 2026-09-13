@@ -30,6 +30,7 @@ from aeon_core.weights import (
     load_arch_config,
     load_weights,
     list_available_variants,
+    print_available_variants,
     DEFAULT_VARIANT,
     HF_REPO_ID,
 )
@@ -573,26 +574,7 @@ def cmd_busted(args):
 
 def list_models():
     """List available model variants from Hugging Face."""
-    try:
-        variants = list_available_variants()
-    except Exception as e:
-        print(f"[!] Could not fetch model list from Hugging Face: {e}")
-        if "401" in str(e) or "Unauthorized" in str(e):
-            print("    Could not authenticate with Hugging Face. If accessing a private repo, set HF_TOKEN env var.")
-        return
-
-    if not variants:
-        print("No model variants found on Hugging Face.")
-        return
-
-    print(f"Available HyphAeon model variants ({HF_REPO_ID}):")
-    print()
-    for v in variants:
-        default = " (default)" if v["variant"] == DEFAULT_VARIANT else ""
-        print(f"  {v['variant']:15s}  {v['description']}{default}")
-    print()
-    print("Use with:  hyphaeon meme -a alignment.fa --model-variant <variant>")
-    print(f"Default variant: {DEFAULT_VARIANT}")
+    print_available_variants(cli_name="hyphaeon")
 
 def cmd_phenotype(args):
     alignment_path = os.path.expanduser(args.alignment) if getattr(args, "alignment", None) else None

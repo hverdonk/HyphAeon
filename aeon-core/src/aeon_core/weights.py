@@ -69,6 +69,38 @@ def list_available_variants() -> List[Dict[str, str]]:
     return variants
 
 
+def print_available_variants(cli_name: str = "aeon"):
+    """
+    Fetch and print available model variants from Hugging Face.
+
+    Shared by all Aeon-family CLI tools (hyphaeon, chronaeon).
+
+    Args:
+        cli_name: Name of the calling CLI (e.g. 'hyphaeon', 'chronaeon')
+                  used in the usage example line.
+    """
+    try:
+        variants = list_available_variants()
+    except Exception as e:
+        print(f"[!] Could not fetch model list from Hugging Face: {e}")
+        if "401" in str(e) or "Unauthorized" in str(e):
+            print("    Could not authenticate with Hugging Face. If accessing a private repo, set HF_TOKEN env var.")
+        return
+
+    if not variants:
+        print("No model variants found on Hugging Face.")
+        return
+
+    print(f"Available model variants ({HF_REPO_ID}):")
+    print()
+    for v in variants:
+        default = " (default)" if v["variant"] == DEFAULT_VARIANT else ""
+        print(f"  {v['variant']:15s}  {v['description']}{default}")
+    print()
+    print(f"Use with:  {cli_name} <subcommand> --model-variant <variant>")
+    print(f"Default variant: {DEFAULT_VARIANT}")
+
+
 def get_variant_filename(variant: str) -> str:
     """Map a variant name to its HF filename."""
     if variant == "general":
