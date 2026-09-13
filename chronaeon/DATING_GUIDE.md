@@ -41,7 +41,7 @@ $$\mathbf{d} \sim \mathcal{N}(\mathbf{X}\boldsymbol{\beta}, \boldsymbol{\Sigma})
 
 Traditionally, computing $\boldsymbol{\Sigma}_{ij} \propto t_{\text{shared}}(i, j)$ requires inferring a full phylogenetic tree and calculating ancestral node heights for every pair of taxa.
 
-In ChronAeon, the multi-head cross-taxa attention matrix $\mathbf{A}_{\text{fused}} \in \mathbb{R}^{N \times N}$ directly captures evolutionary affinity and shared ancestry across all transformer layers. We define the empirical phylogenetic covariance matrix as:
+In HyphAeon, the multi-head cross-taxa attention matrix $\mathbf{A}_{\text{fused}} \in \mathbb{R}^{N \times N}$ directly captures evolutionary affinity and shared ancestry across all transformer layers. We define the empirical phylogenetic covariance matrix as:
 $$\boldsymbol{\Sigma} = \mathbf{A}_{\text{fused}} + \lambda_{\text{reg}} \mathbf{I}$$
 
 The generalized least squares estimator is computed via spectral decomposition $\boldsymbol{\Sigma} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^T$:
@@ -94,12 +94,12 @@ If a candidate $\lambda$ violates either constraint, it is assigned infinite los
 
 ### Method 3: Latent Manifold Coalescent Variance Collapse
 
-In acute transmission bottlenecks or single-source outbreaks (e.g. within-host viral infection or spillover), the population originates from a single founding genome ($N(0)=1$, zero population variance). Under genetic drift and diversifying positive selection, sequence representations $\mathbf{z}_i \in \mathbb{R}^{128}$ disperse continuously through ChronAeon's latent embedding space.
+In acute transmission bottlenecks or single-source outbreaks (e.g. within-host viral infection or spillover), the population originates from a single founding genome ($N(0)=1$, zero population variance). Under genetic drift and diversifying positive selection, sequence representations $\mathbf{z}_i \in \mathbb{R}^{128}$ disperse continuously through HyphAeon's latent embedding space.
 
 At each longitudinal sampling time $t$, we compute the total latent population variance:
 $$\text{Var}(\mathbf{Z}(t)) = \text{Tr}\left( \frac{1}{|S_t|} \sum_{i \in S_t} (\mathbf{z}_i - \bar{\mathbf{z}}_t)(\mathbf{z}_i - \bar{\mathbf{z}}_t)^T \right)$$
 
-Because ChronAeon's continuous representations preserve metric evolutionary divergence, latent population variance expands linearly over time:
+Because HyphAeon's continuous representations preserve metric evolutionary divergence, latent population variance expands linearly over time:
 $$\text{Var}(\mathbf{Z}(t)) \approx s \cdot (t - t_{\text{founder}})$$
 
 Extrapolating $\text{Var}(\mathbf{Z}(t)) \to 0$ recovers the time of origin without requiring:
@@ -111,11 +111,11 @@ Extrapolating $\text{Var}(\mathbf{Z}(t)) \to 0$ recovers the time of origin with
 
 ## 3. Strict In-Frame Coding Alignment Enforcement
 
-ChronAeon is a codon-aware phylogenetic transformer trained on tri-nucleotide codon tokens ($0 \dots 63$) and amino acid tokens ($0 \dots 19$). Consequently, `chronaeon dating` strictly validates and enforces in-frame coding integrity:
+HyphAeon is a codon-aware phylogenetic transformer trained on tri-nucleotide codon tokens ($0 \dots 63$) and amino acid tokens ($0 \dots 19$). Consequently, `chronaeon dating` strictly validates and enforces in-frame coding integrity:
 
 1. **Triplet Divisibility:** Every sequence must satisfy $L_{\text{nt}} \pmod 3 == 0$. If non-coding sequences or frameshifted sequences are detected, `chronaeon dating` halts with an explicit error:
    ```text
-   ValueError: ChronAeon is a codon-level foundation model and strictly requires in-frame coding sequences.
+   ValueError: HyphAeon is a codon-level foundation model and strictly requires in-frame coding sequences.
    Sequence 'taxon_A' has length 1001 nt (2 remainder modulo 3). Please verify open reading frames.
    ```
 2. **Uniform Alignment Length:** All taxa must share identical aligned codon lengths.
@@ -153,23 +153,23 @@ chronaeon dating \
 
 ```text
 [*] Hardware device selected: MPS
-[!] Notice: Detected 16 internal stop codon(s) across 13/143 taxa (9.1%). ChronAeon automatically tokenizes stop codons to token 64 ('*').
+[!] Notice: Detected 16 internal stop codon(s) across 13/143 taxa (9.1%). HyphAeon automatically tokenizes stop codons to token 64 ('*').
 [*] Alignment verified: 143 taxa, 981 codons (2943 nt in-frame).
 [*] Timestamps mapped: 142/143 taxa successfully dated.
     Notice: 1 taxa omitted due to missing timestamps: ['CONSENSUS']
 [*] Tree skipped: Estimating tree-free pairwise distances via TN93...
 [*] Root configuration: explicit_root_CONSENSUS (Timespan: 1959.5 - 1997.5)
 [✓] OLS Molecular Clock: t_MRCA = 1930.82 [1866.5, 1945.8], μ = 0.001874 subs/site/yr (R^2 = 0.472)
-[*] Loading ChronAeon transformer backbone on mps...
+[*] Loading HyphAeon transformer backbone on mps...
 [*] Extracting cross-taxa attention and 128D continuous representations...
 [✓] Forward pass complete in 1.10s! Extracted 143 taxa representations.
-[✓] ChronAeon PGLS Clock: t_MRCA = 1927.57 [1916.4, 1938.7], μ = 0.001875 subs/site/yr (R^2_gls = 0.518)
+[✓] HyphAeon PGLS Clock: t_MRCA = 1927.57 [1916.4, 1938.7], μ = 0.001875 subs/site/yr (R^2_gls = 0.518)
 
 =========================================================================================================
 Method / Estimator                   Estimated t_MRCA     95% Confidence Interval    Rate (μ / year)    R^2   
 ---------------------------------------------------------------------------------------------------------
 1. Standard OLS (TempEst RTT)        1930.82            [1866.5, 1945.8]              0.001874      0.472
-2. ChronAeon Attention PGLS          1927.57            [1916.4, 1938.7]              0.001875      0.518
+2. HyphAeon Attention PGLS          1927.57            [1916.4, 1938.7]              0.001875      0.518
 3. Latent Manifold Collapse          1975.96            [Non-Parametric Coalescent]    0.017032 [Var/yr] 0.429
 ---------------------------------------------------------------------------------------------------------
 

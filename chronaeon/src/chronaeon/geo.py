@@ -774,7 +774,7 @@ def run_phylogeography_analysis(
 
         if device is None:
             device = get_device()
-        print(f"[*] Running ChronAeon transformer backbone on {device} to extract cross-taxa attention...")
+        print(f"[*] Running HyphAeon transformer backbone on {device} to extract cross-taxa attention...")
         model = load_model(weights=weights, variant=variant, device=device)
         c, a, d, z, inv, aln_taxa, L, tree_cache = prepare_alignment(
             str(align_p),

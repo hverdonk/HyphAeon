@@ -93,7 +93,7 @@ def cmd_dating(args):
         pgls = res['pgls']
         pgls_t0_str = f"{'n/a':>7}" if (np.isnan(pgls['t_mrca']) or pgls['mu'] <= 0) else f"{pgls['t_mrca']:>7.2f}"
         ci_pgls_str = format_ci_str(pgls['ci_mrca'], pgls['mu'])
-        print(f"{f'{curr_idx}. ChronAeon Attention PGLS':<36} {pgls_t0_str}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
+        print(f"{f'{curr_idx}. HyphAeon Attention PGLS':<36} {pgls_t0_str}            {ci_pgls_str:<26} {pgls['mu']:>11.6f}      {pgls['r2']:>5.3f}")
         curr_idx += 1
 
     if res.get('spline'):

@@ -12,7 +12,7 @@ Methods:
    - Tree-free: Direct pairwise distance estimation (TN93) and ancestral consensus anchoring.
 4. Estimators:
    - Centered Root-to-Tip Ordinary Least Squares (OLS / TempEst emulation with delta-method & bootstrap CIs).
-   - ChronAeon Attention-Derived Phylogenetic Generalized Least Squares (PGLS) via A_fused covariance.
+   - HyphAeon Attention-Derived Phylogenetic Generalized Least Squares (PGLS) via A_fused covariance.
    - Non-Linear Restricted Cubic Spline Clock (2 DF) and Power-Law Clock with hypothesis testing.
 5. Historical outlier scoring & blind tip dating (e.g. dating the 1959 ZR59 archival isolate).
 6. Publication-grade diagnostic visualization (PDF and PNG).
@@ -138,7 +138,7 @@ def verify_coding_alignment(
     auto_trim_trailing: bool = True
 ) -> Tuple[int, int]:
     """
-    Validates that a nucleotide MSA is suitable for ChronAeon codon modeling.
+    Validates that a nucleotide MSA is suitable for HyphAeon codon modeling.
     Requirements:
     - Non-empty alignment.
     - All sequences must possess identical aligned lengths.
@@ -170,7 +170,7 @@ def verify_coding_alignment(
             l_nt = len(seq_dict[first_taxon])
         else:
             raise ValueError(
-                f"ChronAeon is a codon-level foundation model and strictly requires in-frame coding sequences. "
+                f"HyphAeon is a codon-level foundation model and strictly requires in-frame coding sequences. "
                 f"Sequence '{first_taxon}' has length {l_nt} nt ({rem} remainder modulo 3). "
                 f"Please verify open reading frames and remove non-coding flanking regions or frameshift indels."
             )
@@ -212,7 +212,7 @@ def verify_coding_alignment(
         msg = (
             f"[!] Notice: Detected {total_stops} internal stop codon(s) across "
             f"{len(taxa_with_stops)}/{len(taxa)} taxa ({pct_affected:.1f}%). "
-            f"ChronAeon automatically tokenizes stop codons to token 64 ('*')."
+            f"HyphAeon automatically tokenizes stop codons to token 64 ('*')."
         )
         if not allow_stop_codons:
             raise ValueError(f"{msg} Set allow_stop_codons=True to proceed anyway.")
@@ -1312,7 +1312,7 @@ def run_pgls_dating(
     Fits Centered Phylogenetic Generalized Least Squares (PGLS) regression:
         d = X * beta + epsilon,   Cov(epsilon) = sigma^2 * Sigma
 
-    where Sigma is ChronAeon's neural phylogenetic covariance matrix.
+    where Sigma is HyphAeon's neural phylogenetic covariance matrix.
     Defaults to Fieller's theorem exact confidence interval inversion.
     """
     n = len(times)
@@ -2019,7 +2019,7 @@ def plot_mrca_dating(
     if pgls:
         y_pgls = pgls['mu'] * (x_grid - pgls['t_ref']) + pgls['d0']
         ax1.plot(x_grid, y_pgls, color='#7b2cbf', linestyle='-', linewidth=2.5,
-                 label=f"ChronAeon PGLS (t_MRCA={pgls['t_mrca']:.1f}, μ={pgls['mu']:.5f})", zorder=5)
+                 label=f"HyphAeon PGLS (t_MRCA={pgls['t_mrca']:.1f}, μ={pgls['mu']:.5f})", zorder=5)
 
     # Restricted Spline fitted curve
     if spline:
@@ -2091,7 +2091,7 @@ def plot_mrca_dating(
         t_pgls = pgls.get('times', times)
         if len(t_pgls) != len(res_pgls):
             t_pgls = times[:len(res_pgls)]
-        ax2.scatter(t_pgls, res_pgls, color='#7b2cbf', alpha=0.7, s=40, marker='^', edgecolors='black', linewidth=0.5, label='ChronAeon PGLS Residuals', zorder=4)
+        ax2.scatter(t_pgls, res_pgls, color='#7b2cbf', alpha=0.7, s=40, marker='^', edgecolors='black', linewidth=0.5, label='HyphAeon PGLS Residuals', zorder=4)
     ax2.axhline(0, color='black', linestyle='--', linewidth=1.2)
     ax2.set_xlabel("Sampling Date / Time", fontsize=11, fontweight='bold')
     ax2.set_ylabel("Residual Divergence (d - d_pred)", fontsize=11, fontweight='bold')
@@ -2365,7 +2365,7 @@ def plot_alluvial_phylogeny(
             labeled_count += 1
 
     # Formatting and Labels
-    plot_title = title or f"ChronAeon Continuous Manifold Alluvial Phylogeny (N = {N} taxa)"
+    plot_title = title or f"HyphAeon Continuous Manifold Alluvial Phylogeny (N = {N} taxa)"
     ax.set_title(plot_title, fontsize=14, weight="bold", pad=15, color="#0f172a")
     ax.set_xlabel("Calendar Time (Years CE)", fontsize=11, weight="bold", color="#1e293b")
     ax.set_ylabel("Continuous Manifold Divergence (Leading MDS Coordinate, subs/site)", fontsize=11, weight="bold", color="#1e293b")
@@ -2376,7 +2376,7 @@ def plot_alluvial_phylogeny(
     # Summary Information Box
     outlier_count = sum(1 for r in records if r.get('is_outlier', False))
     info_lines = [
-        r"$\mathbf{ChronAeon\ Continuous\ Timetree:}$",
+        r"$\mathbf{HyphAeon\ Continuous\ Timetree:}$",
         rf"• Ancestor $t_{{\mathrm{{MRCA}}}}$: {t_mrca:.1f} CE [{ci_low:.1f}, {ci_high:.1f}]",
         rf"• Evolutionary Rate $\mu$: {mu:.5f} subs/site/yr",
         f"• Clock Model: {selected_clock}",
@@ -2545,7 +2545,7 @@ def run_mrca_dating(
         if device is None:
             device = get_device()
         if model is None:
-            print(f"[*] Loading ChronAeon transformer backbone on {device}...")
+            print(f"[*] Loading HyphAeon transformer backbone on {device}...")
             model = load_model(weights=weights, variant=variant, device=device)
 
         # Prepare alignment tensors
@@ -2626,7 +2626,7 @@ def run_mrca_dating(
                     if device is None:
                         device = get_device()
                     if model is None:
-                        print(f"[*] Loading ChronAeon transformer backbone on {device}...")
+                        print(f"[*] Loading HyphAeon transformer backbone on {device}...")
                         model = load_model(weights=weights, variant=variant, device=device)
 
                     c_lat, a_lat, _, _, _, aln_taxa_lat, _, tree_cache_lat = prepare_alignment(
@@ -2736,7 +2736,7 @@ def run_mrca_dating(
             if device is None:
                 device = get_device()
             if model is None:
-                print(f"[*] Loading ChronAeon transformer backbone on {device}...")
+                print(f"[*] Loading HyphAeon transformer backbone on {device}...")
                 model = load_model(weights=weights, variant=variant, device=device)
 
             # Load alignment into model tensors
@@ -2832,7 +2832,7 @@ def run_mrca_dating(
             else:
                 t0_str = f"{pgls_res['t_mrca']:.2f}"
                 ci_str = f"[{pgls_res['ci_mrca'][0]:.1f}, {pgls_res['ci_mrca'][1]:.1f}]"
-            print(f"[✓] ChronAeon PGLS Clock: t_MRCA = {t0_str} {ci_str}, μ = {pgls_res['mu']:.6f} subs/site/yr (R^2_gls = {pgls_res['r2']:.3f})")
+            print(f"[✓] HyphAeon PGLS Clock: t_MRCA = {t0_str} {ci_str}, μ = {pgls_res['mu']:.6f} subs/site/yr (R^2_gls = {pgls_res['r2']:.3f})")
 
     # 5b. Non-Linear Clock Models: Restricted Natural Spline & Power-Law
     spline_res = None
@@ -2951,7 +2951,7 @@ def run_mrca_dating(
     elif clock_model == "linear":
         if pgls_valid and not is_clade_attenuated and (pgls_bounded or not ols_bounded):
             active_model = pgls_res
-            selected_clock = "Linear (ChronAeon PGLS)"
+            selected_clock = "Linear (HyphAeon PGLS)"
         elif ols_valid:
             active_model = ols_res
             selected_clock = "Linear (Standard OLS)"

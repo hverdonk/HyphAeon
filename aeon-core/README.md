@@ -1,6 +1,6 @@
 # aeon-core
 
-Shared infrastructure for the Aeon family of packages (HyphAeon, ChronAeon).
+Shared infrastructure for the HyphAeon family of packages (HyphAeon, ChronAeon).
 
 Contains the `PhyloAxialTransformer` foundation model, pretrained weight resolution (HuggingFace Hub), and core utilities for alignment processing, inference, spectral splits, temporal parsing, I/O, and statistics.
 
