@@ -7,16 +7,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  test-aeon-core:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Python 3.8 is included for NVIDIA Jetson (aarch64) compatibility: the
-        # JetPack-native torch wheel (torch 2.1.0, cu114) is cp38-only, and is the
-        # only torch build that binds to Jetson's integrated GPU (see issue #31).
-        # On x86_64 CI, torch 2.4.1 is the last cp38 CPU wheel (2.5+ dropped cp38).
-        # Python 3.9 gets torch 2.8.0 (2.9+ dropped cp39), which satisfies >=2.0.0.
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
@@ -27,17 +22,59 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install CPU-only torch first (smaller than the default CUDA wheel) so
-      # the subsequent `pip install -e .[dev]` sees the requirement satisfied.
-      # For Python 3.8, this resolves to torch 2.4.1 (the last cp38 CPU wheel).
-      # For Python 3.9, this resolves to torch 2.8.0 (the last cp39 release).
       - name: Install CPU torch
         run: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-      - name: Install package and dev dependencies
-        run: pip install -e .[dev,tn93]
+      - name: Install aeon-core and dev dependencies
+        run: pip install -e aeon-core/[dev,tn93]
 
-      # Tests use a tiny dummy checkpoint (random weights) created at runtime,
-      # so no pretrained weights download is needed.
-      - name: Run tests
-        run: python -m pytest tests/ -v
+      - name: Run aeon-core tests
+        run: python -m pytest aeon-core/tests/ -v
+
+  test-hyphaeon:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install CPU torch
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install aeon-core, hyphaeon and dev dependencies
+        run: pip install -e aeon-core/ -e hyphaeon/[dev,tn93]
+
+      - name: Run hyphaeon tests
+        run: python -m pytest hyphaeon/tests/ -v
+
+  test-chronaeon:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install CPU torch
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install aeon-core, chronaeon and dev dependencies
+        run: pip install -e aeon-core/ -e chronaeon/[dev,tn93]
+
+      - name: Run chronaeon tests
+        run: python -m pytest chronaeon/tests/ -v

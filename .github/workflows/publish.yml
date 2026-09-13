@@ -1,0 +1,34 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - "aeon-core-v*"
+      - "hyphaeon-v*"
+      - "chronaeon-v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Determine package from tag
+        id: pkg
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG" == aeon-core-v* ]]; then
+            echo "dir=aeon-core" >> $GITHUB_OUTPUT
+          elif [[ "$TAG" == hyphaeon-v* ]]; then
+            echo "dir=hyphaeon" >> $GITHUB_OUTPUT
+          elif [[ "$TAG" == chronaeon-v* ]]; then
+            echo "dir=chronaeon" >> $GITHUB_OUTPUT
+          fi
+      - name: Build and publish
+        run: |
+          pip install build twine
+          cd ${{ steps.pkg.outputs.dir }}
+          python -m build
+          twine upload dist/* -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
