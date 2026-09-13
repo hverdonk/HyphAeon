@@ -25,6 +25,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from hyphaeon.cli import _IS_DEV
+
 try:
     import tn93  # noqa: F401
     _HAS_TN93 = True
@@ -141,6 +143,7 @@ def test_batch_size_one_produces_same_structure(examples_dir, dummy_weights, tmp
         assert np.isfinite(actual[col]).all(), f"{col} contains non-finite values"
 
 
+@pytest.mark.skipif(not _IS_DEV, reason="busted subcommand is gated behind dev mode")
 def test_busted_cli_runs_and_produces_valid_output(examples_dir, dummy_weights, tmp_path):
     """Test that hyphaeon/hyphaeon busted subcommand runs end-to-end and creates JSON/CSV."""
     fa = os.path.join(examples_dir, "Smc6.fasta")
