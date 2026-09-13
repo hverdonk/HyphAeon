@@ -1,5 +1,5 @@
 """
-hyphaeon/io.py
+aeon_core/io.py
 --------------
 Shared output helpers: directory creation, JSON/CSV writing with confirmation
 prints, and p/q value formatting for pretty-printing.

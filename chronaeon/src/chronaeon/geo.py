@@ -1,5 +1,5 @@
 """
-HyphAeon Geo: Ultra-Fast Discrete Phylogeography, Directed Spatial Migration Flux,
+ChronAeon Geo: Ultra-Fast Discrete Phylogeography, Directed Spatial Migration Flux,
 Permutation-Based BSSVS Bayes Factor Selection, and Spatial PGLS Epicenter Inference.
 """
 

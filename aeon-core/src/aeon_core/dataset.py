@@ -1,6 +1,6 @@
 """
-hyphaeon/dataset.py
-------------------
+aeon_core/dataset.py
+--------------------
 Data preprocessing, tokenization, tree patristic distance calculation,
 classical 4D MDS embedding, alignment & tree parsing, embedded tree extraction,
 branch length validation, and HyPhy branch length estimation.

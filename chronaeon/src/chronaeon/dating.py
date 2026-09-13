@@ -1,6 +1,6 @@
 """
-hyphaeon/dating.py
-------------------
+chronaeon/dating.py
+-------------------
 Heterochronous Molecular Clock Calibration and Ancestor Dating (t_MRCA)
 for Pathogen Genomics.
 

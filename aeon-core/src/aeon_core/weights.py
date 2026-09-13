@@ -1,7 +1,7 @@
 """
-hyphaeon/weights.py
-------------------
-Handles discovery, download, and caching of HyphAeon model weights from Hugging Face.
+aeon_core/weights.py
+--------------------
+Handles discovery, download, and caching of Aeon model weights from Hugging Face.
 
 Weights are hosted at https://huggingface.co/datamonkey/hyphaeon and that repo is
 the source of truth. On first use, weights are downloaded and cached locally

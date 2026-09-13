@@ -178,6 +178,6 @@ def test_cli_r0_example(tmp_path):
     ]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     assert proc.returncode == 0
-    assert "HYPHAEON R0 ESTIMATION RESULTS" in proc.stdout
+    assert "CHRONAEON R0 ESTIMATION RESULTS" in proc.stdout
     assert os.path.exists(tmp_path / "cli_r0.json")
     assert os.path.exists(tmp_path / "cli_r0.png")

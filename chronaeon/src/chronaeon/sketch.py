@@ -1,5 +1,5 @@
 """
-HyphAeon Alignment-Free Sketch & Topological Binner
+ChronAeon Alignment-Free Sketch & Topological Binner
 ===================================================
 Provides ultra-fast canonical MinHash sketching and alignment-free binning
 for massive unaligned genomic surveillance feeds.
@@ -148,7 +148,7 @@ class AlignmentFreeBinner:
         """
         n_total = len(seq_dict)
         self._log("=" * 80)
-        self._log(f"HYPHAEON ALIGNMENT-FREE CENTRIFUGE: BINNING {n_total:,} UNALIGNED SEQUENCES")
+        self._log(f"CHRONAEON ALIGNMENT-FREE CENTRIFUGE: BINNING {n_total:,} UNALIGNED SEQUENCES")
         self._log("=" * 80)
 
         t0 = time.time()

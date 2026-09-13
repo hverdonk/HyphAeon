@@ -78,6 +78,7 @@ class TestSelectAdaptiveNLandmarks:
 class TestFitFastOLSClock:
     def test_linear_recovery(self):
         """fit_fast_ols_clock should recover known slope and intercept."""
+        np.random.seed(42)
         true_t0 = 1950.0
         true_mu = 0.001
         times = np.linspace(1970, 2020, 50)

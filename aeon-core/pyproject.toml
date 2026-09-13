@@ -32,8 +32,12 @@ dependencies = [
 tn93 = ["tn93>=1.2.0"]
 dev = ["pytest>=7.0"]
 
-[tool.setuptools]
-packages = ["aeon_core"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
-[tool.setuptools.package-dir]
-aeon_core = "src/aeon_core"
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[project.urls]
+"Homepage" = "https://github.com/veg/HyphAeon"
+"Bug Tracker" = "https://github.com/veg/HyphAeon/issues"

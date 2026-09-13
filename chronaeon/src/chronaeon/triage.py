@@ -1,6 +1,6 @@
 """
-hyphaeon/sieve.py
------------------
+chronaeon/triage.py
+--------------------
 High-Throughput Streaming Pathogen Genomic Quality Control & Clock Manifold Sieve.
 
 Workflow:

@@ -17,6 +17,20 @@
 
 **HyphAeon** is a deep-time phylogenetic foundation model designed to bridge computational phylogenetics, structural biology, and foundation AI. Built upon a 2D axial transformer backbone (**`PhyloAxialTransformer`**) with patristic distance-decay attention and classical multidimensional scaling (MDS) tree embeddings, HyphAeon ingests multi-species codon alignments and explicit evolutionary trees spanning 200 million years of deep time.
 
+## 📦 Monorepo Structure
+
+This repository is organized as a monorepo with three installable packages:
+
+| Package | Description | Install |
+| :--- | :--- | :--- |
+| **`aeon-core`** | Shared model, dataset, inference, weights, stats, and IO infrastructure | `pip install aeon-core` |
+| **`hyphaeon`** | Site-level selection inference, epistasis, phenotype association, disease prediction | `pip install hyphaeon` |
+| **`chronaeon`** | Molecular clock dating, phylodynamics, phylogeography, genomic surveillance | `pip install chronaeon` |
+
+`aeon-core` is the shared foundation. Both `hyphaeon` and `chronaeon` depend on it
+and pull it in automatically when installed. Example datasets are shared from the
+root `examples/` directory; chronaeon-specific examples live in `chronaeon/examples/`.
+
 ---
 
 > [!TIP]

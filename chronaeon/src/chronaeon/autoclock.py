@@ -1,6 +1,6 @@
 """
-hyphaeon/autoclock.py
---------------------
+chronaeon/autoclock.py
+----------------------
 Automated Multi-Clock Community Deconvolution Engine (ChronAeon AutoClock).
 
 Unsupervised manifold learning and spectral graph partitioning for time-stamped
@@ -434,7 +434,7 @@ class AutoClockDeconvolution:
 
         # Degree and normalized symmetric graph Laplacian
         degrees = np.sum(self.affinity_matrix, axis=1)
-        d_inv_sqrt = np.power(degrees, -0.5, where=degrees > 0)
+        d_inv_sqrt = np.power(degrees, -0.5, where=degrees > 0, out=np.zeros_like(degrees))
         d_inv_sqrt[degrees == 0] = 0.0
 
         # Memory-efficient L_sym = I - D^{-1/2} A D^{-1/2} via O(N^2) broadcasting (avoids dense N x N diagonal matrix)

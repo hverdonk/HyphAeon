@@ -49,6 +49,7 @@ class TestHyphaeonGeo:
 
     def test_permutation_bssvs_synthetic(self):
         # Create synthetic transition matrix
+        np.random.seed(42)
         K = 3
         N = 30
         unique_locs = ["LocA", "LocB", "LocC"]

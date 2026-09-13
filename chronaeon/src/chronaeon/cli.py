@@ -17,10 +17,10 @@ import torch
 from aeon_core.inference import get_device
 from aeon_core.weights import DEFAULT_VARIANT
 
-DEFAULT_VARIANT_ENV = os.environ.get("CHRONAEON_VARIANT", os.environ.get("HYPHAEON_VARIANT", DEFAULT_VARIANT))
+DEFAULT_VARIANT_ENV = os.environ.get("CHRONAEON_VARIANT", os.environ.get("HYPHAEON_VARIANT", DEFAULT_VARIANT))  # HYPHAEON_* fallback for pre-refactor users
 
 _local_repo_weights = Path(__file__).resolve().parent.parent.parent.parent / "model.safetensors"
-DEFAULT_WEIGHTS_ENV = os.environ.get("CHRONAEON_WEIGHTS", os.environ.get("HYPHAEON_WEIGHTS", str(_local_repo_weights) if _local_repo_weights.exists() else None))
+DEFAULT_WEIGHTS_ENV = os.environ.get("CHRONAEON_WEIGHTS", os.environ.get("HYPHAEON_WEIGHTS", str(_local_repo_weights) if _local_repo_weights.exists() else None))  # HYPHAEON_* fallback for pre-refactor users
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 EXAMPLES_DIR = _REPO_ROOT / "chronaeon" / "examples"

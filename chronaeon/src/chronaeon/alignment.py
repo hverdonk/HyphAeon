@@ -1,5 +1,5 @@
 """
-HyphAeon Reference-Guided Codon-Aware Threader
+ChronAeon Reference-Guided Codon-Aware Threader
 ==============================================
 Provides linear-time O(N · L) frame-locked codon alignment against
 canonical structural references.

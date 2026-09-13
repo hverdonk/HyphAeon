@@ -1,6 +1,6 @@
 """
-hyphaeon/stats.py
------------------
+aeon_core/stats.py
+------------------
 Shared statistical functions: LRT → p-value conversion, Benjamini-Hochberg
 FDR q-values, and Cauchy Combination Test (CCT).
 

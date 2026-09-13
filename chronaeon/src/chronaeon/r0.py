@@ -1,6 +1,6 @@
 """
-hyphaeon/r0.py
---------------
+chronaeon/r0.py
+---------------
 Ultra-Fast Phylodynamic Estimation of Epidemic Growth Rate (r) and Reproduction Numbers (R0, Rt)
 from Heterochronous Viral Surveillance Sequences.
 
@@ -756,7 +756,7 @@ def run_r0_analysis(
     )
 
     print(f"\n{'='*75}")
-    print(f"HYPHAEON R0 ESTIMATION RESULTS (Pathogen: {preset_info['display_name'] if preset_info else 'Custom'})")
+    print(f"CHRONAEON R0 ESTIMATION RESULTS (Pathogen: {preset_info['display_name'] if preset_info else 'Custom'})")
     print(f"{'='*75}")
     print(f"  • Generation Time (T_g):       {rep_res['generation_time_days']:.2f} days (SD: {rep_res['generation_sd_days']:.2f} days)")
     print(f"  • Basic Reproduction Number R0 (Gamma Kernel): {rep_res['R0_gamma']:.3f} (95% CI: {rep_res['R0_gamma_ci'][0]:.3f} to {rep_res['R0_gamma_ci'][1]:.3f})")
