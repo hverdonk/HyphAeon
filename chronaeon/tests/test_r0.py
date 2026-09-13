@@ -164,6 +164,38 @@ def test_h1n1_benchmark_example_end_to_end(tmp_path):
     assert len(res["rt_skyline"]) > 0
 
 
+def test_undated_taxon_dropped_gracefully():
+    """Regression test for issue #50: undated taxa (e.g. reference) should be
+    dropped gracefully instead of crashing with KeyError."""
+    # Build a tree with 3 dated taxa + 1 undated reference
+    clade_a = Clade(branch_length=0.02, name="A")
+    clade_b = Clade(branch_length=0.01, name="B")
+    clade_ab = Clade(branch_length=0.01, clades=[clade_a, clade_b])
+    clade_c = Clade(branch_length=0.04, name="C")
+    clade_ref = Clade(branch_length=0.05, name="REFERENCE")
+    root = Clade(clades=[clade_ab, clade_c, clade_ref])
+    tree = Tree(root=root)
+
+    # REFERENCE has no date in tip_dates
+    tip_dates = {
+        "A": 2020.5,
+        "B": 2020.4,
+        "C": 2020.8,
+    }
+
+    node_dates, mu, tmrca = time_calibrate_tree(tree, tip_dates)
+
+    # Should not raise KeyError — undated taxa are filtered via target_taxa
+    matched_taxa = [t.name.strip("'\"") for t in tree.get_terminals() if t.name.strip("'\"") in tip_dates]
+    intervals, coal_taus, t_max, _ = extract_coalescent_intervals(
+        tree, node_dates, target_taxa=matched_taxa
+    )
+
+    # Only 3 dated taxa -> 2 coalescent events (REFERENCE excluded)
+    assert len(coal_taus) == 2
+    assert t_max == pytest.approx(2020.8)
+
+
 def test_cli_r0_example(tmp_path):
     cmd = [
         sys.executable,
