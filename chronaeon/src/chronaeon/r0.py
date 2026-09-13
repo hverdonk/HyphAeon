@@ -726,7 +726,11 @@ def run_r0_analysis(
     else:
         raise ValueError("Must provide either a tree (-t/--tree) or an alignment (-a/--alignment).")
 
-    matched_terminals = [t for t in tree.get_terminals() if t.name.strip("'\"") in tip_dates]
+    all_terminals = tree.get_terminals()
+    matched_terminals = [t for t in all_terminals if t.name.strip("'\"") in tip_dates]
+    n_dropped = len(all_terminals) - len(matched_terminals)
+    if n_dropped > 0:
+        print(f"[!] Notice: {n_dropped} taxa omitted due to missing or invalid timestamps.")
     matched_dates = [tip_dates[t.name.strip("'\"")] for t in matched_terminals]
     print(f"[✓] Matched {len(matched_terminals)} isolates with calibrated collection dates.")
     print(f"    Date range: {min(matched_dates):.3f} to {max(matched_dates):.3f}")
@@ -735,7 +739,8 @@ def run_r0_analysis(
     print(f"[✓] Time-scaled tree calibrated: t_MRCA = {t_mrca:.3f}, clock rate mu = {mu_clock:.4e} sub/site/yr.")
 
     # 5. Extract coalescent intervals
-    intervals, coal_taus, t_max, _ = extract_coalescent_intervals(tree, node_dates)
+    matched_taxa = [t.name.strip("'\"") for t in matched_terminals]
+    intervals, coal_taus, t_max, _ = extract_coalescent_intervals(tree, node_dates, target_taxa=matched_taxa)
     print(f"[✓] Extracted {len(coal_taus)} coalescent events across {len(intervals)} hazard intervals.")
 
     # 6. Profile Likelihood Growth Rate Estimation
