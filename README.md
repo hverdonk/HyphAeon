@@ -91,6 +91,22 @@ weights, specific CUDA builds), see the respective package READMEs:
 - [`hyphaeon/README.md`](hyphaeon/README.md#installation)
 - [`chronaeon/README.md`](chronaeon/README.md#installation)
 
+### Local Development
+
+This is a monorepo with no root-level installable package. To set up a
+development environment from a fresh clone:
+
+```bash
+pip install -e aeon-core -e hyphaeon -e chronaeon
+```
+
+Run the test suite per-subpackage (each has its own `conftest.py` and `pyproject.toml`):
+
+```bash
+pytest chronaeon/tests/    # ChronAeon tests
+pytest hyphaeon/tests/     # HyphAeon tests
+```
+
 > [!NOTE]
 > **Model weights** are downloaded automatically from [Hugging Face](https://huggingface.co/datamonkey/hyphaeon)
 > on first use (cached in `~/.cache/hyphaeon/`). No authentication or token is
