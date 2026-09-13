@@ -1,7 +1,7 @@
 """
 tests/test_r0.py
 ----------------
-Unit and integration test suite for HyphAeon Phylodynamics (r, R0, Rt) inference.
+Unit and integration test suite for ChronAeon Phylodynamics (r, R0, Rt) inference.
 """
 
 import os

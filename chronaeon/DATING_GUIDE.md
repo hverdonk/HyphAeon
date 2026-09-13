@@ -1,4 +1,4 @@
-# Heterochronous Molecular Clock Calibration & Ancestor Dating (`hyphaeon dating`)
+# Heterochronous Molecular Clock Calibration & Ancestor Dating (`chronaeon dating`)
 
 **A Deep-Time Phylogenetic Foundation Guide to Clock Calibration, $t_{\text{MRCA}}$ Inference, and Latent Manifold Coalescent Collapse**
 
@@ -12,7 +12,7 @@ Traditional approaches fall into two extremes:
 1. **Root-to-Tip Linear Regression (TempEst / Path-O-Gen):** Fits an Ordinary Least Squares (OLS) line between tip sampling dates and evolutionary distances from an inferred root. While fast, **OLS treats closely related lineages as statistically independent observations**, severely violating the Gauss-Markov theorem. This creates **spurious statistical precision** (artificially narrow confidence intervals) that routinely rejects the true biological ancestor date.
 2. **Full Bayesian MCMC (BEAST / BEAST 2 / RevBayes / TreeTime):** Jointly co-estimates phylogenetic tree topologies, branch lengths, relaxed molecular clocks, and coalescent population parameters. While statistically sound, Bayesian MCMC scales exponentially ($O(N^2)$ to $O(N^3)$ per MCMC state), taking hours to days on large datasets and requiring complex prior engineering.
 
-`hyphaeon dating` introduces a unified, high-throughput framework that provides the speed of root-to-tip regression while resolving phylogenetic pseudoreplication through **learned transformer cross-taxa attention**, alongside a completely tree-free **Latent Manifold Coalescent Collapse** estimator.
+`chronaeon dating` introduces a unified, high-throughput framework that provides the speed of root-to-tip regression while resolving phylogenetic pseudoreplication through **learned transformer cross-taxa attention**, alongside a completely tree-free **Latent Manifold Coalescent Collapse** estimator.
 
 ---
 
@@ -29,7 +29,7 @@ $$t_{\text{MRCA}} = t_{\text{ref}} - \frac{d_0}{\mu}$$
 #### Why Centering is Mathematically Critical
 Standard uncentered regressions ($d_i = \mu t_i + \alpha$) back-extrapolate the intercept $\alpha$ to calendar Year 0. Because contemporary viral samples are sampled near Year 2000, $\alpha$ is a massive negative quantity with an astronomical covariance with $\mu$ ($\operatorname{Cov}(\hat{\mu}, \hat{\alpha}) \approx -1.0$). Applying the delta method to $\operatorname{SE}(-\alpha/\mu)$ causes severe numerical instability.
 
-`hyphaeon dating` automatically parameterizes around the mean sampling date $t_{\text{ref}} = \frac{1}{N}\sum t_i$. This guarantees an orthogonal design matrix ($\sum (t_i - t_{\text{ref}}) = 0$), diagonal parameter covariance ($\operatorname{Cov}(\hat{\mu}, \hat{d}_0) = 0$), and exact analytical standard errors:
+`chronaeon dating` automatically parameterizes around the mean sampling date $t_{\text{ref}} = \frac{1}{N}\sum t_i$. This guarantees an orthogonal design matrix ($\sum (t_i - t_{\text{ref}}) = 0$), diagonal parameter covariance ($\operatorname{Cov}(\hat{\mu}, \hat{d}_0) = 0$), and exact analytical standard errors:
 $$\mathbf{J} = \left[ \frac{d_0}{\mu^2}, -\frac{1}{\mu} \right]^T \implies \operatorname{SE}(t_{\text{MRCA}}) = \sqrt{\frac{d_0^2}{\mu^4} \operatorname{Var}(\hat{\mu}) + \frac{1}{\mu^2} \operatorname{Var}(\hat{d}_0)}$$
 
 ---
@@ -41,7 +41,7 @@ $$\mathbf{d} \sim \mathcal{N}(\mathbf{X}\boldsymbol{\beta}, \boldsymbol{\Sigma})
 
 Traditionally, computing $\boldsymbol{\Sigma}_{ij} \propto t_{\text{shared}}(i, j)$ requires inferring a full phylogenetic tree and calculating ancestral node heights for every pair of taxa.
 
-In HyphAeon, the multi-head cross-taxa attention matrix $\mathbf{A}_{\text{fused}} \in \mathbb{R}^{N \times N}$ directly captures evolutionary affinity and shared ancestry across all transformer layers. We define the empirical phylogenetic covariance matrix as:
+In ChronAeon, the multi-head cross-taxa attention matrix $\mathbf{A}_{\text{fused}} \in \mathbb{R}^{N \times N}$ directly captures evolutionary affinity and shared ancestry across all transformer layers. We define the empirical phylogenetic covariance matrix as:
 $$\boldsymbol{\Sigma} = \mathbf{A}_{\text{fused}} + \lambda_{\text{reg}} \mathbf{I}$$
 
 The generalized least squares estimator is computed via spectral decomposition $\boldsymbol{\Sigma} = \mathbf{V} \mathbf{\Lambda} \mathbf{V}^T$:
@@ -65,7 +65,7 @@ $$\mathbf{C}_\lambda^{-1} = \mathbf{V} \operatorname{diag}\left(\frac{1}{w_j + \
 Because $1/\lambda = 20.0 \gg 1/(w_1 + \lambda) \approx 0.1$, the inverted matrix $\mathbf{C}_\lambda^{-1}$ assigns **over 90% of its statistical weight to the zero-eigenvalue null space**. In this uninformative subspace, random sampling date jitter across nearly identical genomes dominates the projection, rotating the regression plane and causing **unphysical negative substitution rates** ($\mu < 0$) and future ancestor projections ($t_{\text{MRCA}} > \min(t)$).
 
 ##### 2. Closed-Form PRESS Leave-One-Out Cross-Validation
-To eliminate ad-hoc regularization and preserve physical admissibility across all data regimes, `hyphaeon dating` implements automated cross-validation based on the **Prediction Sum of Squares (PRESS)** metric:
+To eliminate ad-hoc regularization and preserve physical admissibility across all data regimes, `chronaeon dating` implements automated cross-validation based on the **Prediction Sum of Squares (PRESS)** metric:
 $$\operatorname{PRESS}(\lambda) = \sqrt{\frac{1}{N} \sum_{i=1}^N \left( \frac{d_i - \hat{d}_i(\lambda)}{1 - H_{ii}(\lambda)} \right)^2}$$
 
 where $H_{ii}(\lambda) = [\mathbf{X}(\mathbf{X}^T \mathbf{C}_\lambda^{-1} \mathbf{X})^{-1} \mathbf{X}^T \mathbf{C}_\lambda^{-1}]_{ii}$ represents the leverage of taxon $i$ under covariance $\mathbf{C}_\lambda$.
@@ -88,18 +88,18 @@ Candidate regularizations must satisfy two non-negotiable physical criteria:
 1. **Positive Evolutionary Rate:** $\mu(\lambda) > 10^{-6}\text{ subs/site/year}$.
 2. **Historical Precedence:** $t_{\text{MRCA}}(\lambda) \le \min(t)$ (the common ancestor cannot exist in the future of the earliest sample).
 
-If a candidate $\lambda$ violates either constraint, it is assigned infinite loss ($\operatorname{PRESS} = \infty$). Furthermore, if static ridge regularization is executed and detects rank-deficiency causing $\mu \le 0$, `hyphaeon dating` automatically triggers adaptive ridge tuning to rescue the molecular clock.
+If a candidate $\lambda$ violates either constraint, it is assigned infinite loss ($\operatorname{PRESS} = \infty$). Furthermore, if static ridge regularization is executed and detects rank-deficiency causing $\mu \le 0$, `chronaeon dating` automatically triggers adaptive ridge tuning to rescue the molecular clock.
 
 ---
 
 ### Method 3: Latent Manifold Coalescent Variance Collapse
 
-In acute transmission bottlenecks or single-source outbreaks (e.g. within-host viral infection or spillover), the population originates from a single founding genome ($N(0)=1$, zero population variance). Under genetic drift and diversifying positive selection, sequence representations $\mathbf{z}_i \in \mathbb{R}^{128}$ disperse continuously through HyphAeon's latent embedding space.
+In acute transmission bottlenecks or single-source outbreaks (e.g. within-host viral infection or spillover), the population originates from a single founding genome ($N(0)=1$, zero population variance). Under genetic drift and diversifying positive selection, sequence representations $\mathbf{z}_i \in \mathbb{R}^{128}$ disperse continuously through ChronAeon's latent embedding space.
 
 At each longitudinal sampling time $t$, we compute the total latent population variance:
 $$\text{Var}(\mathbf{Z}(t)) = \text{Tr}\left( \frac{1}{|S_t|} \sum_{i \in S_t} (\mathbf{z}_i - \bar{\mathbf{z}}_t)(\mathbf{z}_i - \bar{\mathbf{z}}_t)^T \right)$$
 
-Because HyphAeon's continuous representations preserve metric evolutionary divergence, latent population variance expands linearly over time:
+Because ChronAeon's continuous representations preserve metric evolutionary divergence, latent population variance expands linearly over time:
 $$\text{Var}(\mathbf{Z}(t)) \approx s \cdot (t - t_{\text{founder}})$$
 
 Extrapolating $\text{Var}(\mathbf{Z}(t)) \to 0$ recovers the time of origin without requiring:
@@ -111,11 +111,11 @@ Extrapolating $\text{Var}(\mathbf{Z}(t)) \to 0$ recovers the time of origin with
 
 ## 3. Strict In-Frame Coding Alignment Enforcement
 
-HyphAeon is a codon-aware phylogenetic transformer trained on tri-nucleotide codon tokens ($0 \dots 63$) and amino acid tokens ($0 \dots 19$). Consequently, `hyphaeon dating` strictly validates and enforces in-frame coding integrity:
+ChronAeon is a codon-aware phylogenetic transformer trained on tri-nucleotide codon tokens ($0 \dots 63$) and amino acid tokens ($0 \dots 19$). Consequently, `chronaeon dating` strictly validates and enforces in-frame coding integrity:
 
-1. **Triplet Divisibility:** Every sequence must satisfy $L_{\text{nt}} \pmod 3 == 0$. If non-coding sequences or frameshifted sequences are detected, `hyphaeon dating` halts with an explicit error:
+1. **Triplet Divisibility:** Every sequence must satisfy $L_{\text{nt}} \pmod 3 == 0$. If non-coding sequences or frameshifted sequences are detected, `chronaeon dating` halts with an explicit error:
    ```text
-   ValueError: HyphAeon is a codon-level foundation model and strictly requires in-frame coding sequences.
+   ValueError: ChronAeon is a codon-level foundation model and strictly requires in-frame coding sequences.
    Sequence 'taxon_A' has length 1001 nt (2 remainder modulo 3). Please verify open reading frames.
    ```
 2. **Uniform Alignment Length:** All taxa must share identical aligned codon lengths.
@@ -139,7 +139,7 @@ The dataset is bundled in `examples/korber_env_gp160.fasta`:
 ### Executing the Command
 
 ```bash
-hyphaeon dating \
+chronaeon dating \
   -a examples/korber_env_gp160.fasta \
   --root-taxon CONSENSUS \
   --no-tree \
@@ -153,23 +153,23 @@ hyphaeon dating \
 
 ```text
 [*] Hardware device selected: MPS
-[!] Notice: Detected 16 internal stop codon(s) across 13/143 taxa (9.1%). HyphAeon automatically tokenizes stop codons to token 64 ('*').
+[!] Notice: Detected 16 internal stop codon(s) across 13/143 taxa (9.1%). ChronAeon automatically tokenizes stop codons to token 64 ('*').
 [*] Alignment verified: 143 taxa, 981 codons (2943 nt in-frame).
 [*] Timestamps mapped: 142/143 taxa successfully dated.
     Notice: 1 taxa omitted due to missing timestamps: ['CONSENSUS']
 [*] Tree skipped: Estimating tree-free pairwise distances via TN93...
 [*] Root configuration: explicit_root_CONSENSUS (Timespan: 1959.5 - 1997.5)
 [✓] OLS Molecular Clock: t_MRCA = 1930.82 [1866.5, 1945.8], μ = 0.001874 subs/site/yr (R^2 = 0.472)
-[*] Loading HyphAeon transformer backbone on mps...
+[*] Loading ChronAeon transformer backbone on mps...
 [*] Extracting cross-taxa attention and 128D continuous representations...
 [✓] Forward pass complete in 1.10s! Extracted 143 taxa representations.
-[✓] HyphAeon PGLS Clock: t_MRCA = 1927.57 [1916.4, 1938.7], μ = 0.001875 subs/site/yr (R^2_gls = 0.518)
+[✓] ChronAeon PGLS Clock: t_MRCA = 1927.57 [1916.4, 1938.7], μ = 0.001875 subs/site/yr (R^2_gls = 0.518)
 
 =========================================================================================================
 Method / Estimator                   Estimated t_MRCA     95% Confidence Interval    Rate (μ / year)    R^2   
 ---------------------------------------------------------------------------------------------------------
 1. Standard OLS (TempEst RTT)        1930.82            [1866.5, 1945.8]              0.001874      0.472
-2. HyphAeon Attention PGLS           1927.57            [1916.4, 1938.7]              0.001875      0.518
+2. ChronAeon Attention PGLS          1927.57            [1916.4, 1938.7]              0.001875      0.518
 3. Latent Manifold Collapse          1975.96            [Non-Parametric Coalescent]    0.017032 [Var/yr] 0.429
 ---------------------------------------------------------------------------------------------------------
 
@@ -187,10 +187,10 @@ Method / Estimator                   Estimated t_MRCA     95% Confidence Interva
 | **Korber et al. (2000) Convolved ML** | **1931.44** | [1914.5, 1944.0] | $0.001895$ subs/site/yr | ~7 days (512 cores) |
 | **Thorne et al. (1998) MCMC Clock** | **1922 – 1929** | [1889.0, 1952.0] | Variable drift | ~48 hours |
 | **Standard OLS (TempEst)** | **1930.82** | [1866.5, 1945.8] | $0.001874$ subs/site/yr | 0.4 seconds |
-| **HyphAeon Attention PGLS** | **1927.57** | **[1916.4, 1938.7]** | **$0.001875$ subs/site/yr** | **1.1 seconds** |
+| **ChronAeon Attention PGLS** | **1927.57** | **[1916.4, 1938.7]** | **$0.001875$ subs/site/yr** | **1.1 seconds** |
 
 ### Key Scientific Insights:
-1. **Concordance with LANL Supercomputing:** In 1.1 seconds on a standard workstation, HyphAeon Attention PGLS dates the ancestor of HIV-1 group M to **1927.6 [1916.4, 1938.7]**, within months of the published 1931.4 estimate.
+1. **Concordance with LANL Supercomputing:** In 1.1 seconds on a standard workstation, ChronAeon Attention PGLS dates the ancestor of HIV-1 group M to **1927.6 [1916.4, 1938.7]**, within months of the published 1931.4 estimate.
 2. **Calibrated Evolutionary Rate:** The inferred clock rate ($\mu = 1.875 \times 10^{-3}\text{ subs/site/year}$) exactly matches Korber's estimate ($1.895 \times 10^{-3}$) and the global consensus rate for HIV-1 *env* ($1.8 - 2.2 \times 10^{-3}$).
 3. **Automated Archival Outlier Detection:** The 1959 Léopoldville isolate `Z59ZR.ZHU` is flagged as an outlier ($Z = -5.40$). When evaluated against the calibrated contemporary clock, its predicted branch date is **1956.95**, matching Korber's ML prediction of **1956.99** and within 2.5 years of its historical collection date.
 
@@ -211,12 +211,12 @@ In clinical intra-host phylodynamics, estimating the timing of the founding tran
 | Method | Estimated Founder Date | 95% Confidence Interval | Absolute Error vs. Ground Truth |
 | :--- | :---: | :---: | :---: |
 | **Standard OLS (TempEst)** | **$-26.58\text{ WPI}$** | $[-40.20, -12.96]\text{ WPI}$ | $26.58\text{ weeks}$ |
-| **HyphAeon Attention PGLS** | **$-23.18\text{ WPI}$** | $[-140.30, +93.95]\text{ WPI}$ | $23.18\text{ weeks}$ |
+| **ChronAeon Attention PGLS** | **$-23.18\text{ WPI}$** | $[-140.30, +93.95]\text{ WPI}$ | $23.18\text{ weeks}$ |
 | **Latent Manifold Variance Collapse** | **$\mathbf{-5.81\text{ WPI}}$** | *[Non-Parametric Coalescent]* | **$\mathbf{5.81\text{ weeks}}$** |
 
 #### Why Latent Manifold Collapse Excels in Intra-Host Data:
 * **The Root-to-Tip Trap:** OLS extrapolates backwards from divergent chronic lineages, producing artificial precision that **falsely rejects the true 0 WPI founder event** ($p < 0.001$).
-* **Variance Inversion:** By evaluating the physical collapse of the 128D latent viral cloud ($\text{Var}(\mathbf{Z}(t)) \to 0$), HyphAeon dates transmission to **$-5.81\text{ WPI}$**—just 5.8 weeks prior to the first positive clinic visit, exactly capturing the pre-seroconversion window.
+* **Variance Inversion:** By evaluating the physical collapse of the 128D latent viral cloud ($\text{Var}(\mathbf{Z}(t)) \to 0$), ChronAeon dates transmission to **$-5.81\text{ WPI}$**—just 5.8 weeks prior to the first positive clinic visit, exactly capturing the pre-seroconversion window.
 * **Latent Reservoir Dating:** Applying the calibrated clock to the 15 resting CD4+ T cell proviruses revealed a median integration time of **$134.9\text{ WPI}$**, proving that replication-competent viral reservoirs are seeded continuously during chronic viremia rather than solely at transmission.
 
 ---
@@ -226,7 +226,7 @@ In clinical intra-host phylodynamics, estimating the timing of the founding tran
 ### Command Syntax
 
 ```bash
-hyphaeon dating -a <alignment> [options]
+chronaeon dating -a <alignment> [options]
 ```
 
 ### Argument Reference
@@ -259,10 +259,10 @@ hyphaeon dating -a <alignment> [options]
 
 ## 7. Python API Quickstart
 
-You can also integrate HyphAeon molecular clock dating directly into Python workflows:
+You can also integrate ChronAeon molecular clock dating directly into Python workflows:
 
 ```python
-from hyphaeon import run_mrca_dating
+from chronaeon import run_mrca_dating
 
 results = run_mrca_dating(
     alignment_path="examples/korber_env_gp160.fasta",

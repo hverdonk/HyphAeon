@@ -1736,7 +1736,7 @@ class HierarchicalAutoClock:
                 y = float(leaf_counter[0])
                 leaf_counter[0] += 1
                 coords[nid] = (depth, y)
-                node_labels[nid] = f"{nid} (N={node['n_taxa']}, $\mu$={node['rate']:.1e})"
+                node_labels[nid] = rf"{nid} (N={node['n_taxa']}, $\mu$={node['rate']:.1e})"
                 return y
 
             child_ys = []
@@ -1787,7 +1787,7 @@ class HierarchicalAutoClock:
         ax_c.barh(y_pos, rates, xerr=y_err, color=colors, alpha=0.8, edgecolor="#1e293b", capsize=3.5)
         ax_c.set_yticks(y_pos)
         ax_c.set_yticklabels(c_lids, fontsize=8)
-        ax_c.set_xlabel("Substitution Rate $\mu$ ($10^{-3}$ substitutions/site/year)", fontsize=10)
+        ax_c.set_xlabel(r"Substitution Rate $\mu$ ($10^{-3}$ substitutions/site/year)", fontsize=10)
         ax_c.set_title("(C) Calibrated Evolutionary Rates with 95% Confidence Intervals", weight="bold", fontsize=11)
         ax_c.grid(True, linestyle="--", alpha=0.35)
 
@@ -1803,7 +1803,7 @@ class HierarchicalAutoClock:
             patch.set_facecolor(color_map.get(lid, "#93c5fd"))
 
         ax_d.axvline(0.0, color="red", linestyle="--", lw=1.2, alpha=0.8)
-        ax_d.set_xlabel("Root-to-Tip Residual ($d_i - \hat{d}_i$)", fontsize=10)
+        ax_d.set_xlabel(r"Root-to-Tip Residual ($d_i - \hat{d}_i$)", fontsize=10)
         ax_d.set_title("(D) Goodness-of-Fit Residual Dispersion by Leaf Community", weight="bold", fontsize=11)
         ax_d.grid(True, linestyle="--", alpha=0.35)
 

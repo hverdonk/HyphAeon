@@ -1,4 +1,4 @@
-"""Unit tests for HyphAeon dating module and non-linear clock models."""
+"""Unit tests for ChronAeon dating module and non-linear clock models."""
 import numpy as np
 import pytest
 

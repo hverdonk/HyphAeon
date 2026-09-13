@@ -672,7 +672,7 @@ def run_r0_analysis(
     step_size: Optional[float] = None,
 ) -> Dict[str, Any]:
     """
-    Executes the end-to-end HyphAeon Phylodynamics & R0 pipeline:
+    Executes the end-to-end ChronAeon Phylodynamics & R0 pipeline:
     1. Loads tip dates from FASTA/metadata.
     2. Calibrates tree in calendar time via Least Squares Dating (LSD).
     3. Extracts heterochronous coalescent intervals.

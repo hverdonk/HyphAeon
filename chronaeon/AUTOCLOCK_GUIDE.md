@@ -1,7 +1,7 @@
 # ChronAeon Hierarchical AutoClock & Pan-Viral Surveillance Suite
 
-**Platform:** `HyphAeon` / `ChronAeon`  
-**Module Location:** [`hyphaeon/autoclock.py`](hyphaeon/autoclock.py), [`hyphaeon/sketch.py`](hyphaeon/sketch.py), [`hyphaeon/alignment.py`](hyphaeon/alignment.py), [`hyphaeon/dating.py`](hyphaeon/dating.py)  
+**Platform:** `ChronAeon`  
+**Module Location:** [`chronaeon/autoclock.py`](src/chronaeon/autoclock.py), [`chronaeon/sketch.py`](src/chronaeon/sketch.py), [`chronaeon/alignment.py`](src/chronaeon/alignment.py), [`chronaeon/dating.py`](src/chronaeon/dating.py)  
 **Version:** 2.1.0  
 **Authors:** Sergei L. Kosakovsky Pond & DeepMind Antigravity Pair Programmer  
 
@@ -28,7 +28,7 @@ Raw Unaligned FASTA Feeds (Contaminants, Mixed Subtypes, Inverted Strands)
                                   │
                                   ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Tier 0: Alignment-Free MinHash Centrifuge (hyphaeon.sketch)            │
+│ Tier 0: Alignment-Free MinHash Centrifuge (chronaeon.sketch)           │
 │ • Canonical 15-mers, dual CRC32 hashing, bottom-s sketch (s=1024)      │
 │ • Jaccard Sieve: J < 0.015 (Quarantine Contaminants), J >= 0.10 (Bin) │
 │ • Throughput: 400 - 700 genomes/second                                │
@@ -36,7 +36,7 @@ Raw Unaligned FASTA Feeds (Contaminants, Mixed Subtypes, Inverted Strands)
                                   │
                                   ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Tier 1: Reference-Guided Codon-Aware Threader (hyphaeon.alignment)     │
+│ Tier 1: Reference-Guided Codon-Aware Threader (chronaeon.alignment)    │
 │ • 6-frame stop-codon audit for strand & reading frame detection       │
 │ • C-accelerated affine translation alignment (Bio.Align.Pairwise)      │
 │ • Coordinate projection: pads deletions '---', clips insertions        │
@@ -46,7 +46,7 @@ Raw Unaligned FASTA Feeds (Contaminants, Mixed Subtypes, Inverted Strands)
                                   │
                                   ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Tier 2: Hierarchical AutoClock Deconvolution (hyphaeon.autoclock)      │
+│ Tier 2: Hierarchical AutoClock Deconvolution (chronaeon.autoclock)     │
 │ • Adaptive Nyström Landmark Spectral Graph Embedding (m <= 2,500)      │
 │ • Recursive Manifold Partitioning governed by 5 Invariant Criteria:    │
 │   1. Sample Size Floor (N >= 2 * N_min)                                │
@@ -63,7 +63,7 @@ Raw Unaligned FASTA Feeds (Contaminants, Mixed Subtypes, Inverted Strands)
 
 ## 3. Detailed Algorithmic Mechanics
 
-### 3.1 Tier 0: MinHash Topological Centrifuge (`hyphaeon.sketch.AlignmentFreeCentrifuge`)
+### 3.1 Tier 0: MinHash Topological Centrifuge (`chronaeon.sketch.AlignmentFreeCentrifuge`)
 
 1. **Canonical $k$-mers:** For every $k$-mer window $w_i = S[i : i+k]$:
    $$k_c(w_i) = \min(w_i, \text{ReverseComplement}(w_i))$$
@@ -78,7 +78,7 @@ Raw Unaligned FASTA Feeds (Contaminants, Mixed Subtypes, Inverted Strands)
    - $\hat{J} \ge 0.10$: Assigned to candidate reference profile.
    - $\hat{J} < 0.015$: Automatically quarantined as non-target contaminant (e.g., Neuraminidase spiked into Hemagglutinin feeds).
 
-### 3.2 Tier 1: Reference-Guided Codon-Aware Threader (`hyphaeon.alignment.ReferenceCodonAligner`)
+### 3.2 Tier 1: Reference-Guided Codon-Aware Threader (`chronaeon.alignment.ReferenceCodonAligner`)
 
 1. **Automated Frame Detection:**
    For sequence $S \in \{S, \text{RC}(S)\}$ and frame $f \in \{0, 1, 2\}$, selects $(f^*, S^*)$ minimizing internal stop codons:
@@ -91,7 +91,7 @@ Raw Unaligned FASTA Feeds (Contaminants, Mixed Subtypes, Inverted Strands)
    - Deletions relative to reference: Padded with `---`.
    - Insertions relative to reference: Clipped to maintain invariant coordinate dimensionality ($L_{\text{ref}}$).
 
-### 3.3 Tier 2: Hierarchical AutoClock (`hyphaeon.autoclock.HierarchicalAutoClock`)
+### 3.3 Tier 2: Hierarchical AutoClock (`chronaeon.autoclock.HierarchicalAutoClock`)
 
 #### The Five Invariant Stopping Criteria
 Recursion down the hierarchy tree at node $\mathcal{C}$ terminates when any of the following criteria is met:
@@ -130,26 +130,25 @@ $$t_{\mathrm{MRCA}} \in \frac{\hat{t}_{\mathrm{MRCA}} - \frac{g \cdot \mathrm{Co
 ### 4.1 Tier 0: Sifting and Binning with MinHash Centrifuge
 
 ```python
-from hyphaeon.sketch import AlignmentFreeCentrifuge
+from chronaeon.sketch import AlignmentFreeCentrifuge
 
 # Initialize centrifuge with canonical k=15, bottom-s=1024
-centrifuge = AlignmentFreeCentrifuge(k=15, sketch_size=1024)
+centrifuge = AlignmentFreeCentrifuge(k=15, sketch_size=1024, alignable_threshold=0.10, quarantine_threshold=0.015)
 
-# Register canonical reference profiles
-centrifuge.add_reference("H5_clade2344b", "ATGGAGAAAATAGTGCTTCTT...")
-centrifuge.add_reference("H1N1_pdm09",    "ATGAAGGCAATACTAGTAGTT...")
+# Register canonical reference profiles and bin an incoming stream of unaligned, uncurated sequences
+seq_dict = {"seq_001": "ATGGAGAAAATAGTGCTTCTT...", "seq_002": "ATGAAGGCAATACTAGTAGTT..."}
+references = {"H5_clade2344b": "ATGGAGAAAATAGTGCTTCTT...", "H1N1_pdm09": "ATGAAGGCAATACTAGTAGTT..."}
 
-# Sieve an incoming stream of unaligned, uncurated FASTA sequences
-results = centrifuge.classify_fasta("raw_surveillance_feed.fasta", min_jaccard=0.10, quarantine_threshold=0.015)
+results = centrifuge.bin_dataset(seq_dict=seq_dict, references=references)
 
-print(f"Assigned to H5: {len(results['H5_clade2344b'])}")
+print(f"Assigned to H5: {len(results['bins'].get('H5_clade2344b', []))}")
 print(f"Quarantined Contaminants: {len(results['quarantined'])}")
 ```
 
 ### 4.2 Tier 1: Codon-Aware Threading
 
 ```python
-from hyphaeon.alignment import ReferenceCodonAligner
+from chronaeon.alignment import ReferenceCodonAligner
 
 # Initialize threader with reference nucleotide CDS
 aligner = ReferenceCodonAligner(ref_seq="ATGGAGAAAATAGTGCTTCTT...", ref_name="H5_reference")
@@ -165,55 +164,54 @@ aligned_records = result["aligned_seqs"]
 ### 4.3 Tier 2: Hierarchical AutoClock Deconvolution
 
 ```python
-from hyphaeon.autoclock import HierarchicalAutoClock
+from chronaeon.autoclock import HierarchicalAutoClock
 
-# Configure hierarchical engine
+# Configure hierarchical engine (alignment/dates resolved at construction time)
 autoclock = HierarchicalAutoClock(
+    alignment_path="frame_locked_grid.fasta",
+    dates_source="collection_dates.csv",
     max_depth=3,
-    min_cluster_size=25,
+    min_leaf_size=25,
     min_timespan=1.0,
-    aic_delta_threshold=15.0,
-    rate_homogeneity_threshold=0.15,
-    n_landmarks=1024
+    min_delta_aicc=15.0,
+    max_rate_diff_ratio=0.15,
+    n_landmarks=1024,
 )
 
-# Fit deconvolution tree on frame-locked MSA with collection dates
-tree = autoclock.fit(
-    alignment_file="frame_locked_grid.fasta",
-    dates={"seq_001": 2024.15, "seq_002": 2023.82, ...}
-)
+# Execute recursive deconvolution
+results = autoclock.run(plot=True)
 
-# Export interactive hierarchy and leaf rate summary
-summary = autoclock.get_summary_table()
-print(summary[["community_id", "n_taxa", "rate", "r2", "t_mrca", "stop_reason"]])
+# Per-taxon classified metadata (leaf community, rate, t_MRCA, residuals)
+summary = autoclock.classified_df
+print(summary[["id", "leaf_community_id", "leaf_rate", "leaf_r2", "leaf_tmrca", "stopping_reason"]])
 ```
 
 ---
 
 ## 5. Command-Line Interface (CLI)
 
-`HyphAeon` provides unified CLI entry points for pipeline integration:
+`ChronAeon` provides unified CLI entry points for pipeline integration:
 
 ```bash
 # 1. Run MinHash Centrifuge on raw unaligned FASTA
-hyphaeon sketch centrifuge \
-    --input raw_stream.fasta \
-    --references ref_profiles.fasta \
-    --k 15 \
+chronaeon sketch \
+    -a raw_stream.fasta \
+    --kmer 15 \
     --sketch-size 1024 \
-    --output-dir ./centrifuge_bins/
+    -o ./centrifuge_bins/results.json
 
 # 2. Run Reference-Guided Codon Threader
-hyphaeon align thread \
-    --input ./centrifuge_bins/H5_clade2344b.fasta \
-    --reference-protein ref_h5_protein.faa \
-    --output-alignment ./h5_aligned_frame_locked.fasta
+chronaeon align \
+    -r ref_h5_reference.fasta \
+    -q ./centrifuge_bins/H5_clade2344b.fasta \
+    -o ./h5_aligned_frame_locked.fasta
 
 # 3. Run Hierarchical AutoClock Deconvolution
-hyphaeon autoclock run \
-    --alignment ./h5_aligned_frame_locked.fasta \
-    --metadata ./surveillance_meta.csv \
+chronaeon autoclock \
+    -a ./h5_aligned_frame_locked.fasta \
+    -d ./surveillance_meta.csv \
     --date-col collection_date \
+    --hierarchical \
     --max-depth 3 \
     --output-dir ./autoclock_results/
 ```

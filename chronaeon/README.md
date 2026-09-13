@@ -42,5 +42,4 @@ ChronAeon is the **Radar**: rapidly screens genomes, detects emerging clades, an
 
 - [Dating Guide](DATING_GUIDE.md)
 - [AutoClock Guide](AUTOCLOCK_GUIDE.md)
-- [Triage Production Design](CHRONAEON_TRIAGE_PRODUCTION_DESIGN.md)
 - [MRCA Dating Report](MRCA_DATING_REPORT.md)

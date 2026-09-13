@@ -1,4 +1,4 @@
-"""Unit tests for HyphAeon Geo discrete phylogeography module."""
+"""Unit tests for ChronAeon Geo discrete phylogeography module."""
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,7 +16,7 @@ from chronaeon.geo import (
 )
 
 
-class TestHyphaeonGeo:
+class TestChronAeonGeo:
     def test_parse_geo_metadata(self, tmp_path):
         csv_p = tmp_path / "metadata.csv"
         csv_p.write_text(

@@ -1,5 +1,5 @@
 """
-Unit tests for HyphAeon Alignment-Free Sketch & Reference-Guided Codon-Aware Threader.
+Unit tests for ChronAeon Alignment-Free Sketch & Reference-Guided Codon-Aware Threader.
 """
 import pytest
 import numpy as np

@@ -581,7 +581,7 @@ def generate_geojson(
 
     return {
         "type": "FeatureCollection",
-        "generator": "HyphAeon Geo 1.0",
+        "generator": "ChronAeon Geo 1.0",
         "features": features,
     }
 
@@ -670,7 +670,7 @@ def plot_geo_diagnostics(
     ax3.grid(True, linestyle=":", alpha=0.5)
     ax3.legend(loc="lower right", fontsize=8.5, frameon=True)
 
-    plt.suptitle(title or "HyphAeon Phylogeography & Spatial Transmission Architecture", fontsize=13, fontweight="bold", y=0.98)
+    plt.suptitle(title or "ChronAeon Phylogeography & Spatial Transmission Architecture", fontsize=13, fontweight="bold", y=0.98)
     plt.tight_layout()
 
     out_p = Path(output_path)
@@ -774,7 +774,7 @@ def run_phylogeography_analysis(
 
         if device is None:
             device = get_device()
-        print(f"[*] Running HyphAeon transformer backbone on {device} to extract cross-taxa attention...")
+        print(f"[*] Running ChronAeon transformer backbone on {device} to extract cross-taxa attention...")
         model = load_model(weights=weights, variant=variant, device=device)
         c, a, d, z, inv, aln_taxa, L, tree_cache = prepare_alignment(
             str(align_p),
