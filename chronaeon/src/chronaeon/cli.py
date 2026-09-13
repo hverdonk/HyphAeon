@@ -15,7 +15,7 @@ import pandas as pd
 import torch
 
 from aeon_core.inference import get_device
-from aeon_core.weights import DEFAULT_VARIANT
+from aeon_core.weights import DEFAULT_VARIANT, print_available_variants
 
 DEFAULT_VARIANT_ENV = os.environ.get("CHRONAEON_VARIANT", os.environ.get("HYPHAEON_VARIANT", DEFAULT_VARIANT))  # HYPHAEON_* fallback for pre-refactor users
 
@@ -663,14 +663,21 @@ def cmd_align(args):
             print(f"[!] {len(results['failed'])} sequences failed alignment")
 
 
+def list_models():
+    """List available model variants from Hugging Face."""
+    print_available_variants(cli_name="chronaeon")
+
+
 def main():
     import argparse
 
+    from . import __version__
     parser = argparse.ArgumentParser(
         prog="chronaeon",
         description="ChronAeon: Ultra-Fast Molecular Clock Dating, Phylodynamics, and Genomic Surveillance",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
+    parser.add_argument("--version", action="version", version=f"chronaeon {__version__}")
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
 
     # 1. Heterochronous Molecular Clock & MRCA Dating Subcommand
@@ -846,8 +853,13 @@ def main():
     align_parser.add_argument("-o", "--output", default=None, help="Optional path to output aligned FASTA")
     align_parser.add_argument("--quiet", action="store_true", help="Suppress verbose logging")
 
+    # 8. List-models Subcommand
+    list_parser = subparsers.add_parser("list-models", help="List available model variants from Hugging Face")
+
     args = parser.parse_args()
-    if args.command in ["date", "dating", "mrca", "clock", "chronaeon"]:
+    if args.command == "list-models":
+        list_models()
+    elif args.command in ["date", "dating", "mrca", "clock", "chronaeon"]:
         cmd_dating(args)
     elif args.command in ["phylogeo", "geo", "phylogeography", "spatial", "migration", "dispersal"]:
         cmd_phylogeo(args)
