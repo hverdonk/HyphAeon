@@ -2733,10 +2733,7 @@ def run_mrca_dating(
     opt_lambda = 0.95
 
     if run_neural:
-        if cov_matrix is None and len(taxa) > 1500 and not has_tree:
-            print(f"[*] Large cohort (N={len(taxa)}): Skipping full transformer cross-attention to prevent memory exhaustion; using high-speed OLS and spline dating.")
-            run_neural = False
-        elif cov_matrix is None:
+        if cov_matrix is None:
             if device is None:
                 device = get_device()
             if model is None:
