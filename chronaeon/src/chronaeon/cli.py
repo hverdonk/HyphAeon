@@ -532,7 +532,7 @@ def cmd_autoclock(args):
             n_landmarks=getattr(args, "n_landmarks", "auto"),
             max_memory_mb=getattr(args, "max_memory_mb", 1024.0),
             rooting_mode=getattr(args, "rooting_mode", "convex_decay"),
-            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", True),
+            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", False),
             dyad_max_days=getattr(args, "dyad_max_days", 90.0),
             dyad_max_dist=getattr(args, "dyad_max_dist", 0.010),
         )
@@ -555,7 +555,7 @@ def cmd_autoclock(args):
             n_landmarks=getattr(args, "n_landmarks", "auto"),
             max_memory_mb=getattr(args, "max_memory_mb", 1024.0),
             rooting_mode=getattr(args, "rooting_mode", "convex_decay"),
-            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", True),
+            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", False),
             dyad_max_days=getattr(args, "dyad_max_days", 90.0),
             dyad_max_dist=getattr(args, "dyad_max_dist", 0.010),
         )
@@ -565,7 +565,7 @@ def cmd_autoclock(args):
         plot_path=getattr(args, "plot_path", None)
     )
 
-    if results.get("n_contemporaneous_clusters", 0) > 0:
+    if getattr(args, "contemporaneous_dyads", False) and results.get("n_contemporaneous_clusters", 0) > 0:
         print(f"\n[★] Contemporaneous Direct Transmission Screening:")
         print(f"    Discovered {results['n_contemporaneous_clusters']} point-source transmission clusters ({results.get('n_contemporaneous_taxa', 0)} taxa) sampled <= {getattr(args, 'dyad_max_days', 90.0):.0f} days apart.")
         if "transmission_mode_counts" in results:
@@ -816,7 +816,7 @@ def main():
     autoclock_parser.add_argument("--n-landmarks", default="auto", help="Number of landmark sequences for Nyström low-rank approximation ('auto' or integer, default: auto)")
     autoclock_parser.add_argument("--max-memory-mb", type=float, default=1024.0, help="Maximum RAM budget (MB) for adaptive landmark matrix allocation (default: 1024.0)")
     autoclock_parser.add_argument("--rooting-mode", choices=["convex_decay", "consensus", "earliest"], default="convex_decay", help="Rooting mode for tree-free root-to-tip divergence anchoring: 'convex_decay' (time-decay weighted consensus across cohort, default), 'consensus' (unweighted modal consensus), or 'earliest' (earliest sampled sequence)")
-    autoclock_parser.add_argument("--contemporaneous-dyads", dest="contemporaneous_dyads", action="store_true", default=True, help="Enable screening for contemporaneous direct transmission dyads and point-source clusters (default: enabled)")
+    autoclock_parser.add_argument("--contemporaneous-dyads", dest="contemporaneous_dyads", action="store_true", default=False, help="Enable screening for contemporaneous direct transmission dyads and point-source clusters (default: disabled)")
     autoclock_parser.add_argument("--no-contemporaneous-dyads", dest="contemporaneous_dyads", action="store_false", help="Disable contemporaneous transmission dyad screening")
     autoclock_parser.add_argument("--dyad-max-days", type=float, default=90.0, help="Maximum sampling interval in days for contemporaneous transmission dyads (default: 90.0 days)")
     autoclock_parser.add_argument("--dyad-max-dist", type=float, default=0.010, help="Maximum Tamura-Nei 93 distance for contemporaneous transmission dyads (default: 0.010 subs/site)")

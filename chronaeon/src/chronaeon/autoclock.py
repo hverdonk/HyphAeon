@@ -534,7 +534,7 @@ class AutoClockDeconvolution:
         dates_map: Optional[Dict[str, float]] = None,
         meta_df: Optional[pd.DataFrame] = None,
         rooting_mode: str = "convex_decay",
-        contemporaneous_dyads: bool = True,
+        contemporaneous_dyads: bool = False,
         dyad_max_days: float = 90.0,
         dyad_max_dist: float = 0.010,
     ):
@@ -1534,7 +1534,7 @@ def run_autoclock_deconvolution(
     n_landmarks: Union[int, str] = "auto",
     max_memory_mb: float = 1024.0,
     rooting_mode: str = "convex_decay",
-    contemporaneous_dyads: bool = True,
+    contemporaneous_dyads: bool = False,
     dyad_max_days: float = 90.0,
     dyad_max_dist: float = 0.010,
 ) -> Dict[str, Any]:
@@ -1668,7 +1668,7 @@ class HierarchicalAutoClock:
         n_landmarks: Union[int, str] = "auto",
         max_memory_mb: float = 1024.0,
         rooting_mode: str = "convex_decay",
-        contemporaneous_dyads: bool = True,
+        contemporaneous_dyads: bool = False,
         dyad_max_days: float = 90.0,
         dyad_max_dist: float = 0.010,
     ):
@@ -1748,6 +1748,8 @@ class HierarchicalAutoClock:
             print(msg, flush=True)
 
     def classify_leaf(self, leaf: Dict[str, Any]) -> str:
+        if not self.contemporaneous_dyads:
+            return "Clock Community"
         return classify_leaf_community(leaf)
 
     def load_and_validate(self):
@@ -2166,14 +2168,17 @@ class HierarchicalAutoClock:
                 dyad_span = dyad_info.get("timespan_days", None)
                 dyad_dist = dyad_info.get("mean_distance", None)
 
-                if l_class == "Active Transmission Outbreak":
-                    trans_mode = "Active Outbreak + Contemporaneous Dyad" if in_dyad else "Active Transmission Outbreak"
-                elif in_dyad:
-                    trans_mode = "Contemporaneous Transmission Dyad"
-                elif l_class == "Intermediate / Emergent Cluster":
-                    trans_mode = "Intermediate / Emergent Cluster"
+                if self.contemporaneous_dyads:
+                    if l_class == "Active Transmission Outbreak":
+                        trans_mode = "Active Outbreak + Contemporaneous Dyad" if in_dyad else "Active Transmission Outbreak"
+                    elif in_dyad:
+                        trans_mode = "Contemporaneous Transmission Dyad"
+                    elif l_class == "Intermediate / Emergent Cluster":
+                        trans_mode = "Intermediate / Emergent Cluster"
+                    else:
+                        trans_mode = "Chronic / Endemic Reservoir"
                 else:
-                    trans_mode = "Chronic / Endemic Reservoir"
+                    trans_mode = "Clock Community"
 
                 rows.append({
                     "id": t,
@@ -2478,7 +2483,7 @@ def run_hierarchical_autoclock(
     n_landmarks: Union[int, str] = "auto",
     max_memory_mb: float = 1024.0,
     rooting_mode: str = "convex_decay",
-    contemporaneous_dyads: bool = True,
+    contemporaneous_dyads: bool = False,
     dyad_max_days: float = 90.0,
     dyad_max_dist: float = 0.010,
 ) -> Dict[str, Any]:
