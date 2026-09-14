@@ -2520,21 +2520,16 @@ def run_mrca_dating(
     run_neural = method in ["all", "pgls"]
     mode = str(distance_mode).lower().strip()
 
-    if mode == "auto":
-        if has_tree:
-            effective_dist_mode = "tree"
-        elif run_neural:
-            effective_dist_mode = "latent"
-        else:
-            effective_dist_mode = "tn93"
+    if use_tn93 or mode in ["tn93", "consensus"]:
+        effective_dist_mode = "tn93"
     elif mode in ["latent", "continuous", "hull", "manifold"]:
         effective_dist_mode = "latent"
     elif mode in ["tree", "patristic"]:
         effective_dist_mode = "tree"
-    elif mode in ["tn93", "consensus"]:
-        effective_dist_mode = "tn93"
+    elif mode == "auto":
+        effective_dist_mode = "tree" if has_tree else "tn93"
     else:
-        effective_dist_mode = "tree" if has_tree else "latent"
+        effective_dist_mode = "tree" if has_tree else "tn93"
 
     latent_root_res = None
     cov_matrix = None
