@@ -127,6 +127,110 @@ def compute_attention_covariance_kernel(
     return compute_neural_covariance_kernel(cross_attn, taxa_repr=taxa_repr, mds_coords=mds_coords)
 
 
+def compute_transformer_metricity_diagnostics(
+    d_matrix: np.ndarray,
+    taxa_repr: Optional[np.ndarray] = None,
+    cross_attn: Optional[np.ndarray] = None,
+    coverage: Optional[np.ndarray] = None,
+) -> Dict[str, Any]:
+    """
+    Evaluates foundation model metricity diagnostics to adjudicate between:
+      Regime 1: Physical Sequence Space (TN93 distance geometry with time-decay consensus root)
+      Regime 2: Continuous Latent Representation Space (Transformer embeddings with convex hull root)
+
+    Parameters
+    ----------
+    d_matrix : np.ndarray
+        N x N physical pairwise distance matrix (TN93 or patristic).
+    taxa_repr : Optional[np.ndarray]
+        N x D continuous sequence representations from axial transformer forward pass.
+    cross_attn : Optional[np.ndarray]
+        N x N pairwise cross-taxa attention matrix.
+    coverage : Optional[np.ndarray]
+        Fraction of non-gap coding positions per taxon (to filter fragmentary records).
+
+    Returns
+    -------
+    dict with:
+        d_mean, d_90, d_max, zero_fraction, rho_neg,
+        rho_iso_pearson, rho_iso_spearman, kappa_sat,
+        recommended_regime ("tn93" or "latent"),
+        regime_label, rationale
+    """
+    N = d_matrix.shape[0]
+    if coverage is not None:
+        cov_arr = np.asarray(coverage)
+        sub_idx = np.where(cov_arr >= 0.50)[0]
+        if len(sub_idx) < 3:
+            sub_idx = np.arange(N)
+    else:
+        sub_idx = np.arange(N)
+
+    N_sub = len(sub_idx)
+    D = d_matrix[np.ix_(sub_idx, sub_idx)]
+    triu = np.triu_indices(N_sub, k=1)
+    d_pairs = D[triu]
+
+    d_mean = float(np.mean(d_pairs)) if len(d_pairs) > 0 else 0.0
+    d_90 = float(np.percentile(d_pairs, 90)) if len(d_pairs) > 0 else 0.0
+    d_max = float(np.max(d_pairs)) if len(d_pairs) > 0 else 0.0
+    zero_frac = float(np.mean(d_pairs == 0.0)) if len(d_pairs) > 0 else 0.0
+
+    # Spectral Metricity: Classical MDS negative eigenvalue energy
+    H = np.eye(N_sub) - (1.0 / N_sub) * np.ones((N_sub, N_sub))
+    B = -0.5 * H @ (D ** 2) @ H
+    eigvals = np.linalg.eigvalsh(B)
+    sum_abs = np.sum(np.abs(eigvals))
+    sum_neg = np.sum(np.abs(eigvals[eigvals < 0]))
+    rho_neg = float(sum_neg / (sum_abs + 1e-12))
+
+    r_pearson, r_spearman, kappa_sat = None, None, None
+    if taxa_repr is not None and len(taxa_repr) == N:
+        Z = np.asarray(taxa_repr)[sub_idx]
+        D_lat = squareform(pdist(Z, metric='euclidean'))
+        d_lat_pairs = D_lat[triu]
+        nz = (d_pairs > 0)
+        if np.sum(nz) > 10:
+            r_pearson = float(stats.pearsonr(d_pairs[nz], d_lat_pairs[nz])[0])
+            r_spearman = float(stats.spearmanr(d_pairs[nz], d_lat_pairs[nz])[0])
+        elif len(d_pairs) > 2:
+            r_pearson = float(stats.pearsonr(d_pairs, d_lat_pairs)[0])
+            r_spearman = float(stats.spearmanr(d_pairs, d_lat_pairs)[0])
+
+        if len(d_pairs) > 3:
+            X_poly = np.column_stack([d_pairs, d_pairs**2])
+            beta, _, _, _ = np.linalg.lstsq(X_poly, d_lat_pairs, rcond=None)
+            kappa_sat = float(beta[1] / (abs(beta[0]) + 1e-12))
+
+    if d_90 < 0.05:
+        regime = "tn93"
+        label = "Regime 1: Physical Sequence Space (Outbreak / Low Divergence)"
+        rationale = f"Outbreak regime (d_90 = {d_90:.4f} < 0.05 subs/site); multiple substitutions negligible, TN93 distance geometry exact."
+    elif d_90 < 0.20 and ((r_spearman is not None and r_spearman >= 0.80) or rho_neg < 0.10):
+        regime = "tn93"
+        label = "Regime 1: Physical Sequence Space (Linear Evolutionary Drift)"
+        sp_str = f"Spearman rho={r_spearman:.3f}" if r_spearman is not None else f"rho_neg={rho_neg:.3f}"
+        rationale = f"Moderate divergence (d_90 = {d_90:.4f}); high isometric concordance ({sp_str}) confirms TN93 metricity."
+    else:
+        regime = "latent"
+        label = "Regime 2: Foundation Transformer Latent Space (Deep / Saturated)"
+        rationale = f"Deep divergence or mutational saturation (d_90 = {d_90:.4f} >= 0.20 subs/site); continuous latent manifold recommended."
+
+    return {
+        "d_mean": d_mean,
+        "d_90": d_90,
+        "d_max": d_max,
+        "zero_fraction": zero_frac,
+        "rho_neg": rho_neg,
+        "rho_iso_pearson": r_pearson,
+        "rho_iso_spearman": r_spearman,
+        "kappa_sat": kappa_sat,
+        "recommended_regime": regime,
+        "regime_label": label,
+        "rationale": rationale,
+    }
+
+
 
 # =========================================================================
 # 1. In-Frame Coding Alignment Validation
@@ -2533,6 +2637,7 @@ def run_mrca_dating(
 
     latent_root_res = None
     cov_matrix = None
+    metricity_diag = None
     msa_codons = None
     msa_aas = None
     tree_cache = None
@@ -2757,6 +2862,21 @@ def run_mrca_dating(
             K_neural = compute_neural_covariance_kernel(cross_attn, taxa_repr)
             print(f"[✓] Forward pass complete in {time.time() - t_fwd:.2f}s! Extracted {taxa_repr.shape[0]} taxa neural representations.")
 
+            # Zero-cost foundation model metricity diagnostics
+            D_phys_mat = d.squeeze(0).cpu().numpy()
+            cov_for_diag = coverage if 'coverage' in locals() else None
+            metricity_diag = compute_transformer_metricity_diagnostics(
+                d_matrix=D_phys_mat,
+                taxa_repr=taxa_repr,
+                cross_attn=cross_attn,
+                coverage=cov_for_diag
+            )
+            print(f"[*] Transformer Metricity Diagnostic: {metricity_diag['regime_label']}")
+            print(f"    d_bar = {metricity_diag['d_mean']:.4f}, d_90 = {metricity_diag['d_90']:.4f} subs/site | Spectral distortion rho = {metricity_diag['rho_neg']:.4f}")
+            if metricity_diag['rho_iso_spearman'] is not None:
+                print(f"    Isometric concordance: Spearman rho = {metricity_diag['rho_iso_spearman']:.4f}, Pearson r = {metricity_diag['rho_iso_pearson']:.4f}")
+            print(f"    Decision: {metricity_diag['rationale']}")
+
             # Align taxa order with dated taxa
             aln_taxa_map = {t: i for i, t in enumerate(aln_taxa)}
             sub_indices = [aln_taxa_map[t] for t in taxa if t in aln_taxa_map]
@@ -2766,6 +2886,27 @@ def run_mrca_dating(
 
             cov_matrix = K_neural[sub_indices, :][:, sub_indices]
             z_sub = taxa_repr[sub_indices]
+
+            # Autonomous promotion from TN93 to Latent Space when mutational saturation is detected
+            if mode == "auto" and metricity_diag['recommended_regime'] == 'latent' and not has_tree:
+                try:
+                    anchor_mask_l = (coverage[sub_indices] >= 0.50) if 'coverage' in locals() and coverage is not None else None
+                    cand_lat_res = optimize_latent_convex_hull_root(
+                        z_sub, sub_times, taxa_names=sub_taxa,
+                        pairwise_phys_dists=D_phys_mat[np.ix_(sub_indices, sub_indices)],
+                        anchor_mask=anchor_mask_l, device=device
+                    )
+                    lat_r2 = cand_lat_res.get('temporal_r2', 0.0)
+                    lat_r = cand_lat_res.get('temporal_r', 0.0)
+                    if lat_r > 0 and (lat_r2 > ols_res['r2'] - 0.05):
+                        print(f"[✓] Auto-Promoted Continuous Latent Distance Mode: Mutational saturation detected (d_90={metricity_diag['d_90']:.4f} >= 0.20 subs/site). Temporal signal in Latent Space: R^2={lat_r2:.3f} (R={lat_r:+.3f}).")
+                        sub_dists = cand_lat_res['dists']
+                        dists = sub_dists
+                        latent_root_res = cand_lat_res
+                        effective_dist_mode = "latent"
+                        root_desc = f"latent_convex_hull (promoted over tn93: saturation d_90={metricity_diag['d_90']:.4f}, latent R^2={lat_r2:.3f})"
+                except Exception as e_lat:
+                    print(f"[*] Latent auto-promotion notice: {e_lat}")
         else:
             sub_taxa = taxa
             sub_times = times
@@ -3117,6 +3258,7 @@ def run_mrca_dating(
         'tree': str(tree_path) if has_tree else None,
         'root_description': root_desc,
         'distance_mode': effective_dist_mode,
+        'metricity_diagnostics': metricity_diag,
         'latent_root': latent_root_res,
         'taxa_count': len(taxa),
         'timespan': [float(np.min(times)), float(np.max(times))],
@@ -3150,6 +3292,7 @@ def run_mrca_dating(
             'tree': results['tree'],
             'root_description': results['root_description'],
             'distance_mode': effective_dist_mode,
+            'metricity_diagnostics': metricity_diag,
             'latent_root': {
                 'alpha': float(latent_root_res['alpha']),
                 'temporal_r': float(latent_root_res['temporal_r']),

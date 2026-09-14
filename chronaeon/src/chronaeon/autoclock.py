@@ -797,7 +797,22 @@ class AutoClockDeconvolution:
         self._log(f"[✓] Computed {n}x{n} distance matrix in {t_elapsed:.2f}s.")
 
         used_neural = False
-        if self.manifold in ["transformer", "neural"] or (self.manifold == "auto" and n <= 1000):
+        nonzero_dists = self.D_matrix[self.D_matrix > 0]
+        if len(nonzero_dists) == 0:
+            nonzero_dists = np.array([0.01])
+        p90_dist = float(np.percentile(nonzero_dists, 90))
+
+        want_neural = (
+            self.manifold in ["transformer", "neural"] or
+            (self.manifold == "auto" and p90_dist >= 0.20 and n <= self.max_dense_n)
+        )
+        if self.manifold == "auto":
+            if p90_dist < 0.20:
+                self._log(f"[*] AutoClock Manifold Auto-Adjudication: d_90 = {p90_dist:.4f} < 0.20 subs/site. Selecting Regime 1 (Physical TN93 Distance Manifold).")
+            else:
+                self._log(f"[*] AutoClock Manifold Auto-Adjudication: Deep divergence detected (d_90 = {p90_dist:.4f} >= 0.20 subs/site). Invoking Regime 2 (Neural Transformer Manifold).")
+
+        if want_neural:
             try:
                 import torch
                 from aeon_core.inference import load_model, prepare_alignment, get_device
@@ -1122,7 +1137,18 @@ class AutoClockDeconvolution:
             c_dates_csv = comm_dir / f"chronaeon_community_{c_id}_dates.csv"
             pd.DataFrame({"id": c_taxa, "date": [self.dates_map[t] for t in c_taxa]}).to_csv(c_dates_csv, index=False)
 
-            comm_dist_mode = "latent" if (self.manifold in ["transformer", "neural"] or (self.manifold == "auto" and len(c_taxa) <= 500)) else "tn93"
+            c_indices = [i for i in range(n) if labels[i] == c_id]
+            if self.D_matrix is not None and len(c_indices) > 1:
+                c_dists = self.D_matrix[np.ix_(c_indices, c_indices)]
+                c_nonzero = c_dists[c_dists > 0]
+                c_d90 = float(np.percentile(c_nonzero, 90)) if len(c_nonzero) > 0 else 0.0
+            else:
+                c_d90 = 0.0
+
+            comm_dist_mode = "latent" if (
+                self.manifold in ["transformer", "neural"] or
+                (self.manifold == "auto" and c_d90 >= 0.20 and len(c_taxa) <= 500)
+            ) else "tn93"
             comm_method = "all" if (comm_dist_mode == "latent" and len(c_taxa) <= 500) else "ols"
             c_prefix = comm_dir / f"chronaeon_community_{c_id}"
             res = run_mrca_dating(

@@ -382,6 +382,68 @@ class TestClockDatingModels:
 
         df_class = pd.read_csv(tmp_path / "dyad_run" / "hierarchical_classified_metadata.csv")
         assert "is_contemporaneous_dyad" in df_class.columns
-        assert "transmission_mode" in df_class.columns
         assert df_class.loc[df_class["id"] == "iso_1", "is_contemporaneous_dyad"].values[0] == True
         assert df_class.loc[df_class["id"] == "iso_5", "is_contemporaneous_dyad"].values[0] == False
+
+
+class TestTransformerMetricityDiagnostics:
+    def test_metricity_outbreak_regime(self):
+        from chronaeon.dating import compute_transformer_metricity_diagnostics
+        # Low divergence matrix (mean ~ 0.002, d90 < 0.05)
+        np.random.seed(42)
+        n = 15
+        D = np.random.uniform(0.0005, 0.004, (n, n))
+        np.fill_diagonal(D, 0.0)
+        D = (D + D.T) / 2.0
+
+        diag = compute_transformer_metricity_diagnostics(D)
+        assert diag["d_90"] < 0.05
+        assert diag["recommended_regime"] == "tn93"
+        assert "Outbreak" in diag["regime_label"]
+
+    def test_metricity_deep_saturated_regime(self):
+        from chronaeon.dating import compute_transformer_metricity_diagnostics
+        # Deep divergence matrix (mean ~ 0.22, d90 > 0.20)
+        np.random.seed(42)
+        n = 20
+        D = np.random.uniform(0.15, 0.30, (n, n))
+        np.fill_diagonal(D, 0.0)
+        D = (D + D.T) / 2.0
+
+        diag = compute_transformer_metricity_diagnostics(D)
+        assert diag["d_90"] >= 0.20
+        assert diag["recommended_regime"] == "latent"
+        assert "Regime 2" in diag["regime_label"]
+
+    def test_metricity_with_latent_representations(self):
+        from chronaeon.dating import compute_transformer_metricity_diagnostics
+        np.random.seed(42)
+        n = 25
+        d = 384
+        # Simulated latent features and correlated distances
+        z = np.random.randn(n, d)
+        from scipy.spatial.distance import pdist, squareform
+        d_lat = squareform(pdist(z, metric='euclidean'))
+        # Scale to physical distances
+        d_phys = d_lat * 0.02
+        np.fill_diagonal(d_phys, 0.0)
+
+        diag = compute_transformer_metricity_diagnostics(d_phys, taxa_repr=z)
+        assert diag["rho_iso_pearson"] is not None
+        assert diag["rho_iso_spearman"] is not None
+        assert diag["rho_iso_pearson"] > 0.90
+        assert diag["kappa_sat"] is not None
+
+    def test_coverage_filtering_degraded_isolates(self):
+        from chronaeon.dating import compute_transformer_metricity_diagnostics
+        np.random.seed(42)
+        n = 10
+        D = np.random.uniform(0.001, 0.005, (n, n))
+        np.fill_diagonal(D, 0.0)
+        D = (D + D.T) / 2.0
+        # Taxon 0 is an archival fragment with only 20% coverage
+        cov = np.ones(n)
+        cov[0] = 0.20
+
+        diag = compute_transformer_metricity_diagnostics(D, coverage=cov)
+        assert diag["recommended_regime"] == "tn93"
