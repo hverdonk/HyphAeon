@@ -52,6 +52,7 @@ from .dating import (
     parse_sample_dates,
     verify_coding_alignment,
     generate_time_decay_consensus_sequence,
+    compute_time_decay_profile_divergences,
     generate_consensus_sequence,
     compute_fieller_mrca_interval,
 )
@@ -386,19 +387,25 @@ def detect_contemporaneous_dyads(
     dates_map: Dict[str, float],
     seq_dict: Optional[Dict[str, str]] = None,
     D_matrix: Optional[np.ndarray] = None,
-    dyad_max_days: float = 90.0,
+    dyad_max_days: float = 365.25,
     dyad_max_dist: float = 0.010,
+    mu: float = 2.0e-3,
+    tau_max: float = 0.5,
+    seq_len: int = 1023,
+    alpha: float = 0.05,
+    mode: str = "poisson_envelope",
     max_dense_n: int = 2500,
 ) -> Tuple[pd.DataFrame, Dict[str, Dict[str, Any]]]:
     """
     Detects contemporaneous direct transmission dyads and point-source clusters.
 
-    Screens all pairs of sequences sampled within dyad_max_days (default: 90 days)
-    with Tamura-Nei 93 genetic distance <= dyad_max_dist (default: 0.010 subs/site).
+    Under the principled Poisson coalescent envelope (mode='poisson_envelope'),
+    the maximum expected substitutions across genealogical branch length B = Delta T + 2 * tau_max
+    is lambda_max = seq_len * mu * (Delta T + 2 * tau_max). The allowable upper distance bound is:
+        d_crit(Delta T) = (lambda_max + z_alpha * sqrt(lambda_max) + 0.5) / seq_len
+    where tau_max is the acute transmission window (default: 0.5 yrs / 6 mo) and mu is the clock rate.
 
-    These represent canonical direct transmission events (e.g. partner notification,
-    acute point-source exposure) where near-zero temporal variance prevents standard
-    temporal clock regression from estimating an internal rate.
+    If mode='box', falls back to legacy rectangular cutoff (dt_days <= dyad_max_days and D <= dyad_max_dist).
 
     Returns:
         (dyads_df, taxa_dyad_map)
@@ -410,9 +417,21 @@ def detect_contemporaneous_dyads(
     dates = np.array([dates_map[t] for t in taxa], dtype=np.float64)
     dyad_pairs: List[Tuple[str, str, float, float]] = []
 
+    def get_admissible_mask(D_arr, dt_d):
+        if mode == "poisson_envelope":
+            dt_yrs = dt_d / 365.25
+            lam = float(seq_len) * float(mu) * (dt_yrs + 2.0 * float(tau_max))
+            z_alpha = 1.6448536269514722  # upper 95% quantile
+            k_crit = lam + z_alpha * np.sqrt(lam) + 0.5
+            d_crit = k_crit / float(seq_len)
+            mask = (dt_d <= dyad_max_days) & (D_arr <= d_crit) & (D_arr >= 0)
+        else:
+            mask = (dt_d <= dyad_max_days) & (D_arr <= dyad_max_dist) & (D_arr >= 0)
+        return mask
+
     if D_matrix is not None:
         dt_days = np.abs(dates[:, None] - dates[None, :]) * 365.25
-        adj = (dt_days <= dyad_max_days) & (D_matrix <= dyad_max_dist) & (D_matrix >= 0)
+        adj = get_admissible_mask(D_matrix, dt_days)
         np.fill_diagonal(adj, False)
         ii, jj = np.where(np.triu(adj, k=1))
         for i, j in zip(ii, jj):
@@ -420,7 +439,7 @@ def detect_contemporaneous_dyads(
     elif n <= max_dense_n and seq_dict is not None:
         D_computed = compute_tn93_distance_matrix(seq_dict, taxa)
         dt_days = np.abs(dates[:, None] - dates[None, :]) * 365.25
-        adj = (dt_days <= dyad_max_days) & (D_computed <= dyad_max_dist) & (D_computed >= 0)
+        adj = get_admissible_mask(D_computed, dt_days)
         np.fill_diagonal(adj, False)
         ii, jj = np.where(np.triu(adj, k=1))
         for i, j in zip(ii, jj):
@@ -1843,16 +1862,13 @@ class HierarchicalAutoClock:
 
         self._log(f"[✓] Validated {len(self.taxa)} sequences with timestamps across {self.meta_df['date'].min():.1f} - {self.meta_df['date'].max():.1f}.")
 
-        # Rooting anchor divergence
-        if self.rooting_mode == "convex_decay":
-            root_seq, eff_gamma = generate_time_decay_consensus_sequence(self.seq_dict, self.dates_map, self.taxa)
-            self.root_desc = f"time_decay_consensus_root (gamma={eff_gamma:.4f})"
-            aug_dict = dict(self.seq_dict)
-            aug_dict['__GLOBAL_ROOT__'] = root_seq
-            cross_mat = compute_tn93_cross_distance_matrix(aug_dict, self.taxa, ['__GLOBAL_ROOT__'])
-            self.root_dists = {t: float(cross_mat[i, 0]) for i, t in enumerate(self.taxa)}
-            self.global_root_divergences = np.array([self.root_dists[t] for t in self.taxa], dtype=np.float64)
-            self._log(f"[✓] Anchored root divergences via Global Time-Decay Convex Hull (gamma={eff_gamma:.4f}, mean_div={self.global_root_divergences.mean():.4f}).")
+        # Rooting anchor divergence: continuous time-decay soft profile
+        if self.rooting_mode in ["convex_decay", "profile", "time_decay_profile"]:
+            divs, eff_gamma = compute_time_decay_profile_divergences(self.seq_dict, self.dates_map, self.taxa)
+            self.root_desc = f"time_decay_profile_root (gamma={eff_gamma:.4f})"
+            self.root_dists = {t: float(divs[i]) for i, t in enumerate(self.taxa)}
+            self.global_root_divergences = divs
+            self._log(f"[✓] Anchored root divergences via Continuous Time-Decay Profile (gamma={eff_gamma:.4f}, mean_div={self.global_root_divergences.mean():.4f}).")
         elif self.rooting_mode == "consensus":
             root_seq = generate_consensus_sequence(self.seq_dict, self.taxa)
             self.root_desc = "unweighted_modal_consensus_root"

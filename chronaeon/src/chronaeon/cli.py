@@ -162,20 +162,32 @@ def cmd_dating(args):
         if not np.isnan(lv.get('jackknife_mean', np.nan)):
             act_t0 = res.get('t_mrca')
             act_t0_str = f"{act_t0:.2f}" if (act_t0 is not None and not np.isnan(act_t0)) else "n/a"
-            print(f"  • Full-Sample Estimated t_MRCA:       {act_t0_str}")
-            print(f"  • Jackknife Mean t_MRCA:              {lv['jackknife_mean']:.2f}")
-            print(f"  • Jackknife SE(t_MRCA):               {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
-            ci_j = lv['jackknife_ci']
-            print(f"  • Jackknife 95% CI:                   [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
+            act_model_name = str(res.get('active_model', 'active')).lower()
+            ols_t0 = res.get('ols', {}).get('t_mrca', np.nan) if isinstance(res.get('ols'), dict) else np.nan
+
+            if act_model_name in ['spline', 'restricted spline', 'power', 'power-law']:
+                print(f"  • Selected Clock Model ({res.get('active_model', 'Spline').capitalize()}):  {act_t0_str}")
+                if not np.isnan(ols_t0):
+                    print(f"  • Linear {lv['method']} Full-Sample t_MRCA:        {ols_t0:.2f}")
+                print(f"  • Linear {lv['method']} Jackknife Mean t_MRCA:   {lv['jackknife_mean']:.2f}")
+                print(f"  • Linear {lv['method']} Jackknife SE(t_MRCA):     {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
+                ci_j = lv['jackknife_ci']
+                print(f"  • Linear {lv['method']} Jackknife 95% CI:         [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
+            else:
+                print(f"  • Full-Sample Estimated t_MRCA ({lv['method']}):      {act_t0_str}")
+                print(f"  • Jackknife Mean t_MRCA ({lv['method']}):             {lv['jackknife_mean']:.2f}")
+                print(f"  • Jackknife SE(t_MRCA):                    {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
+                ci_j = lv['jackknife_ci']
+                print(f"  • Jackknife 95% CI:                        [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
 
             if 'fieller_ci_width_years' in lv and not np.isnan(lv['fieller_ci_width_years']):
                 ratio_val = lv.get('fieller_to_jackknife_ratio', np.nan)
                 ratio_str = f"{ratio_val:.2f}x" if not np.isnan(ratio_val) else "n/a"
                 act_ci = res.get('ci_mrca')
                 act_ci_str = f"[{act_ci[0]:.2f}, {act_ci[1]:.2f}]" if act_ci else "n/a"
-                print(f"  • Fieller Analytical 95% CI:          {act_ci_str} (Width: {lv['fieller_ci_width_years']:.3f} yr / {lv['fieller_ci_width_days']:.1f} days)")
-                print(f"  • Fieller-to-Jackknife Width Ratio:   {ratio_str} (Non-parametric empirical calibration)")
-            print(f"  • Total Jackknife Root Spread:        {lv['jackknife_spread_days']:.1f} days across leave-one-out iterations")
+                print(f"  • Fieller Analytical 95% CI:               {act_ci_str} (Width: {lv['fieller_ci_width_years']:.3f} yr / {lv['fieller_ci_width_days']:.1f} days)")
+                print(f"  • Fieller-to-Jackknife Width Ratio:        {ratio_str} (Non-parametric empirical calibration)")
+            print(f"  • Total Jackknife Root Spread:             {lv['jackknife_spread_days']:.1f} days across leave-one-out iterations")
         else:
             print("  • Notice: Jackknife root estimates non-computable (rate <= 0).")
 

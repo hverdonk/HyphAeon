@@ -401,19 +401,57 @@ class TestTransformerMetricityDiagnostics:
         assert diag["recommended_regime"] == "tn93"
         assert "Outbreak" in diag["regime_label"]
 
-    def test_metricity_deep_saturated_regime(self):
+    def test_metricity_tn93_nan_saturation_failure(self):
         from chronaeon.dating import compute_transformer_metricity_diagnostics
-        # Deep divergence matrix (mean ~ 0.22, d90 > 0.20)
         np.random.seed(42)
-        n = 20
+        n = 15
         D = np.random.uniform(0.15, 0.30, (n, n))
         np.fill_diagonal(D, 0.0)
         D = (D + D.T) / 2.0
+        # Simulate true TN93 mathematical saturation (undefined log arguments -> NaNs)
+        mask = np.random.rand(n, n) < 0.20
+        D[mask] = np.nan
+        np.fill_diagonal(D, 0.0)
+        for i in range(n):
+            for j in range(i + 1, n):
+                if np.isnan(D[i, j]):
+                    D[j, i] = np.nan
 
         diag = compute_transformer_metricity_diagnostics(D)
-        assert diag["d_90"] >= 0.20
+        assert diag["nan_fraction"] > 0.05
         assert diag["recommended_regime"] == "latent"
-        assert "Regime 2" in diag["regime_label"]
+        assert "Saturation Breakdown Recovery" in diag["regime_label"]
+
+    def test_metricity_severe_non_metric_distortion_failure(self):
+        from chronaeon.dating import compute_transformer_metricity_diagnostics
+        n = 12
+        # Severe triangle inequality violation creating high negative eigenvalue energy
+        D = np.ones((n, n)) * 0.04
+        np.fill_diagonal(D, 0.0)
+        D[0, 1] = D[1, 0] = 5.0
+        D[2, 3] = D[3, 2] = 5.0
+
+        diag = compute_transformer_metricity_diagnostics(D)
+        assert diag["rho_neg"] > 0.35
+        assert diag["recommended_regime"] == "latent"
+        assert "Saturation Breakdown Recovery" in diag["regime_label"]
+
+    def test_metricity_deep_divergence_non_isometric_prefers_tn93(self):
+        from chronaeon.dating import compute_transformer_metricity_diagnostics
+        np.random.seed(42)
+        n = 20
+        # Deep divergence (d_90 ~ 0.28, finite, no NaNs, low distortion)
+        D = np.random.uniform(0.15, 0.30, (n, n))
+        np.fill_diagonal(D, 0.0)
+        D = (D + D.T) / 2.0
+        # Non-isometric latent representations (uncorrelated with physical distance, e.g. Faria)
+        z = np.random.randn(n, 128)
+
+        diag = compute_transformer_metricity_diagnostics(D, taxa_repr=z)
+        assert diag["d_90"] >= 0.20
+        assert diag["recommended_regime"] == "tn93"
+        assert "Linear Evolutionary Drift" in diag["regime_label"]
+        assert diag["rho_iso_spearman"] < 0.70
 
     def test_metricity_with_latent_representations(self):
         from chronaeon.dating import compute_transformer_metricity_diagnostics
@@ -433,6 +471,8 @@ class TestTransformerMetricityDiagnostics:
         assert diag["rho_iso_spearman"] is not None
         assert diag["rho_iso_pearson"] > 0.90
         assert diag["kappa_sat"] is not None
+        assert diag["recommended_regime"] == "tn93"
+        assert "Isometric Concordance Confirmed" in diag["regime_label"]
 
     def test_coverage_filtering_degraded_isolates(self):
         from chronaeon.dating import compute_transformer_metricity_diagnostics
