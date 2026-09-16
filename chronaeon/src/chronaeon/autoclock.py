@@ -52,7 +52,9 @@ from .dating import (
     parse_sample_dates,
     verify_coding_alignment,
     generate_time_decay_consensus_sequence,
+    compute_time_decay_profile_divergences,
     generate_consensus_sequence,
+    compute_fieller_mrca_interval,
 )
 
 
@@ -89,30 +91,295 @@ def select_adaptive_n_landmarks(
     return max(min(n_taxa, min_landmarks), m_opt)
 
 
-def classify_leaf_community(fit: Dict[str, Any]) -> str:
+def fit_clock(
+    sub_idx: Union[np.ndarray, List[int]],
+    dates: np.ndarray,
+    D: np.ndarray,
+) -> Dict[str, Any]:
     """
-    Classifies a leaf community into epidemiological / phylodynamic transmission categories:
-      - Active Transmission Outbreak: tight distance (mean <= 0.018, max <= 0.025), positive rate >= 1.0e-3, R2 >= 0.15
-      - Intermediate / Emergent Cluster: moderate distance (mean <= 0.025), positive rate > 0
-      - Micro-Chain / Pair: sample size < 3
-      - Chronic / Endemic Reservoir: diffuse distance (> 0.025), flat or negative rate, or low linearity
+    Fits analytical OLS root-to-tip molecular clock with exact Fieller confidence intervals.
+
+    Parameters
+    ----------
+    sub_idx : np.ndarray or list of int
+        Indices of the subcommunity within dates and D.
+    dates : np.ndarray
+        Array of decimal sampling dates for all taxa.
+    D : np.ndarray
+        Pairwise distance matrix for all taxa.
+
+    Returns
+    -------
+    Dict[str, Any] containing:
+        - n: sample size
+        - mu: evolutionary rate (subs/site/year)
+        - se: standard error of the rate
+        - r2: coefficient of determination
+        - rss: residual sum of squares
+        - tot_var: total variance of distances
+        - aicc: Hurvich-Tsai corrected Akaike information criterion
+        - tmrca: point estimate of t_MRCA (root date)
+        - ci_mrca: [t_low, t_high] 95% Fieller confidence interval
+        - fieller_status: status code from Fieller inversion ('BOUNDED', 'TOO_SMALL', 'ZERO_TIME_VAR', etc.)
+        - mean_dist: mean intra-community pairwise distance
+        - max_dist: max intra-community pairwise distance
+        - span: temporal duration (years)
+        - d0: mean root-to-sample distance
+    """
+    sub_idx = np.asarray(sub_idx)
+    n = len(sub_idx)
+    if n < 3:
+        t_val = float(dates[sub_idx].min()) if n > 0 else 0.0
+        return {
+            "n": n, "mu": 0.0, "se": 0.0, "r2": 0.0, "rss": 0.0, "tot_var": 0.0,
+            "aicc": 1e6, "tmrca": t_val, "ci_mrca": [t_val, t_val],
+            "fieller_status": "TOO_SMALL", "mean_dist": 0.0, "max_dist": 0.0,
+            "span": 0.0, "d0": 0.0
+        }
+
+    sub_dates = dates[sub_idx]
+    D_sub = D[np.ix_(sub_idx, sub_idx)]
+    span = float(sub_dates.max() - sub_dates.min())
+    nonzero = D_sub[D_sub > 0]
+    mean_d = float(nonzero.mean()) if len(nonzero) > 0 else 0.0
+    max_d = float(nonzero.max()) if len(nonzero) > 0 else 0.0
+
+    earliest_local = int(np.argmin(sub_dates))
+    dists = D_sub[earliest_local]
+
+    t_ref = float(np.mean(sub_dates))
+    x = sub_dates - t_ref
+    var_x = float(np.sum(x**2))
+    y = dists - float(np.mean(dists))
+    tot_var = float(np.sum(y**2))
+
+    if var_x < 1e-12:
+        t_val = float(sub_dates.min())
+        return {
+            "n": n, "mu": 0.0, "se": 0.0, "r2": 0.0, "rss": tot_var, "tot_var": tot_var,
+            "aicc": 1e6, "tmrca": t_val, "ci_mrca": [t_val, t_val],
+            "fieller_status": "ZERO_TIME_VAR", "mean_dist": mean_d, "max_dist": max_d,
+            "span": span, "d0": float(np.mean(dists))
+        }
+
+    mu = float(np.sum(x * y) / var_x)
+    d0 = float(np.mean(dists))
+    fitted = d0 + mu * x
+    rss = float(np.sum((dists - fitted)**2))
+    r2 = float(max(0.0, 1.0 - rss / max(1e-12, tot_var)))
+    df = n - 2
+    s2 = max(rss / max(df, 1), 1e-12)
+    se_mu = float(np.sqrt(s2 / var_x))
+
+    cov_beta = np.zeros((2, 2))
+    cov_beta[0, 0] = s2 / var_x
+    cov_beta[1, 1] = s2 / n
+
+    ci_mrca, fieller_info = compute_fieller_mrca_interval(
+        mu=mu, d0=d0, cov_beta=cov_beta, t_ref=t_ref, df=df, alpha=0.05, min_time=float(sub_dates.min())
+    )
+    tmrca = float(t_ref - d0 / mu) if mu > 1e-12 else float(sub_dates.min())
+
+    loglik = -0.5 * n * (np.log(2.0 * np.pi * s2) + 1.0)
+    p = 3
+    aicc = -2.0 * loglik + 2.0 * p + (2.0 * p * (p + 1)) / max(n - p - 1, 1)
+
+    return {
+        "n": n, "mu": mu, "se": se_mu, "r2": r2, "rss": rss, "tot_var": tot_var,
+        "aicc": aicc, "tmrca": tmrca, "ci_mrca": ci_mrca,
+        "fieller_status": fieller_info.get("status", "UNKNOWN"),
+        "mean_dist": mean_d, "max_dist": max_d, "span": span, "d0": d0
+    }
+
+
+def recursive_spectral_autoclock(
+    sub_idx: Union[np.ndarray, List[int]],
+    dates: np.ndarray,
+    D: np.ndarray,
+    min_size: int = 3,
+    max_depth: int = 10,
+    depth: int = 0,
+    path: str = "root",
+    is_ref_array: Optional[np.ndarray] = None,
+) -> List[Tuple[np.ndarray, Dict[str, Any], str, str]]:
+    """
+    Recursively bisects a population along spectral Cheeger cuts using rate separability.
+
+    Parameters
+    ----------
+    sub_idx : np.ndarray or list of int
+        Indices of the current subcommunity.
+    dates : np.ndarray
+        Array of decimal dates for all taxa.
+    D : np.ndarray
+        Full N x N pairwise distance matrix.
+    min_size : int, default 3
+        Minimum community size to permit further bisection.
+    max_depth : int, default 10
+        Maximum recursion depth.
+    depth : int, default 0
+        Current recursion depth.
+    path : str, default "root"
+        Binary tree path string (e.g. "root.0.1").
+    is_ref_array : Optional[np.ndarray], default None
+        Optional boolean array indicating reference panel anchors.
+
+    Returns
+    -------
+    List of tuples: (sub_idx, fit, stop_reason, path)
+    """
+    sub_idx = np.asarray(sub_idx)
+    n = len(sub_idx)
+    fit_p = fit_clock(sub_idx, dates, D)
+
+    if depth >= max_depth:
+        return [(sub_idx, fit_p, f"max_depth_{depth}", path)]
+    if n < 2 * min_size:
+        return [(sub_idx, fit_p, f"min_size_floor_N{n}", path)]
+
+    D_sub = D[np.ix_(sub_idx, sub_idx)]
+    nonzero_d = D_sub[D_sub > 0]
+    if len(nonzero_d) == 0:
+        return [(sub_idx, fit_p, "identical_sequences", path)]
+
+    # Adaptive affinity bandwidth: 15th percentile of local subcommunity distances
+    sigma = max(float(np.percentile(nonzero_d, 15)), 0.005)
+    W = np.exp(- (D_sub**2) / (2.0 * (sigma**2)))
+    np.fill_diagonal(W, 0.0)
+
+    deg = W.sum(axis=1)
+    if (deg == 0).all():
+        return [(sub_idx, fit_p, "disconnected_graph", path)]
+
+    d_inv_sqrt = np.power(deg, -0.5, where=deg > 0)
+    d_inv_sqrt[deg == 0] = 0.0
+    L_sym = np.eye(n) - (d_inv_sqrt[:, None] * W * d_inv_sqrt[None, :])
+
+    try:
+        evals, evecs = eigh(L_sym, subset_by_index=[0, min(3, n - 1)])
+    except Exception:
+        return [(sub_idx, fit_p, "eigh_failure", path)]
+
+    if len(evals) < 2 or evals[1] > 0.999:
+        return [(sub_idx, fit_p, "homogeneous_spectral_manifold", path)]
+
+    fiedler = evecs[:, 1]
+
+    # Candidate splits: 2-means and median sweep cut
+    km = KMeans(n_clusters=2, random_state=42, n_init=10).fit(fiedler.reshape(-1, 1))
+    c0 = np.where(km.labels_ == 0)[0]
+    c1 = np.where(km.labels_ == 1)[0]
+
+    if len(c0) < min_size or len(c1) < min_size:
+        med = float(np.median(fiedler))
+        c0 = np.where(fiedler <= med)[0]
+        c1 = np.where(fiedler > med)[0]
+
+    if len(c0) < min_size or len(c1) < min_size:
+        return [(sub_idx, fit_p, "cannot_bisect_size_floor", path)]
+
+    fit_0 = fit_clock(sub_idx[c0], dates, D)
+    fit_1 = fit_clock(sub_idx[c1], dates, D)
+
+    # Cohesive leaf stopping criterion:
+    # If parent is already tight (mean dist < 1.5%), has a linear clock (R2 >= 0.20),
+    # and child rates are statistically indistinguishable (Welch z < 1.96), terminate recursion.
+    if fit_p["mean_dist"] < 0.015 and fit_p["r2"] >= 0.20 and fit_p["mu"] > 0:
+        se_diff = np.sqrt(fit_0["se"]**2 + fit_1["se"]**2)
+        z = abs(fit_0["mu"] - fit_1["mu"]) / max(se_diff, 1e-12)
+        if z < 1.96:
+            return [(sub_idx, fit_p, f"cohesive_clock_cluster_z{z:.2f}", path)]
+
+    return (
+        recursive_spectral_autoclock(
+            sub_idx[c0], dates, D, min_size=min_size, max_depth=max_depth,
+            depth=depth + 1, path=f"{path}.0", is_ref_array=is_ref_array
+        ) +
+        recursive_spectral_autoclock(
+            sub_idx[c1], dates, D, min_size=min_size, max_depth=max_depth,
+            depth=depth + 1, path=f"{path}.1", is_ref_array=is_ref_array
+        )
+    )
+
+
+def classify_community(
+    fit: Dict[str, Any],
+    is_pure_local: bool = True,
+    is_hybrid: bool = False,
+    recent_horizon: float = 2008.0,
+    emergent_horizon: float = 2004.0,
+) -> str:
+    """
+    Classifies a community into five epidemiological transmission tiers:
+      - Micro-Chain / Pair: sample size n < 3.
+      - Wedged Circulating Lineage: hybrid cluster containing local surveillance
+        taxa and background reference panel anchors.
+      - Active Transmission Outbreak: recent emergence (tMRCA >= recent_horizon or upper
+        Fieller bound >= recent_horizon), high evolutionary velocity (mu >= 1.0e-3),
+        and strict linearity (R2 >= 0.15).
+      - Emergent Transmission Cluster: emergent origin (tMRCA >= emergent_horizon) and
+        positive evolutionary rate (mu >= 0.5e-3).
+      - Endemic Transmission Cluster: established endemic circulation (mu > 0 and R2 >= 0.10).
+      - Chronic Reservoir Network: ancient emergence, flat/negative rate, or low linearity.
     """
     n = fit.get("n_taxa", fit.get("n", 0))
     mu = fit.get("rate", fit.get("mu", 0.0))
     r2 = fit.get("r2", 0.0)
-    mean_d = fit.get("mean_dist", 0.0)
-    max_d = fit.get("max_dist", 0.0)
+    tmrca = fit.get("tmrca", fit.get("t_mrca", 0.0))
+    ci_mrca = fit.get("ci_mrca", [tmrca, tmrca])
+    ci_high = ci_mrca[1] if (isinstance(ci_mrca, (list, tuple, np.ndarray)) and len(ci_mrca) > 1) else tmrca
 
     if n < 3:
         return "Micro-Chain / Pair"
 
-    if mean_d <= 0.018 and max_d <= 0.025 and mu >= 1.0e-3 and r2 >= 0.15:
+    if is_hybrid:
+        return "Wedged Circulating Lineage"
+
+    if (tmrca >= recent_horizon or ci_high >= recent_horizon) and mu >= 1.0e-3 and r2 >= 0.15:
         return "Active Transmission Outbreak"
 
-    if mean_d <= 0.025 and mu > 0.0:
-        return "Intermediate / Emergent Cluster"
+    if tmrca >= emergent_horizon and mu >= 0.5e-3:
+        return "Emergent Transmission Cluster"
 
-    return "Chronic / Endemic Reservoir"
+    if mu > 0 and r2 >= 0.10:
+        return "Endemic Transmission Cluster"
+
+    return "Chronic Reservoir Network"
+
+
+def classify_leaf_community(
+    fit: Dict[str, Any],
+    is_pure_local: bool = True,
+    is_hybrid: bool = False,
+    recent_horizon: float = 2008.0,
+    emergent_horizon: float = 2004.0,
+) -> str:
+    """
+    Classifies a leaf community into epidemiological / phylodynamic transmission categories.
+    Delegates to classify_community with backwards compatibility for legacy distance criteria.
+    """
+    if "tmrca" not in fit and "t_mrca" not in fit and ("mean_dist" in fit or "max_dist" in fit):
+        n = fit.get("n_taxa", fit.get("n", 0))
+        mu = fit.get("rate", fit.get("mu", 0.0))
+        r2 = fit.get("r2", 0.0)
+        mean_d = fit.get("mean_dist", 0.0)
+        max_d = fit.get("max_dist", 0.0)
+
+        if n < 3:
+            return "Micro-Chain / Pair"
+        if mean_d <= 0.018 and max_d <= 0.025 and mu >= 1.0e-3 and r2 >= 0.15:
+            return "Active Transmission Outbreak"
+        if mean_d <= 0.025 and mu > 0.0:
+            return "Intermediate / Emergent Cluster"
+        return "Chronic / Endemic Reservoir"
+
+    return classify_community(
+        fit=fit,
+        is_pure_local=is_pure_local,
+        is_hybrid=is_hybrid,
+        recent_horizon=recent_horizon,
+        emergent_horizon=emergent_horizon,
+    )
 
 
 def detect_contemporaneous_dyads(
@@ -120,19 +387,25 @@ def detect_contemporaneous_dyads(
     dates_map: Dict[str, float],
     seq_dict: Optional[Dict[str, str]] = None,
     D_matrix: Optional[np.ndarray] = None,
-    dyad_max_days: float = 90.0,
+    dyad_max_days: float = 365.25,
     dyad_max_dist: float = 0.010,
+    mu: float = 2.0e-3,
+    tau_max: float = 0.5,
+    seq_len: int = 1023,
+    alpha: float = 0.05,
+    mode: str = "poisson_envelope",
     max_dense_n: int = 2500,
 ) -> Tuple[pd.DataFrame, Dict[str, Dict[str, Any]]]:
     """
     Detects contemporaneous direct transmission dyads and point-source clusters.
 
-    Screens all pairs of sequences sampled within dyad_max_days (default: 90 days)
-    with Tamura-Nei 93 genetic distance <= dyad_max_dist (default: 0.010 subs/site).
+    Under the principled Poisson coalescent envelope (mode='poisson_envelope'),
+    the maximum expected substitutions across genealogical branch length B = Delta T + 2 * tau_max
+    is lambda_max = seq_len * mu * (Delta T + 2 * tau_max). The allowable upper distance bound is:
+        d_crit(Delta T) = (lambda_max + z_alpha * sqrt(lambda_max) + 0.5) / seq_len
+    where tau_max is the acute transmission window (default: 0.5 yrs / 6 mo) and mu is the clock rate.
 
-    These represent canonical direct transmission events (e.g. partner notification,
-    acute point-source exposure) where near-zero temporal variance prevents standard
-    temporal clock regression from estimating an internal rate.
+    If mode='box', falls back to legacy rectangular cutoff (dt_days <= dyad_max_days and D <= dyad_max_dist).
 
     Returns:
         (dyads_df, taxa_dyad_map)
@@ -144,9 +417,21 @@ def detect_contemporaneous_dyads(
     dates = np.array([dates_map[t] for t in taxa], dtype=np.float64)
     dyad_pairs: List[Tuple[str, str, float, float]] = []
 
+    def get_admissible_mask(D_arr, dt_d):
+        if mode == "poisson_envelope":
+            dt_yrs = dt_d / 365.25
+            lam = float(seq_len) * float(mu) * (dt_yrs + 2.0 * float(tau_max))
+            z_alpha = 1.6448536269514722  # upper 95% quantile
+            k_crit = lam + z_alpha * np.sqrt(lam) + 0.5
+            d_crit = k_crit / float(seq_len)
+            mask = (dt_d <= dyad_max_days) & (D_arr <= d_crit) & (D_arr >= 0)
+        else:
+            mask = (dt_d <= dyad_max_days) & (D_arr <= dyad_max_dist) & (D_arr >= 0)
+        return mask
+
     if D_matrix is not None:
         dt_days = np.abs(dates[:, None] - dates[None, :]) * 365.25
-        adj = (dt_days <= dyad_max_days) & (D_matrix <= dyad_max_dist) & (D_matrix >= 0)
+        adj = get_admissible_mask(D_matrix, dt_days)
         np.fill_diagonal(adj, False)
         ii, jj = np.where(np.triu(adj, k=1))
         for i, j in zip(ii, jj):
@@ -154,7 +439,7 @@ def detect_contemporaneous_dyads(
     elif n <= max_dense_n and seq_dict is not None:
         D_computed = compute_tn93_distance_matrix(seq_dict, taxa)
         dt_days = np.abs(dates[:, None] - dates[None, :]) * 365.25
-        adj = (dt_days <= dyad_max_days) & (D_computed <= dyad_max_dist) & (D_computed >= 0)
+        adj = get_admissible_mask(D_computed, dt_days)
         np.fill_diagonal(adj, False)
         ii, jj = np.where(np.triu(adj, k=1))
         for i, j in zip(ii, jj):
@@ -268,7 +553,7 @@ class AutoClockDeconvolution:
         dates_map: Optional[Dict[str, float]] = None,
         meta_df: Optional[pd.DataFrame] = None,
         rooting_mode: str = "convex_decay",
-        contemporaneous_dyads: bool = True,
+        contemporaneous_dyads: bool = False,
         dyad_max_days: float = 90.0,
         dyad_max_dist: float = 0.010,
     ):
@@ -531,7 +816,22 @@ class AutoClockDeconvolution:
         self._log(f"[✓] Computed {n}x{n} distance matrix in {t_elapsed:.2f}s.")
 
         used_neural = False
-        if self.manifold in ["transformer", "neural"] or (self.manifold == "auto" and n <= 1000):
+        nonzero_dists = self.D_matrix[self.D_matrix > 0]
+        if len(nonzero_dists) == 0:
+            nonzero_dists = np.array([0.01])
+        p90_dist = float(np.percentile(nonzero_dists, 90))
+
+        want_neural = (
+            self.manifold in ["transformer", "neural"] or
+            (self.manifold == "auto" and p90_dist >= 0.20 and n <= self.max_dense_n)
+        )
+        if self.manifold == "auto":
+            if p90_dist < 0.20:
+                self._log(f"[*] AutoClock Manifold Auto-Adjudication: d_90 = {p90_dist:.4f} < 0.20 subs/site. Selecting Regime 1 (Physical TN93 Distance Manifold).")
+            else:
+                self._log(f"[*] AutoClock Manifold Auto-Adjudication: Deep divergence detected (d_90 = {p90_dist:.4f} >= 0.20 subs/site). Invoking Regime 2 (Neural Transformer Manifold).")
+
+        if want_neural:
             try:
                 import torch
                 from aeon_core.inference import load_model, prepare_alignment, get_device
@@ -856,7 +1156,18 @@ class AutoClockDeconvolution:
             c_dates_csv = comm_dir / f"chronaeon_community_{c_id}_dates.csv"
             pd.DataFrame({"id": c_taxa, "date": [self.dates_map[t] for t in c_taxa]}).to_csv(c_dates_csv, index=False)
 
-            comm_dist_mode = "latent" if (self.manifold in ["transformer", "neural"] or (self.manifold == "auto" and len(c_taxa) <= 500)) else "tn93"
+            c_indices = [i for i in range(n) if labels[i] == c_id]
+            if self.D_matrix is not None and len(c_indices) > 1:
+                c_dists = self.D_matrix[np.ix_(c_indices, c_indices)]
+                c_nonzero = c_dists[c_dists > 0]
+                c_d90 = float(np.percentile(c_nonzero, 90)) if len(c_nonzero) > 0 else 0.0
+            else:
+                c_d90 = 0.0
+
+            comm_dist_mode = "latent" if (
+                self.manifold in ["transformer", "neural"] or
+                (self.manifold == "auto" and c_d90 >= 0.20 and len(c_taxa) <= 500)
+            ) else "tn93"
             comm_method = "all" if (comm_dist_mode == "latent" and len(c_taxa) <= 500) else "ols"
             c_prefix = comm_dir / f"chronaeon_community_{c_id}"
             res = run_mrca_dating(
@@ -1268,7 +1579,7 @@ def run_autoclock_deconvolution(
     n_landmarks: Union[int, str] = "auto",
     max_memory_mb: float = 1024.0,
     rooting_mode: str = "convex_decay",
-    contemporaneous_dyads: bool = True,
+    contemporaneous_dyads: bool = False,
     dyad_max_days: float = 90.0,
     dyad_max_dist: float = 0.010,
 ) -> Dict[str, Any]:
@@ -1402,7 +1713,7 @@ class HierarchicalAutoClock:
         n_landmarks: Union[int, str] = "auto",
         max_memory_mb: float = 1024.0,
         rooting_mode: str = "convex_decay",
-        contemporaneous_dyads: bool = True,
+        contemporaneous_dyads: bool = False,
         dyad_max_days: float = 90.0,
         dyad_max_dist: float = 0.010,
     ):
@@ -1482,6 +1793,8 @@ class HierarchicalAutoClock:
             print(msg, flush=True)
 
     def classify_leaf(self, leaf: Dict[str, Any]) -> str:
+        if not self.contemporaneous_dyads:
+            return "Clock Community"
         return classify_leaf_community(leaf)
 
     def load_and_validate(self):
@@ -1549,16 +1862,13 @@ class HierarchicalAutoClock:
 
         self._log(f"[✓] Validated {len(self.taxa)} sequences with timestamps across {self.meta_df['date'].min():.1f} - {self.meta_df['date'].max():.1f}.")
 
-        # Rooting anchor divergence
-        if self.rooting_mode == "convex_decay":
-            root_seq, eff_gamma = generate_time_decay_consensus_sequence(self.seq_dict, self.dates_map, self.taxa)
-            self.root_desc = f"time_decay_consensus_root (gamma={eff_gamma:.4f})"
-            aug_dict = dict(self.seq_dict)
-            aug_dict['__GLOBAL_ROOT__'] = root_seq
-            cross_mat = compute_tn93_cross_distance_matrix(aug_dict, self.taxa, ['__GLOBAL_ROOT__'])
-            self.root_dists = {t: float(cross_mat[i, 0]) for i, t in enumerate(self.taxa)}
-            self.global_root_divergences = np.array([self.root_dists[t] for t in self.taxa], dtype=np.float64)
-            self._log(f"[✓] Anchored root divergences via Global Time-Decay Convex Hull (gamma={eff_gamma:.4f}, mean_div={self.global_root_divergences.mean():.4f}).")
+        # Rooting anchor divergence: continuous time-decay soft profile
+        if self.rooting_mode in ["convex_decay", "profile", "time_decay_profile"]:
+            divs, eff_gamma = compute_time_decay_profile_divergences(self.seq_dict, self.dates_map, self.taxa)
+            self.root_desc = f"time_decay_profile_root (gamma={eff_gamma:.4f})"
+            self.root_dists = {t: float(divs[i]) for i, t in enumerate(self.taxa)}
+            self.global_root_divergences = divs
+            self._log(f"[✓] Anchored root divergences via Continuous Time-Decay Profile (gamma={eff_gamma:.4f}, mean_div={self.global_root_divergences.mean():.4f}).")
         elif self.rooting_mode == "consensus":
             root_seq = generate_consensus_sequence(self.seq_dict, self.taxa)
             self.root_desc = "unweighted_modal_consensus_root"
@@ -1900,14 +2210,17 @@ class HierarchicalAutoClock:
                 dyad_span = dyad_info.get("timespan_days", None)
                 dyad_dist = dyad_info.get("mean_distance", None)
 
-                if l_class == "Active Transmission Outbreak":
-                    trans_mode = "Active Outbreak + Contemporaneous Dyad" if in_dyad else "Active Transmission Outbreak"
-                elif in_dyad:
-                    trans_mode = "Contemporaneous Transmission Dyad"
-                elif l_class == "Intermediate / Emergent Cluster":
-                    trans_mode = "Intermediate / Emergent Cluster"
+                if self.contemporaneous_dyads:
+                    if l_class == "Active Transmission Outbreak":
+                        trans_mode = "Active Outbreak + Contemporaneous Dyad" if in_dyad else "Active Transmission Outbreak"
+                    elif in_dyad:
+                        trans_mode = "Contemporaneous Transmission Dyad"
+                    elif l_class == "Intermediate / Emergent Cluster":
+                        trans_mode = "Intermediate / Emergent Cluster"
+                    else:
+                        trans_mode = "Chronic / Endemic Reservoir"
                 else:
-                    trans_mode = "Chronic / Endemic Reservoir"
+                    trans_mode = "Clock Community"
 
                 rows.append({
                     "id": t,
@@ -2212,7 +2525,7 @@ def run_hierarchical_autoclock(
     n_landmarks: Union[int, str] = "auto",
     max_memory_mb: float = 1024.0,
     rooting_mode: str = "convex_decay",
-    contemporaneous_dyads: bool = True,
+    contemporaneous_dyads: bool = False,
     dyad_max_days: float = 90.0,
     dyad_max_dist: float = 0.010,
 ) -> Dict[str, Any]:
