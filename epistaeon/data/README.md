@@ -1,5 +1,14 @@
 # Empirical data and coordinate inventory
 
+> ### ⚠️ Numbering offsets — apply before any structural analysis
+>
+> `uniprot_position = pdb_author_position + offset`. **2HHB chains A/B/C/D and
+> 1MBO chain A carry a +1 offset** (cleaved initiator Met); 1U19 is 1:1. The
+> ancestral receptors use local LBD numbering, `+531` to reach human GR
+> NR3C1. Machine-readable source of truth:
+> [`numbering_offsets.json`](numbering_offsets.json). Details and rationale in
+> [`../README.md`](../README.md). Getting this wrong fails silently.
+
 These are published source files collected for reviewing
 `white_paper_mutational_order_timing_epistasis.pdf`. Files are grouped by
 empirical case, not by a claim that they constitute complete mutational-path
@@ -270,3 +279,134 @@ p < 10⁻⁵" requires a minimum number of detected pairs:
 
 A detector emitting fewer pairs than this cannot meet the §5 standard on that
 case regardless of accuracy.
+
+---
+
+# Blockers 2 and 3: the problems in detail, and how the field handles them
+
+Blocker 1 (band coverage) is settled — a third intermediate class and a
+per-protein upper bound will be implemented at analysis time. The two below
+are still open design decisions.
+
+## Blocker 2: which hemoglobin interface is "the" interface?
+
+### Why this is not a tiebreak
+
+Hemoglobin is an α₂β₂ tetramer, so an (α site *i*, β site *j*) pair has four
+realisations. The tetramer's twofold symmetry collapses these to **two
+structurally distinct interfaces**, and they are mechanistically opposite:
+
+| Interface | Role | Contacts ≤5 Å (2HHB) | Behaviour |
+| --- | --- | --- | --- |
+| **α1β1** | packing | 55 | rigid; the stable αβ dimer |
+| **α1β2** | sliding | 37 | the allosteric switch; rearranges on T→R |
+
+Measured on 2HHB, **92 α–β pairs are contacts at exactly one interface and
+zero are contacts at both.** The two sets are disjoint. So the convention does
+not break ties — it wholly determines the answer for every inter-chain pair.
+
+A coevolutionary coupling between α site *i* and β site *j* is a single scalar
+computed from the alignment. Nothing in the sequence data indicates which
+interface it refers to.
+
+### It is worse than that: α1β2 is state-dependent
+
+2HHB is the deoxy (T) state only. Rebuilding the R-state tetramer from 2DN1
+(oxyhaemoglobin, 1.25 Å — note its asymmetric unit is only an αβ dimer, so the
+biological assembly operator must be applied) gives:
+
+| Interface | T (2HHB) | R (2DN1) | shared | T-only | R-only | Jaccard |
+| --- | --- | --- | --- | --- | --- | --- |
+| α1β1 packing | 55 | 61 | 55 | 0 | 6 | **0.90** |
+| α1β2 sliding | 37 | 27 | 21 | 16 | 6 | **0.49** |
+
+The packing interface is essentially invariant — every T-state contact
+survives into R. **The sliding interface turns over half its contacts.** A pair
+scored against deoxy 2HHB alone can be called a contact or not purely by which
+oxygenation state was crystallised.
+
+### How the field handles it
+
+1. **Pool by minimum distance over the biological assembly.** Count a
+   predicted pair as correct if it contacts in *any* symmetry-equivalent
+   realisation. This is the common convention in inter-protein contact
+   benchmarks. **Critical caveat:** the background rate must be computed under
+   the same pooling rule. Pooling positives while leaving the null unpooled
+   inflates the odds ratio — a frequent error, and directly relevant to the
+   §5 OR > 4.0 standard.
+2. **Score each interface separately.** Report precision/recall per interface
+   rather than pooling. Preferred where the interfaces carry different biology.
+3. **Always build the biological assembly**, not the asymmetric unit, via
+   `_pdbx_struct_assembly` / `_pdbx_struct_oper_list`. 2HHB happens to ship a
+   full tetramer; 2DN1 does not.
+4. **Evaluate allosteric proteins against multiple conformational states**,
+   reporting contacts as state-specific or state-invariant.
+5. **Paralog matching.** Inter-protein coevolution between two genes requires
+   correctly pairing HBA and HBB sequences per species. HBA is a duplicated
+   family (HBA1/HBA2), so this is live here, not hypothetical. It is a known
+   hard problem in the DCA literature, handled with genomic co-localisation or
+   phylogeny-based matching (Bitbol et al. 2016; Gueudré et al. 2016, both
+   *PNAS*).
+
+**Recommendation.** Score α1β1 and α1β2 separately as the primary metric —
+the whole aim is distinguishing direct contact from allosteric coupling, and
+these two interfaces *are* that distinction physically instantiated. Report a
+pooled number as a secondary, literature-comparable metric, with a
+pooling-matched null. Evaluate α1β2 against both T and R, and label each pair
+state-invariant or state-specific.
+
+## Blocker 3: coupling routed through a cofactor
+
+### Why a residue–residue cutoff is the wrong observable here
+
+Haem is a ~15 Å conjugated macrocycle; retinal is a ~15 Å polyene. Both are
+large, rigid, and functionally central. Two residues on opposite faces of a
+haem can be 12–15 Å apart yet both directly perturb the iron's electronic
+environment and therefore O₂ affinity. In rhodopsin, λmax is set by the
+electrostatic field along the whole chromophore plus the Schiff-base
+counterion, so residues spread along the polyene all couple to one observable.
+
+Measured here, **41–49% of pairs in which both residues line the cofactor sit
+more than 10 Å apart** and would be classified allosteric. That is not
+action-at-a-distance through the protein scaffold; it is two residues touching
+the same molecule.
+
+This is the highest-impact gap because the phenotypes in Cases 1, 2 and 4 —
+P50, λmax — are *all* cofactor-mediated. The couplings the model most needs to
+detect are precisely the ones a residue–residue criterion misassigns.
+
+Note also that haem is **per-chain**: 2HHB carries four. Any "same cofactor"
+rule must name *which* haem, since an α residue and a β residue line different
+ones. Inter-haem communication is itself the allosteric mechanism.
+
+### How the field handles it
+
+1. **Promote the cofactor to a node in the contact graph.** The simplest and
+   most common fix: add an edge when both residues fall within ~4–5 Å of the
+   *same* cofactor, and report it as its own category rather than folding it
+   into direct contact.
+2. **Residue-interaction networks and path-based metrics.** Build a graph over
+   residues *and* cofactors, then use shortest-path or communication distance
+   instead of Euclidean distance. Dynamical network analysis (Sethi &
+   Luthey-Schulten; VMD NetworkView), community detection, and suboptimal-path
+   methods such as WISP all include cofactors as nodes by default.
+3. **Treat unexplained top couplings as a diagnostic, not noise.** A
+   well-documented result in the DCA/coevolution literature is that
+   high-ranking couplings unexplained by the monomer structure often mark real
+   features — oligomeric interfaces, ligand sites, or alternative
+   conformations. Standard practice is to check them against cofactor and
+   interface sites before scoring them as false positives.
+4. **Sector methods already tolerate this.** Statistical coupling analysis
+   identifies networks that are physically contiguous but not pairwise
+   adjacent, typically connecting through active sites and cofactor pockets.
+   Relevant because `hyphaeon epistasis` already performs sector mining.
+5. **Conservative alternative:** exclude the cofactor's first coordination
+   shell when benchmarking pure residue–residue contact prediction, so the
+   metric neither credits nor penalises cofactor effects.
+
+**Recommendation.** Add a **cofactor-bridged** class alongside the intermediate
+class already planned for blocker 1, keyed to a specific cofactor copy: both
+residues within 5 Å of the same haem or retinal. The final scheme becomes
+*direct* / *cofactor-bridged* / *intermediate* / *allosteric*, each scored
+separately. For the phenotype regressions specifically (P50, λmax), consider
+distance-to-cofactor as the predictor rather than residue–residue distance.

@@ -1,0 +1,32 @@
+{
+  "_comment": "Authoritative PDB-author-numbering -> UniProt-canonical-numbering map for the epistaeon benchmark structures. VERIFIED by global pairwise alignment with zero sequence mismatches (scripts/numbering.py, 2026-09-17). ALWAYS apply: uniprot_position = pdb_author_position + offset_to_uniprot. Alignment/tensor site indices are UniProt-canonical; PDB coordinates are NOT.",
+  "structures": {
+    "2HHB": {
+      "chains": {
+        "A": {"role": "alpha-globin", "uniprot": "P69905", "offset_to_uniprot": 1, "pdb_range": [1, 141], "uniprot_length": 142, "modelled": "141/141", "mismatches": 0},
+        "B": {"role": "beta-globin",  "uniprot": "P68871", "offset_to_uniprot": 1, "pdb_range": [1, 146], "uniprot_length": 147, "modelled": "146/146", "mismatches": 0},
+        "C": {"role": "alpha-globin", "uniprot": "P69905", "offset_to_uniprot": 1, "pdb_range": [1, 141], "uniprot_length": 142, "modelled": "141/141", "mismatches": 0},
+        "D": {"role": "beta-globin",  "uniprot": "P68871", "offset_to_uniprot": 1, "pdb_range": [1, 146], "uniprot_length": 147, "modelled": "146/146", "mismatches": 0}
+      },
+      "reason": "initiator Met cleaved in the mature globin"
+    },
+    "1MBO": {
+      "chains": {
+        "A": {"role": "myoglobin", "uniprot": "P02185", "offset_to_uniprot": 1, "pdb_range": [1, 153], "uniprot_length": 154, "modelled": "153/153", "mismatches": 0}
+      },
+      "reason": "initiator Met cleaved in the mature myoglobin"
+    },
+    "1U19": {
+      "chains": {
+        "A": {"role": "rhodopsin", "uniprot": "P02699", "offset_to_uniprot": 0, "pdb_range": [1, 348], "uniprot_length": 348, "modelled": "348/348", "mismatches": 0},
+        "B": {"role": "rhodopsin", "uniprot": "P02699", "offset_to_uniprot": 0, "pdb_range": [1, 348], "uniprot_length": 348, "modelled": "348/348", "mismatches": 0}
+      },
+      "reason": "1:1; but an ACE acetyl cap occupies author position 0 and must be skipped when iterating residues"
+    },
+    "2Q1H": {"chains": {"A": {"role": "AncCR", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 247], "note": "local LBD numbering, not UniProt. Anc + 531 = human GR. N-terminal positions -2/-1/0 are expression-tag residues."}}},
+    "2Q1V": {"chains": {"A": {"role": "AncCR", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 247], "note": "local LBD numbering"}}},
+    "2Q3Y": {"chains": {"A": {"role": "AncCR", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 246], "note": "local LBD numbering"}}},
+    "3RY9": {"chains": {"A": {"role": "AncGR1", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 247], "note": "local LBD numbering"}}},
+    "3GN8": {"chains": {"A": {"role": "AncGR2", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 246], "note": "local LBD numbering"}}}
+  }
+}
