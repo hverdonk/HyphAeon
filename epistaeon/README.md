@@ -11,8 +11,8 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 >
 > ## PDB author numbering is **not** alignment numbering
 >
-> Three of the four benchmark scaffolds are mature proteins whose initiator
-> methionine was cleaved. Their PDB author numbering is therefore shifted by
+> Two of the four benchmark structures, 2HHB and 1MBO, are mature proteins
+> whose initiator methionine was cleaved. Their PDB author numbering is therefore shifted by
 > **one residue** from the UniProt-canonical numbering that alignment columns
 > and site tensors use.
 >
@@ -26,18 +26,22 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 > | `2HHB` | B, D | β-globin | P68871 | **+1** |
 > | `1MBO` | A | myoglobin | P02185 | **+1** |
 > | `1U19` | A, B | rhodopsin | P02699 | **0** |
+> | `7PRX` | A | glucocorticoid receptor | P04150 | **0** |
 >
 > Skipping this shifts **every** hemoglobin and myoglobin contact call by one
 > residue. It fails silently — no error, no gap, no mismatch — because the
 > off-by-one lands on a real neighbouring residue. It is the single most
 > likely way to get plausible-looking but wrong contact classifications.
 >
-> The steroid receptors are a separate scheme entirely: `2Q1H`, `2Q1V`,
-> `2Q3Y`, `3RY9` and `3GN8` use **local LBD numbering** (`-2` … `247`), not
-> UniProt. To reach human GR (NR3C1) numbering, add **+531**. Positions
-> `-2`, `-1` and `0` are expression-tag residues, not biology. `1U19` carries
-> an `ACE` acetyl cap at author position `0` that must be skipped when
-> iterating residues.
+> **Case 3 has a second trap.** The white paper names receptor residues in
+> *ancestral* (AncCR) numbering — Tyr27, Ser106, Leu111. 7PRX uses human GR
+> numbering, so add **+531** (Ser106 → GR 637, Leu111 → GR 642). The backup
+> ancestral structures in `data/ancestral_coordinates/` use local LBD
+> numbering (`-2` … `247`), and in 3GN8 the +531 rule breaks after about
+> position 212.
+>
+> `1U19` carries an `ACE` acetyl cap at author position `0` that must be
+> skipped when iterating residues.
 >
 > **Do not hardcode these.** Load
 > [`data/numbering_offsets.json`](data/numbering_offsets.json), the
@@ -50,7 +54,9 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 
 | Path | Contents |
 | --- | --- |
-| `data/coordinates/` | Eight mmCIF files: four case scaffolds + the Thornton ancestral receptor series |
+| `data/coordinates/` | The active set: `2HHB`, `1MBO`, `7PRX`, `1U19` |
+| `data/alternate_coordinates/` | Backup: `4LSJ` (human GR; domain-swapped, superseded by 7PRX) |
+| `data/ancestral_coordinates/` | Backup: Thornton ancestral receptor series (`2Q1H`, `2Q1V`, `2Q3Y`, `3RY9`, `3GN8`) |
 | `data/experimental/` | Published source papers and supplements for the four cases |
 | `data/uniprot/` | Canonical reference sequences, so the numbering check runs offline |
 | `data/numbering_offsets.json` | **Verified numbering crosswalk — load this, don't hardcode** |
@@ -72,17 +78,12 @@ mmCIF paths). They need `biopython`, `numpy` and `scipy`.
 | `storz.py` | Maps the real Storz 2009 deer-mouse sites onto 2HHB |
 | `mapfitness.py` | Distance-class composition, copy stability, interface ambiguity, cofactor bridging |
 | `bands.py` | Band coverage gaps and statistical power for the §5 benchmark |
-| `interface_states.py` | Blocker 2 evidence: interface disjointness and T/R state dependence |
+| `interface_states.py` | Hemoglobin interface disjointness and T/R state dependence |
 | `_fetch.py` | Resolves a structure locally, else caches a download from RCSB |
 
-## Open decisions
+## Contact classification
 
-1. **Distance classes** — a third intermediate class and a per-protein upper
-   bound will be implemented at analysis time (the ≤5 Å / 10–25 Å scheme
-   leaves 29–32% of globin pairs and 54% of rhodopsin pairs unclassified).
-2. **Hemoglobin interface convention** — open. The α1β1 and α1β2 contact sets
-   are *disjoint*, and α1β2 turns over half its contacts between T and R.
-   Recommendation and literature conventions in `data/README.md`.
-3. **Cofactor-bridged coupling** — open. 41–49% of cofactor-lining pairs sit
-   >10 Å apart and would be mis-called allosteric. Recommendation and
-   literature conventions in `data/README.md`.
+Binary: a detected pair is in direct contact if any heavy atoms are within
+5.0 Å, otherwise not. Apply the numbering offset first, exclude pairs with
+|i − j| < 5, and count hemoglobin α–β pairs as contacts at either interface.
+Baselines and details in [`data/README.md`](data/README.md).

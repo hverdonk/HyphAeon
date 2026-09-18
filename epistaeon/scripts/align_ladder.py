@@ -34,17 +34,17 @@ def diff(pA,pB,nameA,nameB,chA='A',chB='A'):
 
 b=_COORD
 print("="*78);print("STEROID RECEPTOR EPISTATIC LADDER (alignment-based)");print("="*78)
-s1,_,_,_,_ = diff(b+'2Q1H.cif',b+'3RY9.cif','AncCR (2Q1H)','AncGR1 (3RY9)')
+s1,_,_,_,_ = diff(cif('2Q1H'),cif('3RY9'),'AncCR (2Q1H)','AncGR1 (3RY9)')
 print('  '+', '.join(f"{a}{na}{bb}" for na,a,nb,bb in s1))
-s2,_,_,_,_ = diff(b+'3RY9.cif',b+'3GN8.cif','AncGR1 (3RY9)','AncGR2 (3GN8)')
+s2,_,_,_,_ = diff(cif('3RY9'),cif('3GN8'),'AncGR1 (3RY9)','AncGR2 (3GN8)')
 print('  '+', '.join(f"{a}{na}{bb}" for na,a,nb,bb in s2))
-s3,_,_,_,_ = diff(b+'2Q1H.cif',b+'3GN8.cif','AncCR (2Q1H)','AncGR2 (3GN8)')
+s3,_,_,_,_ = diff(cif('2Q1H'),cif('3GN8'),'AncCR (2Q1H)','AncGR2 (3GN8)')
 print('  '+', '.join(f"{a}{na}{bb}" for na,a,nb,bb in s3))
 
 print("\n"+"="*78);print("ANC-NUMBERING  <->  HUMAN GR (NR3C1) CROSSWALK via 4P6X");print("="*78)
-s4,nA,nB,sA,sB = diff(b+'3GN8.cif',cif('4P6X'),'AncGR2 (3GN8)','human GR (4P6X)')
+s4,nA,nB,sA,sB = diff(cif('3GN8'),cif('4P6X'),'AncGR2 (3GN8)','human GR (4P6X)')
 # report offset at the four white-paper positions
-sA_,nA_=seqnum(b+'3GN8.cif'); sB_,nB_=seqnum(cif('4P6X'))
+sA_,nA_=seqnum(cif('3GN8')); sB_,nB_=seqnum(cif('4P6X'))
 aln=al.align(sA_,sB_)[0]; iA,iB=aln.indices
 m={}
 for a,bx in zip(iA,iB):

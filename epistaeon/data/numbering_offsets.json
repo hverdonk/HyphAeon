@@ -3,30 +3,230 @@
   "structures": {
     "2HHB": {
       "chains": {
-        "A": {"role": "alpha-globin", "uniprot": "P69905", "offset_to_uniprot": 1, "pdb_range": [1, 141], "uniprot_length": 142, "modelled": "141/141", "mismatches": 0},
-        "B": {"role": "beta-globin",  "uniprot": "P68871", "offset_to_uniprot": 1, "pdb_range": [1, 146], "uniprot_length": 147, "modelled": "146/146", "mismatches": 0},
-        "C": {"role": "alpha-globin", "uniprot": "P69905", "offset_to_uniprot": 1, "pdb_range": [1, 141], "uniprot_length": 142, "modelled": "141/141", "mismatches": 0},
-        "D": {"role": "beta-globin",  "uniprot": "P68871", "offset_to_uniprot": 1, "pdb_range": [1, 146], "uniprot_length": 147, "modelled": "146/146", "mismatches": 0}
+        "A": {
+          "role": "alpha-globin",
+          "uniprot": "P69905",
+          "offset_to_uniprot": 1,
+          "pdb_range": [
+            1,
+            141
+          ],
+          "uniprot_length": 142,
+          "modelled": "141/141",
+          "mismatches": 0
+        },
+        "B": {
+          "role": "beta-globin",
+          "uniprot": "P68871",
+          "offset_to_uniprot": 1,
+          "pdb_range": [
+            1,
+            146
+          ],
+          "uniprot_length": 147,
+          "modelled": "146/146",
+          "mismatches": 0
+        },
+        "C": {
+          "role": "alpha-globin",
+          "uniprot": "P69905",
+          "offset_to_uniprot": 1,
+          "pdb_range": [
+            1,
+            141
+          ],
+          "uniprot_length": 142,
+          "modelled": "141/141",
+          "mismatches": 0
+        },
+        "D": {
+          "role": "beta-globin",
+          "uniprot": "P68871",
+          "offset_to_uniprot": 1,
+          "pdb_range": [
+            1,
+            146
+          ],
+          "uniprot_length": 147,
+          "modelled": "146/146",
+          "mismatches": 0
+        }
       },
       "reason": "initiator Met cleaved in the mature globin"
     },
     "1MBO": {
       "chains": {
-        "A": {"role": "myoglobin", "uniprot": "P02185", "offset_to_uniprot": 1, "pdb_range": [1, 153], "uniprot_length": 154, "modelled": "153/153", "mismatches": 0}
+        "A": {
+          "role": "myoglobin",
+          "uniprot": "P02185",
+          "offset_to_uniprot": 1,
+          "pdb_range": [
+            1,
+            153
+          ],
+          "uniprot_length": 154,
+          "modelled": "153/153",
+          "mismatches": 0
+        }
       },
       "reason": "initiator Met cleaved in the mature myoglobin"
     },
     "1U19": {
       "chains": {
-        "A": {"role": "rhodopsin", "uniprot": "P02699", "offset_to_uniprot": 0, "pdb_range": [1, 348], "uniprot_length": 348, "modelled": "348/348", "mismatches": 0},
-        "B": {"role": "rhodopsin", "uniprot": "P02699", "offset_to_uniprot": 0, "pdb_range": [1, 348], "uniprot_length": 348, "modelled": "348/348", "mismatches": 0}
+        "A": {
+          "role": "rhodopsin",
+          "uniprot": "P02699",
+          "offset_to_uniprot": 0,
+          "pdb_range": [
+            1,
+            348
+          ],
+          "uniprot_length": 348,
+          "modelled": "348/348",
+          "mismatches": 0
+        },
+        "B": {
+          "role": "rhodopsin",
+          "uniprot": "P02699",
+          "offset_to_uniprot": 0,
+          "pdb_range": [
+            1,
+            348
+          ],
+          "uniprot_length": 348,
+          "modelled": "348/348",
+          "mismatches": 0
+        }
       },
       "reason": "1:1; but an ACE acetyl cap occupies author position 0 and must be skipped when iterating residues"
     },
-    "2Q1H": {"chains": {"A": {"role": "AncCR", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 247], "note": "local LBD numbering, not UniProt. Anc + 531 = human GR. N-terminal positions -2/-1/0 are expression-tag residues."}}},
-    "2Q1V": {"chains": {"A": {"role": "AncCR", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 247], "note": "local LBD numbering"}}},
-    "2Q3Y": {"chains": {"A": {"role": "AncCR", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 246], "note": "local LBD numbering"}}},
-    "3RY9": {"chains": {"A": {"role": "AncGR1", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 247], "note": "local LBD numbering"}}},
-    "3GN8": {"chains": {"A": {"role": "AncGR2", "offset_to_uniprot": null, "offset_to_human_GR_NR3C1": 531, "pdb_range": [-2, 246], "note": "local LBD numbering"}}}
+    "7PRX": {
+      "chains": {
+        "A": {
+          "role": "glucocorticoid receptor LBD, wild type",
+          "uniprot": "P04150",
+          "offset_to_uniprot": 0,
+          "pdb_range": [
+            529,
+            776
+          ],
+          "uniprot_length": 777,
+          "modelled": "248/250",
+          "unmodelled": [
+            "528",
+            "777"
+          ],
+          "engineered_mutations": [],
+          "mismatches": 0,
+          "note": "Full-length NR3C1 numbering. White-paper residues are AncCR numbering: add 531 (Tyr27->558, Leu29->560, Thr36->567, Ser106->637, Leu111->642). Chain B is a PGC1a coactivator peptide, not GR."
+        }
+      },
+      "ligand": "82H, velsecorat (non-steroidal GR modulator)"
+    }
+  },
+  "ancestral_backup": {
+    "2Q1H": {
+      "chains": {
+        "A": {
+          "role": "AncCR",
+          "offset_to_uniprot": null,
+          "offset_to_human_GR_NR3C1": 531,
+          "pdb_range": [
+            -2,
+            247
+          ],
+          "note": "local LBD numbering, not UniProt. Anc + 531 = human GR. N-terminal positions -2/-1/0 are expression-tag residues."
+        }
+      },
+      "folder": "data/ancestral_coordinates (backup, not in the active set)"
+    },
+    "2Q1V": {
+      "chains": {
+        "A": {
+          "role": "AncCR",
+          "offset_to_uniprot": null,
+          "offset_to_human_GR_NR3C1": 531,
+          "pdb_range": [
+            -2,
+            247
+          ],
+          "note": "local LBD numbering"
+        }
+      },
+      "folder": "data/ancestral_coordinates (backup, not in the active set)"
+    },
+    "2Q3Y": {
+      "chains": {
+        "A": {
+          "role": "AncCR",
+          "offset_to_uniprot": null,
+          "offset_to_human_GR_NR3C1": 531,
+          "pdb_range": [
+            -2,
+            246
+          ],
+          "note": "local LBD numbering"
+        }
+      },
+      "folder": "data/ancestral_coordinates (backup, not in the active set)"
+    },
+    "3RY9": {
+      "chains": {
+        "A": {
+          "role": "AncGR1",
+          "offset_to_uniprot": null,
+          "offset_to_human_GR_NR3C1": 531,
+          "pdb_range": [
+            -2,
+            247
+          ],
+          "note": "local LBD numbering"
+        }
+      },
+      "folder": "data/ancestral_coordinates (backup, not in the active set)"
+    },
+    "3GN8": {
+      "chains": {
+        "A": {
+          "role": "AncGR2",
+          "offset_to_uniprot": null,
+          "offset_to_human_GR_NR3C1": 531,
+          "pdb_range": [
+            -2,
+            246
+          ],
+          "note": "local LBD numbering CAUTION: AncGR2 has a one-residue indel relative to AncCR/AncGR1 near position 211; from about 212 onward 3GN8 author numbers are one lower than the equivalent AncCR residue, so +531 is not valid there. Use a per-residue alignment."
+        }
+      },
+      "folder": "data/ancestral_coordinates (backup, not in the active set)"
+    }
+  },
+  "alternate_backup": {
+    "4LSJ": {
+      "chains": {
+        "A": {
+          "role": "glucocorticoid receptor LBD",
+          "uniprot": "P04150",
+          "offset_to_uniprot": 0,
+          "pdb_range": [
+            520,
+            777
+          ],
+          "uniprot_length": 777,
+          "modelled": "244/258",
+          "unmodelled": [
+            "520-525 (construct N-terminus)",
+            "703-710 (internal loop)"
+          ],
+          "engineered_mutations": [
+            "F602Y",
+            "C638G"
+          ],
+          "note": "Full-length NR3C1 numbering. White-paper residues are AncCR numbering: add 531 (Tyr27->558, Leu29->560, Thr36->567, Ser106->637, Leu111->642). Chain B is a synthetic coactivator peptide, not GR. DOMAIN-SWAPPED: residues 526-551 pack onto the symmetry mate's core, so within-chain contacts for 526-558 are wrong. Replaced by 7PRX."
+        }
+      },
+      "ligand": "LSJ, synthetic non-steroidal dibenzoxapine sulfonamide (2 copies)",
+      "folder": "data/alternate_coordinates (superseded, not in the active set)"
+    }
   }
 }

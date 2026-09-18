@@ -46,11 +46,18 @@ against each file's `_refine.ls_d_res_high` field.
 | `coordinates/2HHB.cif` | Human deoxyhemoglobin | 1.74 Å | Section 4 accession |
 | `coordinates/1MBO.cif` | Sperm-whale oxymyoglobin | 1.60 Å | Section 4 accession |
 | `coordinates/1U19.cif` | Bovine rhodopsin | 2.20 Å | Section 4 accession |
-| `coordinates/2Q1H.cif` | Ancestral corticoid receptor–aldosterone | 1.90 Å | Relevant receptor replacement |
-| `coordinates/3RY9.cif` | AncGR1–DOC | 1.95 Å | Relevant receptor replacement |
-| `coordinates/3GN8.cif` | AncGR2–dexamethasone | 2.50 Å | Relevant receptor replacement |
-| `coordinates/2Q1V.cif` | AncCR–prednisone (entry titled "cortisol") | 1.95 Å | Added 2026-09-17, completes Ortlund 2007 set |
-| `coordinates/2Q3Y.cif` | AncCR–DOC | 2.40 Å | Added 2026-09-17, completes Ortlund 2007 set |
+| `coordinates/7PRX.cif` | Human GR LBD, wild type–velsecorat + PGC1α peptide | 2.20 Å | Active Case 3 structure |
+| `alternate_coordinates/4LSJ.cif` | Human GR LBD–synthetic dibenzoxapine sulfonamide | 2.35 Å | Superseded: domain-swapped (see Case 3) |
+| `ancestral_coordinates/2Q1H.cif` | Ancestral corticoid receptor–aldosterone | 1.90 Å | Backup |
+| `ancestral_coordinates/2Q1V.cif` | AncCR–prednisone (entry titled "cortisol") | 1.95 Å | Backup |
+| `ancestral_coordinates/2Q3Y.cif` | AncCR–DOC | 2.40 Å | Backup |
+| `ancestral_coordinates/3RY9.cif` | AncGR1–DOC | 1.95 Å | Backup |
+| `ancestral_coordinates/3GN8.cif` | AncGR2–dexamethasone | 2.50 Å | Backup |
+
+The active set in `coordinates/` is §4's structures, with `7PRX` in place of
+the receptor entry. `4LSJ`, the likely intended §4 accession, is kept in
+`alternate_coordinates/`; the Thornton ancestral series is kept in
+`ancestral_coordinates/`. Both are backups.
 
 These structures do not by themselves establish a tensor-to-coordinate
 crosswalk. It requires the tensor's reference sequence and site-index
@@ -72,11 +79,10 @@ search for human glucocorticoid receptor entries returns **`4LSJ`**, one
 character away, which is a genuine GR ligand-binding domain (2.35 Å,
 *J. Med. Chem.* 2014) — so §4's accession is most likely a transcription slip.
 
-`4LSJ` is nevertheless still the wrong structure for these analyses: its ligand
-(`LSJ`) is a synthetic dibenzoxapine sulfonamide, not a corticosteroid, and the
-residue numbers §4 cites (Ser106, Leu111) are **AncCR local numbering**, which
-no human GR entry uses. The §4 receptor row therefore belongs to the ancestral
-structures, not to any human GR entry.
+The residue numbers §4 cites (Ser106, Leu111) are **AncCR local numbering**;
+on a human GR structure they sit 531 positions higher. `4LSJ` itself turned out
+to be domain-swapped, so the active Case 3 structure is the wild-type human GR
+entry `7PRX` (see Case 3 below).
 
 ## Numbering crosswalk (established, not assumed)
 
@@ -153,13 +159,34 @@ contact (2.7 Å) but neither residue is in the Storz site set.
 haem + bound O₂, His93–Fe 2.1 Å. Mirceta 2013 crystallised no ancestors, so
 1MBO can only serve as a geometric scaffold for charge mapping.
 
-**Case 3, steroid receptor — now complete.** Added `2Q1V` and `2Q3Y` to finish
-the Ortlund 2007 deposition set. Note `2Q1V` is titled "in complex with
-cortisol" but its deposited ligand is `PDN` = prednisone (C21H26O5), *not*
-cortisol (C21H30O5); no ancestral entry here binds cortisol itself. Modern
-human GR entries (`4P6X` with `HCY`, `1M2Z`) were evaluated and **removed** —
-the goal is to classify epistatic pairs on the resurrected backgrounds, and
-modern structures use NR3C1 numbering that does not match the AncCR series.
+**Case 3, steroid receptor — 7PRX active; 4LSJ and the ancestral series as
+backups.** 7PRX was chosen after checking all 28 human GR ligand-binding-domain
+crystal structures against UniProt P04150. It is one of very few with the
+wild-type sequence (most carry solubilizing mutations such as F602S/C638D),
+2.20 Å, residues 529–776 fully modelled with no internal gaps, no incomplete
+side chains, and a PGC1α coactivator peptide bound (active conformation). Its
+contact calls agree closely with dexamethasone-bound 1M2Z and 4UDD.
+
+- Numbering is full-length NR3C1 and matches UniProt exactly (offset 0). The
+  white paper's residue names are AncCR numbering, so add 531: Tyr27 → 558,
+  Leu29 → 560, Thr36 → 567, Ser106 → 637, Leu111 → 642. Human GR already
+  carries the derived residues (Arg558, Pro637, Gln642).
+- The ligand is velsecorat, a non-steroidal modulator. The contact rule uses
+  only residue–residue distances; 7PRX and 1M2Z superimpose to 0.73 Å Cα RMSD.
+  If a steroid-bound pocket is preferred, 1M2Z (dexamethasone, F602S only,
+  2.50 Å) is the runner-up.
+
+**Why not 4LSJ.** It is the human GR entry §4 most likely meant by `4LS6`, but
+its crystal is **domain-swapped**: residues 526–551 of each chain pack onto the
+neighbouring copy's core. Within-chain contacts there are wrong — GR 558
+(Tyr27) has 1 contact partner in 4LSJ versus 6 in every other GR structure,
+and 4LSJ calls about 80 fewer contacts overall. It also lacks residues 703–710
+and carries F602Y and C638G.
+
+The Thornton ancestral structures (`2Q1H`, `2Q1V`, `2Q3Y`, `3RY9`, `3GN8`) are
+kept in `ancestral_coordinates/` as a backup. Note `2Q1V` is titled "in
+complex with cortisol" but its deposited ligand is `PDN` = prednisone, and
+`3GN8` numbering runs one lower than AncCR from about position 212 onward.
 
 **Case 4, rhodopsin — correct and sufficient as a scaffold.** 1U19 carries all
 named residues in standard bovine numbering: Asp83, Glu113, Gly121, Glu122,
@@ -175,25 +202,24 @@ the paper's D83N/A292S.
 | --- | --- |
 | 1 | `2HHB` (only; re-derive the site set from Storz 2009) |
 | 2 | `1MBO` |
-| 3 | `2Q1H`, `2Q1V`, `2Q3Y` (AncCR) → `3RY9` (AncGR1) → `3GN8` (AncGR2) |
+| 3 | `7PRX` (backups: `4LSJ` in `alternate_coordinates/`, ancestral series in `ancestral_coordinates/`) |
 | 4 | `1U19` |
 
 
 ---
 
-# Contact-mapping fitness of 2HHB / 1MBO / 1U19 (2026-09-17)
+# Contact-mapping fitness of 2HHB / 1MBO / 1U19 / 7PRX
 
 Validated against a narrower goal than the §4 accession check: given an
 arbitrary epistatic site pair emitted by the model in a §3 case, can this
-structure assign it to *direct contact* or *allosteric network* reliably?
+structure say reliably whether the two residues are in direct contact?
 Reproduce with `epistaeon/scripts/numbering.py`, `mapfitness.py`, `bands.py`.
-Case 3 now uses the Thornton ancestral structures, so `4P6X`, `1M2Z` and
-`4LS6` have been removed from the repository.
+Case 3 uses `7PRX`; `4LSJ` and the ancestral series are backups. `4P6X`, `1M2Z` and `4LS6` are not in the repository.
 
 ## Passes
 
 **Numbering is exact and unambiguous.** Aligned to UniProt canonical sequences,
-zero mismatches in all four chains:
+zero mismatches in the globin, myoglobin and rhodopsin chains:
 
 | Chain | UniProt | Offset | Coverage |
 | --- | --- | --- | --- |
@@ -201,13 +227,16 @@ zero mismatches in all four chains:
 | 2HHB B (β) | P68871 | UniProt = PDB **+1** | 146/146 modelled |
 | 1MBO A | P02185 | UniProt = PDB **+1** | 153/153 modelled |
 | 1U19 A | P02699 | UniProt = PDB **+0** | 348/348 modelled |
+| 7PRX A | P04150 | UniProt = PDB **+0** | 248/250 modelled (termini 528, 777 absent) |
 
 The +1 offsets are initiator-Met cleavage in the mature protein. They must be
 applied explicitly; an unconverted alignment index silently shifts every
-globin and myoglobin contact call by one residue.
+globin and myoglobin contact call by one residue. 7PRX matches UniProt with
+zero mismatches.
 
-**No missing coordinates.** Every SEQRES position is modelled in all three
-structures — no unmodelled loops, so no detected pair is unmappable. Zero
+**Missing coordinates.** Every SEQRES position is modelled in 2HHB, 1MBO and
+1U19. 7PRX lacks only its terminal residues 528 and 777, so GR 529–776 is
+fully mappable. Zero
 incomplete side chains in all 574 + 153 + 696 residues, so minimum heavy-atom
 distances are trustworthy. (1MBO has 4 partial-occupancy/altloc residues;
 1U19 carries an `ACE` N-terminal cap at position 0 that must be skipped when
@@ -221,48 +250,50 @@ iterating residues.)
 | 2HHB β copies B vs D | 0.12 Å | 0.71% | **0** of 10,011 |
 | 1U19 copies A vs B | 0.20 Å | 0.77% | **1** of 58,996 |
 
-## Blockers
+## Classification rule
 
-**1. The two-band scheme does not cover most pairs.** §4 defines direct as
-≤5 Å and allosteric as 10–25 Å. Measured over all pairs with |i−j| ≥ 5:
+The question is binary: of the epistatic pairs the model detects, how many are
+in direct physical contact and how many are not?
 
-| Structure | direct ≤5 Å | *undefined* 5–10 Å | allosteric 10–25 Å | *undefined* >25 Å | total unclassified |
-| --- | --- | --- | --- | --- | --- |
-| 2HHB α | 2.3% | 15.6% | 68.8% | 13.2% | **28.9%** |
-| 2HHB β | 2.4% | 15.3% | 65.7% | 16.6% | **31.9%** |
-| 1MBO | 2.2% | 14.7% | 65.7% | 17.4% | **32.1%** |
-| 1U19 | 1.3% | 7.4% | 44.2% | 47.1% | **54.5%** |
+**A pair is in direct contact if any heavy atom of one residue lies within
+5.0 Å of any heavy atom of the other** (the white paper's own cutoff). Every
+other pair is *not in direct contact*. There are no further classes.
 
-For rhodopsin the majority of pairs fall outside both bands. The scheme needs
-a third intermediate class and an upper bound set by each protein's actual
-diameter (38–73 Å here), not a fixed 25 Å.
+Three details change the count and must be applied:
 
-**2. Hemoglobin α–β pairs cannot be classified at all without an interface
-convention.** Of 20,586 α–β pairs, 92 are contacts at α1β1 and 92 at α1β2 —
-but **zero are contacts at both**. The class of every inter-chain pair is
-decided entirely by which interface you measure on. This must be fixed
-explicitly (and reported) before any Case 1 inter-chain pair is scored.
+1. **Numbering offset.** Convert alignment positions with
+   [`numbering_offsets.json`](numbering_offsets.json) before any lookup
+   (+1 for 2HHB and 1MBO, 0 for 1U19 and 7PRX). Skipping it fails silently.
+   For Case 3, the white paper's residue names are AncCR numbering: add 531.
+2. **Sequence separation.** Exclude pairs with |i − j| < 5. Chain neighbours
+   are always within 5 Å, so they would count as contacts for free.
+3. **Hemoglobin α–β pairs.** Count a pair as a contact if it touches at
+   *either* interface of the tetramer (α1β1 or α1β2). The two interfaces share
+   no contact pairs, so measuring on only one would miss half the true
+   contacts. 2HHB is the deoxy (T) state; about half the α1β2 contacts differ
+   in the oxy (R) state (`scripts/interface_states.py`).
 
-**3. Cofactor-mediated coupling is invisible to a residue–residue criterion.**
-Pairs where both residues line the cofactor (≤5 Å) yet sit >10 Å apart, and so
-would be mis-called allosteric:
+**Baseline.** A contact fraction only means something against the rate among
+all pairs (|i − j| ≥ 5):
 
-| Structure | cofactor | lining residues | mis-called pairs | share of lining pairs |
-| --- | --- | --- | --- | --- |
-| 2HHB α | haem | 23 | 103 | 46% |
-| 1MBO | haem | 22 | 100 | 49% |
-| 1U19 | retinal | 25 | 108 | 41% |
+| Structure | pairs in direct contact |
+| --- | --- |
+| 2HHB α | 2.3% |
+| 2HHB β | 2.4% |
+| 1MBO | 2.2% |
+| 1U19 | 1.3% |
+| 7PRX | 1.7% |
 
-This is the most consequential gap: the phenotypes in Cases 1, 2 and 4 (P50,
-λmax) are *all* cofactor-mediated, so the interactions the model most needs to
-detect are exactly the ones this criterion misassigns. Contact definitions
-should treat haem and retinal as bridging nodes.
+**Interpretation note.** Residues that couple through the haem or retinal
+without touching each other are counted as not in direct contact. That is
+correct under this rule, but some "not in contact" pairs are still
+mechanistically close.
 
-**4. Cross-species transfer is unvalidated.** 1MBO is *Physeter catodon*, the
-Case 2 target taxon. But 2HHB is human while Case 1 targets *Peromyscus* and
+**Still open: cross-species transfer.** 1MBO is *Physeter catodon*, the Case 2
+target taxon. But 2HHB is human while Case 1 targets *Peromyscus* and
 *Merganetta*, and 1U19 is bovine while Case 4 targets cetaceans and bats. The
-numbering above is verified against the *human* and *bovine* references only;
-an alignment from each target ortholog to the PDB chain, with explicit indel
+numbering above is verified against the human and bovine references only; an
+alignment from each target ortholog to the PDB chain, with explicit indel
 handling, is still required.
 
 ## Power requirement for §5
@@ -276,137 +307,7 @@ p < 10⁻⁵" requires a minimum number of detected pairs:
 | 2HHB β | 2.41% | 9.0% contacts | ≥ 173 |
 | 1MBO | 2.22% | 8.3% contacts | ≥ 187 |
 | 1U19 | 1.27% | 4.9% contacts | ≥ 317 |
+| 7PRX | 1.65% | 6.3% contacts | ≥ 247 |
 
 A detector emitting fewer pairs than this cannot meet the §5 standard on that
 case regardless of accuracy.
-
----
-
-# Blockers 2 and 3: the problems in detail, and how the field handles them
-
-Blocker 1 (band coverage) is settled — a third intermediate class and a
-per-protein upper bound will be implemented at analysis time. The two below
-are still open design decisions.
-
-## Blocker 2: which hemoglobin interface is "the" interface?
-
-### Why this is not a tiebreak
-
-Hemoglobin is an α₂β₂ tetramer, so an (α site *i*, β site *j*) pair has four
-realisations. The tetramer's twofold symmetry collapses these to **two
-structurally distinct interfaces**, and they are mechanistically opposite:
-
-| Interface | Role | Contacts ≤5 Å (2HHB) | Behaviour |
-| --- | --- | --- | --- |
-| **α1β1** | packing | 55 | rigid; the stable αβ dimer |
-| **α1β2** | sliding | 37 | the allosteric switch; rearranges on T→R |
-
-Measured on 2HHB, **92 α–β pairs are contacts at exactly one interface and
-zero are contacts at both.** The two sets are disjoint. So the convention does
-not break ties — it wholly determines the answer for every inter-chain pair.
-
-A coevolutionary coupling between α site *i* and β site *j* is a single scalar
-computed from the alignment. Nothing in the sequence data indicates which
-interface it refers to.
-
-### It is worse than that: α1β2 is state-dependent
-
-2HHB is the deoxy (T) state only. Rebuilding the R-state tetramer from 2DN1
-(oxyhaemoglobin, 1.25 Å — note its asymmetric unit is only an αβ dimer, so the
-biological assembly operator must be applied) gives:
-
-| Interface | T (2HHB) | R (2DN1) | shared | T-only | R-only | Jaccard |
-| --- | --- | --- | --- | --- | --- | --- |
-| α1β1 packing | 55 | 61 | 55 | 0 | 6 | **0.90** |
-| α1β2 sliding | 37 | 27 | 21 | 16 | 6 | **0.49** |
-
-The packing interface is essentially invariant — every T-state contact
-survives into R. **The sliding interface turns over half its contacts.** A pair
-scored against deoxy 2HHB alone can be called a contact or not purely by which
-oxygenation state was crystallised.
-
-### How the field handles it
-
-1. **Pool by minimum distance over the biological assembly.** Count a
-   predicted pair as correct if it contacts in *any* symmetry-equivalent
-   realisation. This is the common convention in inter-protein contact
-   benchmarks. **Critical caveat:** the background rate must be computed under
-   the same pooling rule. Pooling positives while leaving the null unpooled
-   inflates the odds ratio — a frequent error, and directly relevant to the
-   §5 OR > 4.0 standard.
-2. **Score each interface separately.** Report precision/recall per interface
-   rather than pooling. Preferred where the interfaces carry different biology.
-3. **Always build the biological assembly**, not the asymmetric unit, via
-   `_pdbx_struct_assembly` / `_pdbx_struct_oper_list`. 2HHB happens to ship a
-   full tetramer; 2DN1 does not.
-4. **Evaluate allosteric proteins against multiple conformational states**,
-   reporting contacts as state-specific or state-invariant.
-5. **Paralog matching.** Inter-protein coevolution between two genes requires
-   correctly pairing HBA and HBB sequences per species. HBA is a duplicated
-   family (HBA1/HBA2), so this is live here, not hypothetical. It is a known
-   hard problem in the DCA literature, handled with genomic co-localisation or
-   phylogeny-based matching (Bitbol et al. 2016; Gueudré et al. 2016, both
-   *PNAS*).
-
-**Recommendation.** Score α1β1 and α1β2 separately as the primary metric —
-the whole aim is distinguishing direct contact from allosteric coupling, and
-these two interfaces *are* that distinction physically instantiated. Report a
-pooled number as a secondary, literature-comparable metric, with a
-pooling-matched null. Evaluate α1β2 against both T and R, and label each pair
-state-invariant or state-specific.
-
-## Blocker 3: coupling routed through a cofactor
-
-### Why a residue–residue cutoff is the wrong observable here
-
-Haem is a ~15 Å conjugated macrocycle; retinal is a ~15 Å polyene. Both are
-large, rigid, and functionally central. Two residues on opposite faces of a
-haem can be 12–15 Å apart yet both directly perturb the iron's electronic
-environment and therefore O₂ affinity. In rhodopsin, λmax is set by the
-electrostatic field along the whole chromophore plus the Schiff-base
-counterion, so residues spread along the polyene all couple to one observable.
-
-Measured here, **41–49% of pairs in which both residues line the cofactor sit
-more than 10 Å apart** and would be classified allosteric. That is not
-action-at-a-distance through the protein scaffold; it is two residues touching
-the same molecule.
-
-This is the highest-impact gap because the phenotypes in Cases 1, 2 and 4 —
-P50, λmax — are *all* cofactor-mediated. The couplings the model most needs to
-detect are precisely the ones a residue–residue criterion misassigns.
-
-Note also that haem is **per-chain**: 2HHB carries four. Any "same cofactor"
-rule must name *which* haem, since an α residue and a β residue line different
-ones. Inter-haem communication is itself the allosteric mechanism.
-
-### How the field handles it
-
-1. **Promote the cofactor to a node in the contact graph.** The simplest and
-   most common fix: add an edge when both residues fall within ~4–5 Å of the
-   *same* cofactor, and report it as its own category rather than folding it
-   into direct contact.
-2. **Residue-interaction networks and path-based metrics.** Build a graph over
-   residues *and* cofactors, then use shortest-path or communication distance
-   instead of Euclidean distance. Dynamical network analysis (Sethi &
-   Luthey-Schulten; VMD NetworkView), community detection, and suboptimal-path
-   methods such as WISP all include cofactors as nodes by default.
-3. **Treat unexplained top couplings as a diagnostic, not noise.** A
-   well-documented result in the DCA/coevolution literature is that
-   high-ranking couplings unexplained by the monomer structure often mark real
-   features — oligomeric interfaces, ligand sites, or alternative
-   conformations. Standard practice is to check them against cofactor and
-   interface sites before scoring them as false positives.
-4. **Sector methods already tolerate this.** Statistical coupling analysis
-   identifies networks that are physically contiguous but not pairwise
-   adjacent, typically connecting through active sites and cofactor pockets.
-   Relevant because `hyphaeon epistasis` already performs sector mining.
-5. **Conservative alternative:** exclude the cofactor's first coordination
-   shell when benchmarking pure residue–residue contact prediction, so the
-   metric neither credits nor penalises cofactor effects.
-
-**Recommendation.** Add a **cofactor-bridged** class alongside the intermediate
-class already planned for blocker 1, keyed to a specific cofactor copy: both
-residues within 5 Å of the same haem or retinal. The final scheme becomes
-*direct* / *cofactor-bridged* / *intermediate* / *allosteric*, each scored
-separately. For the phenotype regressions specifically (P50, λmax), consider
-distance-to-cofactor as the predictor rather than residue–residue distance.

@@ -52,10 +52,13 @@ def report(path):
     asym   = aslist(d,'_pdbx_poly_seq_scheme.pdb_strand_id')
     mon    = aslist(d,'_pdbx_poly_seq_scheme.mon_id')
     seqnum = aslist(d,'_pdbx_poly_seq_scheme.pdb_seq_num')
+    # pdb_seq_num is populated even for residues without coordinates;
+    # auth_seq_num is '?' for those, so it is the field that marks modelled residues.
+    authnum = aslist(d,'_pdbx_poly_seq_scheme.auth_seq_num')
     entid  = aslist(d,'_pdbx_poly_seq_scheme.entity_id')
     chains = {}
-    for ch, m, n, e in zip(asym, mon, seqnum, entid):
-        chains.setdefault(ch, {'ent':e, 'res':[]})['res'].append((n, m))
+    for ch, m, n, a, e in zip(asym, mon, seqnum, authnum, entid):
+        chains.setdefault(ch, {'ent':e, 'res':[]})['res'].append((n if a not in ('?','.') else '?', m))
     print("POLYMER CHAINS (author numbering, '.' = unmodelled):")
     global CHAINS; CHAINS = {}
     for ch, info in chains.items():

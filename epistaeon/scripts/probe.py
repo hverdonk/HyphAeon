@@ -35,7 +35,7 @@ probe(base+'1MBO.cif','A',[20,27,35,58,66,77,93],'Mb   ')
 
 print("\nCASE 3 STEROID RECEPTOR -- white paper names Ser106, Leu111, Tyr27, Thr36")
 for pdb,ch,lab in [('2Q1H','A','AncCR (2Q1H)'),('3RY9','A','AncGR1(3RY9)'),('3GN8','A','AncGR2(3GN8)'),(cif('4P6X'),'A','humGR (4P6X)')]:
-    probe(pdb if pdb.endswith('.cif') else base+pdb+'.cif',ch,[27,36,106,111],lab)
+    probe(pdb if pdb.endswith('.cif') else cif(pdb),ch,[27,36,106,111],lab)
 print("  -- same positions in human-GR numbering (verified offset +531, see align_ladder.py):")
 probe(cif('4P6X'),'A',[27+531,36+531,106+531,111+531],'humGR+531')
 
