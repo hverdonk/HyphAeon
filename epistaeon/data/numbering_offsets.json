@@ -1,5 +1,5 @@
 {
-  "_comment": "Authoritative PDB-author-numbering -> UniProt-canonical-numbering map for the epistaeon benchmark structures. VERIFIED by global pairwise alignment with zero sequence mismatches (scripts/numbering.py, 2026-09-17). ALWAYS apply: uniprot_position = pdb_author_position + offset_to_uniprot. Alignment/tensor site indices are UniProt-canonical; PDB coordinates are NOT.",
+  "_comment": "Authoritative PDB-author-numbering -> UniProt-canonical-numbering map for the epistaeon benchmark structures. VERIFIED by global pairwise alignment with zero sequence mismatches (scripts/numbering.py, 2026-09-17). ALWAYS apply: uniprot_position = pdb_author_position + offset_to_uniprot. Alignment/tensor site indices are UniProt-canonical; PDB coordinates are NOT. For the non-human structures (1MBO, 1U19), 'human_equivalent' gives the offset from HUMAN UniProt numbering, which is what TOGA2 hg38 residue positions use.",
   "structures": {
     "2HHB": {
       "chains": {
@@ -69,7 +69,15 @@
           "mismatches": 0
         }
       },
-      "reason": "initiator Met cleaved in the mature myoglobin"
+      "reason": "initiator Met cleaved in the mature myoglobin",
+      "human_equivalent": {
+        "human_uniprot": "P02144",
+        "offset_to_human_uniprot": 1,
+        "internal_indels": 0,
+        "substitutions": 24,
+        "toga2_check": "MB alignment row HLphyCat2 (Physeter macrocephalus) has no indels relative to hg38",
+        "note": "Same numbering scheme as human myoglobin. human (and TOGA2 hg38) residue n = 1MBO author residue n-1. Verified by scripts/numbering.py."
+      }
     },
     "1U19": {
       "chains": {
@@ -83,7 +91,8 @@
           ],
           "uniprot_length": 348,
           "modelled": "348/348",
-          "mismatches": 0
+          "mismatches": 0,
+          "human_uniprot": "P08100"
         },
         "B": {
           "role": "rhodopsin",
@@ -95,10 +104,19 @@
           ],
           "uniprot_length": 348,
           "modelled": "348/348",
-          "mismatches": 0
+          "mismatches": 0,
+          "human_uniprot": "P08100"
         }
       },
-      "reason": "1:1; but an ACE acetyl cap occupies author position 0 and must be skipped when iterating residues"
+      "reason": "1:1; but an ACE acetyl cap occupies author position 0 and must be skipped when iterating residues",
+      "human_equivalent": {
+        "human_uniprot": "P08100",
+        "offset_to_human_uniprot": 0,
+        "internal_indels": 0,
+        "substitutions": 23,
+        "toga2_check": "RHO alignment rows HLbosTau10 and bosTau9 (Bos taurus) have no indels relative to hg38",
+        "note": "Same numbering scheme as human rhodopsin. human (and TOGA2 hg38) residue n = 1U19 author residue n. Verified by scripts/numbering.py."
+      }
     },
     "7PRX": {
       "chains": {

@@ -60,8 +60,13 @@ results silently if ignored.
 3. **HBA2 reference ends in one masked codon** (translates to `X` at 143).
    Harmless: it falls after the last residue (142).
 4. **MB and RHO references are human, the structures are not** (sperm whale
-   1MBO, bovine 1U19). Same length and no indels, so residue *n* maps to
-   residue *n*; the sequences differ at 24 (MB) and 23 (RHO) sites.
+   1MBO, bovine 1U19). Neither has an indel relative to human, so the
+   numbering schemes match: human residue *n* = 1U19 residue *n*, and = 1MBO
+   residue *n* − 1 (the usual cleaved-Met offset). The sequences differ at 24
+   (MB) and 23 (RHO) sites. Confirmed against human UniProt P02144 / P08100
+   and inside the alignments (the sperm whale and cow rows have no indels
+   relative to `hg38`); recorded under `human_equivalent` in
+   `../../numbering_offsets.json` and reproduced by `scripts/numbering.py`.
 
 **Taxon coverage**
 
