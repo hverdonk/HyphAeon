@@ -43,6 +43,11 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 > `1U19` carries an `ACE` acetyl cap at author position `0` that must be
 > skipped when iterating residues.
 >
+> **Alignment side, too.** The TOGA2 model inputs in
+> `data/alignments/toga2/` report *alignment columns*, and the NR3C1 reference
+> is the GRγ isoform (+1 Arg at 452), so human positions after 451 are one
+> higher than 7PRX. See [`data/alignments/toga2/README.md`](data/alignments/toga2/README.md).
+>
 > **Do not hardcode these.** Load
 > [`data/numbering_offsets.json`](data/numbering_offsets.json), the
 > machine-readable source of truth, and regenerate it with
@@ -59,6 +64,7 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 | `data/ancestral_coordinates/` | Backup: Thornton ancestral receptor series (`2Q1H`, `2Q1V`, `2Q3Y`, `3RY9`, `3GN8`) |
 | `data/experimental/` | Published source papers and supplements for the four cases |
 | `data/uniprot/` | Canonical reference sequences, so the numbering check runs offline |
+| `data/alignments/toga2/` | TOGA2 codon alignments + species tree — the model inputs |
 | `data/numbering_offsets.json` | **Verified numbering crosswalk — load this, don't hardcode** |
 | `data/README.md` | Full structure audit and contact-mapping fitness report |
 | `scripts/` | Reproduces every number in `data/README.md` |
