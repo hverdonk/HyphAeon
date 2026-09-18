@@ -127,6 +127,150 @@ def compute_attention_covariance_kernel(
     return compute_neural_covariance_kernel(cross_attn, taxa_repr=taxa_repr, mds_coords=mds_coords)
 
 
+def compute_transformer_metricity_diagnostics(
+    d_matrix: np.ndarray,
+    taxa_repr: Optional[np.ndarray] = None,
+    cross_attn: Optional[np.ndarray] = None,
+    coverage: Optional[np.ndarray] = None,
+) -> Dict[str, Any]:
+    """
+    Evaluates foundation model metricity diagnostics to adjudicate between:
+      Regime 1: Physical Sequence Space (TN93 distance geometry with time-decay consensus root)
+      Regime 2: Continuous Latent Representation Space (Transformer embeddings with convex hull root)
+
+    Parameters
+    ----------
+    d_matrix : np.ndarray
+        N x N physical pairwise distance matrix (TN93 or patristic).
+    taxa_repr : Optional[np.ndarray]
+        N x D continuous sequence representations from axial transformer forward pass.
+    cross_attn : Optional[np.ndarray]
+        N x N pairwise cross-taxa attention matrix.
+    coverage : Optional[np.ndarray]
+        Fraction of non-gap coding positions per taxon (to filter fragmentary records).
+
+    Returns
+    -------
+    dict with:
+        d_mean, d_90, d_max, zero_fraction, rho_neg,
+        rho_iso_pearson, rho_iso_spearman, kappa_sat,
+        recommended_regime ("tn93" or "latent"),
+        regime_label, rationale
+    """
+    N = d_matrix.shape[0]
+    if coverage is not None:
+        cov_arr = np.asarray(coverage)
+        sub_idx = np.where(cov_arr >= 0.50)[0]
+        if len(sub_idx) < 3:
+            sub_idx = np.arange(N)
+    else:
+        sub_idx = np.arange(N)
+
+    N_sub = len(sub_idx)
+    D = d_matrix[np.ix_(sub_idx, sub_idx)]
+    triu = np.triu_indices(N_sub, k=1)
+    d_pairs = D[triu]
+
+    # Check for NaN, Inf, or invalid negative distances (mathematical saturation in TN93)
+    nan_mask = np.isnan(d_pairs) | np.isinf(d_pairs) | (d_pairs < 0)
+    nan_frac = float(np.mean(nan_mask)) if len(d_pairs) > 0 else 0.0
+
+    valid_pairs = d_pairs[~nan_mask]
+    d_mean = float(np.mean(valid_pairs)) if len(valid_pairs) > 0 else 0.0
+    d_90 = float(np.percentile(valid_pairs, 90)) if len(valid_pairs) > 0 else 0.0
+    d_max = float(np.max(valid_pairs)) if len(valid_pairs) > 0 else 0.0
+    zero_frac = float(np.mean(valid_pairs == 0.0)) if len(valid_pairs) > 0 else 0.0
+
+    # Spectral Metricity: Classical MDS negative eigenvalue energy
+    if N_sub > 1200:
+        # Safety chunking: Subsample representative taxa for MDS eigenvalue calculation
+        rng_diag = np.random.default_rng(42)
+        diag_idx = np.sort(rng_diag.choice(N_sub, size=1000, replace=False))
+        D_diag = D[np.ix_(diag_idx, diag_idx)]
+        D_clean = D_diag.copy()
+        nan_diag = np.isnan(D_clean) | np.isinf(D_clean) | (D_clean < 0)
+        if np.any(nan_diag):
+            D_clean[nan_diag] = max(0.50, d_max * 1.5)
+        np.fill_diagonal(D_clean, 0.0)
+    else:
+        D_clean = D.copy()
+        if nan_frac > 0:
+            D_clean[np.isnan(D_clean) | np.isinf(D_clean) | (D_clean < 0)] = max(0.50, d_max * 1.5)
+        np.fill_diagonal(D_clean, 0.0)
+
+    # In-place double-centering via vector broadcasting (eliminates dense N x N centering matrices)
+    D_sq = D_clean ** 2
+    row_m = np.mean(D_sq, axis=1, keepdims=True)
+    col_m = np.mean(D_sq, axis=0, keepdims=True)
+    grand_m = np.mean(D_sq)
+    B = -0.5 * (D_sq - row_m - col_m + grand_m)
+    eigvals = np.linalg.eigvalsh(B)
+    sum_abs = np.sum(np.abs(eigvals))
+    sum_neg = np.sum(np.abs(eigvals[eigvals < 0]))
+    rho_neg = float(sum_neg / (sum_abs + 1e-12))
+
+    r_pearson, r_spearman, kappa_sat = None, None, None
+    if taxa_repr is not None and len(taxa_repr) == N:
+        Z = np.asarray(taxa_repr)[sub_idx]
+        d_lat_pairs = pdist(Z, metric='euclidean')
+        valid_both = (~nan_mask) & (d_pairs > 0)
+        if np.sum(valid_both) > 10:
+            r_pearson = float(stats.pearsonr(d_pairs[valid_both], d_lat_pairs[valid_both])[0])
+            r_spearman = float(stats.spearmanr(d_pairs[valid_both], d_lat_pairs[valid_both])[0])
+        elif len(valid_pairs) > 2:
+            r_pearson = float(stats.pearsonr(d_pairs[~nan_mask], d_lat_pairs[~nan_mask])[0])
+            r_spearman = float(stats.spearmanr(d_pairs[~nan_mask], d_lat_pairs[~nan_mask])[0])
+
+        if np.sum(valid_both) > 3:
+            X_poly = np.column_stack([d_pairs[valid_both], d_pairs[valid_both]**2])
+            beta, _, _, _ = np.linalg.lstsq(X_poly, d_lat_pairs[valid_both], rcond=None)
+            kappa_sat = float(beta[1] / (abs(beta[0]) + 1e-12))
+
+    # 1. Physical Failure Condition: Mutational saturation breakdown or severe non-metric distortion
+    is_phys_broken = (nan_frac > 0.05) or (rho_neg > 0.35)
+
+    if is_phys_broken:
+        regime = "latent"
+        label = "Regime 2: Foundation Transformer Latent Space (Saturation Breakdown Recovery)"
+        rationale = f"Physical distance geometry broken (nan_frac = {nan_frac:.1%}, spectral distortion rho_neg = {rho_neg:.3f}); continuous latent manifold recommended."
+    # 2. Outbreak / Low Divergence: Exact physical distance geometry
+    elif d_90 < 0.05:
+        regime = "tn93"
+        label = "Regime 1: Physical Sequence Space (Outbreak / Low Divergence)"
+        rationale = f"Outbreak regime (d_90 = {d_90:.4f} < 0.05 subs/site); multiple substitutions negligible, TN93 distance geometry exact."
+    # 3. High Isometric Concordance: Foundation model agrees with physical substitutions
+    elif (r_spearman is not None and r_spearman >= 0.70 and r_pearson is not None and r_pearson >= 0.70):
+        if d_90 >= 0.25 and (kappa_sat is not None and abs(kappa_sat) > 0.10 and rho_neg > 0.20):
+            regime = "latent"
+            label = "Regime 2: Foundation Transformer Latent Space (Deep Concordant Manifold)"
+            rationale = f"Deep divergence (d_90 = {d_90:.4f}) with high isometric concordance (Spearman rho = {r_spearman:.3f}) and saturation curvature; continuous latent manifold recommended."
+        else:
+            regime = "tn93"
+            label = "Regime 1: Physical Sequence Space (Isometric Concordance Confirmed)"
+            rationale = f"Physical divergence d_90 = {d_90:.4f}; high isometric concordance (Spearman rho = {r_spearman:.3f}, Pearson r = {r_pearson:.3f}) confirms TN93 metricity."
+    # 4. Non-Isometric Latent Space (or unobserved embeddings): Physical substitutions must be preserved
+    else:
+        regime = "tn93"
+        label = "Regime 1: Physical Sequence Space (Linear Evolutionary Drift)"
+        sp_str = f"Spearman rho = {r_spearman:.3f}" if r_spearman is not None else "no latent embeddings"
+        rationale = f"Physical divergence d_90 = {d_90:.4f} with well-conditioned pairwise distances (nan_frac = {nan_frac:.1%}, rho_neg = {rho_neg:.3f}); latent space non-isometric ({sp_str} < 0.70), preserving physical substitutions."
+
+    return {
+        "d_mean": d_mean,
+        "d_90": d_90,
+        "d_max": d_max,
+        "zero_fraction": zero_frac,
+        "nan_fraction": nan_frac,
+        "rho_neg": rho_neg,
+        "rho_iso_pearson": r_pearson,
+        "rho_iso_spearman": r_spearman,
+        "kappa_sat": kappa_sat,
+        "recommended_regime": regime,
+        "regime_label": label,
+        "rationale": rationale,
+    }
+
+
 
 # =========================================================================
 # 1. In-Frame Coding Alignment Validation
@@ -308,6 +452,141 @@ def generate_time_decay_consensus_sequence(
         consensus_chars.append(best_c)
 
     return "".join(consensus_chars), eff_gamma
+
+
+def compute_time_decay_profile_divergences(
+    seq_dict: Dict[str, str],
+    dates_map: Dict[str, float],
+    dated_taxa: List[str],
+    gamma: Optional[float] = None,
+    half_life: Optional[float] = None,
+) -> Tuple[np.ndarray, float]:
+    r"""
+    Computes tree-free root-to-tip divergence using a continuous time-decay nucleotide profile
+    rather than a forced discrete consensus sequence.
+
+    At each site k = 1..L, the ancestral root state is represented as a probability simplex:
+        q_k(b) = \sum_{i=1}^N w_i * \mathbb{I}(S_{ik} = b)
+    where w_i \propto \exp(-\gamma * (t_i - t_min)).
+
+    Divergences are evaluated as expected substitutions under Tamura-Nei 93 (accounting for
+    purine transitions P1, pyrimidine transitions P2, and transversions Q) or Hamming expectation.
+    Eliminates artificial threshold flips, preserving continuity at polymorphic sites.
+    """
+    valid_taxa = [t for t in dated_taxa if t in dates_map and not np.isnan(dates_map[t])]
+    if not valid_taxa:
+        return np.zeros(len(dated_taxa), dtype=np.float64), 0.0
+
+    times = np.array([dates_map[t] for t in valid_taxa], dtype=np.float64)
+    t_min, t_max = float(np.min(times)), float(np.max(times))
+    delta_t = t_max - t_min
+
+    char_map = {'A': 0, 'a': 0, 'C': 1, 'c': 1, 'G': 2, 'g': 2, 'T': 3, 't': 3}
+    N = len(valid_taxa)
+    L = len(seq_dict[valid_taxa[0]])
+    M = np.full((N, L), -1, dtype=np.int8)
+    for i, t in enumerate(valid_taxa):
+        seq = seq_dict[t]
+        for k in range(min(L, len(seq))):
+            M[i, k] = char_map.get(seq[k], -1)
+
+    is_A = (M == 0)
+    is_C = (M == 1)
+    is_G = (M == 2)
+    is_T = (M == 3)
+    valid_mask = (M >= 0)
+    L_valid = np.maximum(np.sum(valid_mask, axis=1), 1)
+
+    def _eval_gamma(g: float) -> Tuple[np.ndarray, float]:
+        w = np.exp(-g * (times - t_min))
+        w_sum = np.sum(w)
+        w = w / w_sum if w_sum > 0 else np.ones(N) / N
+
+        Q = np.zeros((L, 4), dtype=np.float64)
+        for b in range(4):
+            Q[:, b] = np.sum((M == b) * w[:, None], axis=0)
+
+        q_sum = np.sum(Q, axis=1, keepdims=True)
+        zero_pos = (q_sum.squeeze() <= 0)
+        Q[~zero_pos, :] /= q_sum[~zero_pos]
+        Q[zero_pos, :] = 0.25
+
+        P1 = np.sum(is_A * Q[None, :, 2] + is_G * Q[None, :, 0], axis=1) / L_valid
+        P2 = np.sum(is_C * Q[None, :, 3] + is_T * Q[None, :, 1], axis=1) / L_valid
+        Q_tv = np.sum((is_A | is_G) * (Q[None, :, 1] + Q[None, :, 3]) + (is_C | is_T) * (Q[None, :, 0] + Q[None, :, 2]), axis=1) / L_valid
+
+        mean_Q = np.mean(Q, axis=0)
+        f_A = np.maximum(0.5 * (mean_Q[0] + np.sum(is_A, axis=1) / L_valid), 1e-4)
+        f_C = np.maximum(0.5 * (mean_Q[1] + np.sum(is_C, axis=1) / L_valid), 1e-4)
+        f_G = np.maximum(0.5 * (mean_Q[2] + np.sum(is_G, axis=1) / L_valid), 1e-4)
+        f_T = np.maximum(0.5 * (mean_Q[3] + np.sum(is_T, axis=1) / L_valid), 1e-4)
+        f_R = f_A + f_G
+        f_Y = f_C + f_T
+
+        arg1 = 1.0 - (f_R / (2.0 * f_A * f_G)) * P1 - (Q_tv / (2.0 * f_R))
+        arg2 = 1.0 - (f_Y / (2.0 * f_C * f_T)) * P2 - (Q_tv / (2.0 * f_Y))
+        arg3 = 1.0 - (Q_tv / (2.0 * f_R * f_Y))
+
+        k1 = 2.0 * f_A * f_G / f_R
+        k2 = 2.0 * f_C * f_T / f_Y
+        k3 = 2.0 * (f_R * f_Y - (f_A * f_G * f_Y / f_R) - (f_C * f_T * f_R / f_Y))
+
+        p_ham = P1 + P2 + Q_tv
+        valid_log = (arg1 > 0) & (arg2 > 0) & (arg3 > 0)
+        d = np.zeros(N, dtype=np.float64)
+        d[~valid_log] = p_ham[~valid_log]
+        d[valid_log] = (
+            -k1[valid_log] * np.log(arg1[valid_log])
+            - k2[valid_log] * np.log(arg2[valid_log])
+            - k3[valid_log] * np.log(arg3[valid_log])
+        )
+        invalid_d = (~np.isfinite(d)) | (d < 0)
+        d[invalid_d] = p_ham[invalid_d]
+        return d, g
+
+    if half_life is not None and half_life > 0:
+        eff_gamma = float(np.log(2.0) / half_life)
+        dists, _ = _eval_gamma(eff_gamma)
+    elif gamma is not None and gamma >= 0:
+        eff_gamma = float(gamma)
+        dists, _ = _eval_gamma(eff_gamma)
+    elif delta_t > 0 and N >= 4:
+        # Principle: Optimize gamma to maximize temporal molecular clock correlation (argmax R^2)
+        # analogous to TempEst root-to-tip heuristic optimization, but in continuous profile space.
+        cand_gammas = [
+            0.5 / delta_t, 1.0 / delta_t, 2.0 / delta_t,
+            5.0 / delta_t, 10.0 / delta_t, 20.0 / delta_t
+        ]
+        best_r = -1e9
+        best_d = None
+        best_g = cand_gammas[2]
+        v_t = np.var(times)
+
+        for g_cand in cand_gammas:
+            d_c, _ = _eval_gamma(g_cand)
+            v_d = np.var(d_c)
+            if v_t > 0 and v_d > 0:
+                r = float(np.cov(times, d_c)[0, 1] / np.sqrt(v_t * v_d))
+            else:
+                r = -1.0
+            if r > best_r:
+                best_r = r
+                best_g = g_cand
+                best_d = d_c
+
+        dists = best_d if best_d is not None else _eval_gamma(best_g)[0]
+        eff_gamma = best_g
+    else:
+        eff_gamma = float(2.0 / delta_t) if delta_t > 0 else 0.0
+        dists, _ = _eval_gamma(eff_gamma)
+
+    taxa_idx_map = {t: i for i, t in enumerate(valid_taxa)}
+    full_dists = np.zeros(len(dated_taxa), dtype=np.float64)
+    for j, t in enumerate(dated_taxa):
+        if t in taxa_idx_map:
+            full_dists[j] = dists[taxa_idx_map[t]]
+
+    return full_dists, eff_gamma
 
 
 # =========================================================================
@@ -655,6 +934,18 @@ def compute_tree_free_divergences(
         divergences = cross_mat[:, 0].astype(np.float64)
         return divergences, "unweighted_modal_consensus_root"
 
+    # Case 2b: User requested time-decay weighted modal consensus sequence
+    if root_taxon and root_taxon.lower() in ['time_decay_consensus', 'weighted_consensus', 'consensus']:
+        decay_seq, eff_gamma = generate_time_decay_consensus_sequence(
+            seq_dict, dates_map, dated_taxa, gamma=decay_gamma, half_life=decay_half_life
+        )
+        aug_dict = dict(seq_dict)
+        aug_dict['__TIME_DECAY_ROOT__'] = decay_seq
+        cross_mat = compute_tn93_cross_distance_matrix(aug_dict, dated_taxa, ['__TIME_DECAY_ROOT__'])
+        divergences = cross_mat[:, 0].astype(np.float64)
+        root_desc = f"time_decay_consensus_root (γ={eff_gamma:.4f})"
+        return divergences, root_desc
+
     # Case 3: Anchor on earliest sampled cohort
     if root_taxon and root_taxon.lower() in ['earliest', 'earliest_taxon', 'earliest_cohort']:
         valid_dates = [(t, dates_map[t]) for t in dated_taxa if t in dates_map and not np.isnan(dates_map[t])]
@@ -686,15 +977,11 @@ def compute_tree_free_divergences(
 
             return divergences, root_desc
 
-    # Case 4 (Default & Recommended for Tree-Free): Time-Decay Weighted Consensus
-    decay_seq, eff_gamma = generate_time_decay_consensus_sequence(
+    # Case 4 (Default & Recommended for Tree-Free): Continuous Time-Decay Soft Profile Root
+    divergences, eff_gamma = compute_time_decay_profile_divergences(
         seq_dict, dates_map, dated_taxa, gamma=decay_gamma, half_life=decay_half_life
     )
-    aug_dict = dict(seq_dict)
-    aug_dict['__TIME_DECAY_ROOT__'] = decay_seq
-    cross_mat = compute_tn93_cross_distance_matrix(aug_dict, dated_taxa, ['__TIME_DECAY_ROOT__'])
-    divergences = cross_mat[:, 0].astype(np.float64)
-    root_desc = f"time_decay_consensus_root (γ={eff_gamma:.4f})"
+    root_desc = f"time_decay_profile_root (γ={eff_gamma:.4f})"
     return divergences, root_desc
 
 
@@ -745,16 +1032,30 @@ def optimize_latent_convex_hull_root(
         eligible = np.ones(n_taxa, dtype=bool)
 
     # 1. Compute physical distances for isometric calibration
-    triu_i, triu_j = np.triu_indices(n_taxa, k=1)
-    d_latent_pairs = np.linalg.norm(taxon_repr[triu_i] - taxon_repr[triu_j], axis=1)
-
-    if pairwise_phys_dists is not None and len(triu_i) > 0:
-        phys_upper = pairwise_phys_dists[triu_i, triu_j]
-        denom = float(np.sum(d_latent_pairs ** 2))
-        alpha = float(np.sum(phys_upper * d_latent_pairs) / denom) if denom > 1e-12 else 1.0
+    if n_taxa > 2000:
+        # Safety chunking: Subsample representative pairs to avoid O(N^2 * D) host RAM explosion
+        rng_pairs = np.random.default_rng(42)
+        m_sample = min(50000, n_taxa * (n_taxa - 1) // 2)
+        idx_i = rng_pairs.integers(0, n_taxa - 1, size=m_sample)
+        idx_j = rng_pairs.integers(idx_i + 1, n_taxa, size=m_sample)
+        d_latent_sample = np.linalg.norm(taxon_repr[idx_i] - taxon_repr[idx_j], axis=1)
+        if pairwise_phys_dists is not None:
+            phys_sample = pairwise_phys_dists[idx_i, idx_j]
+            denom = float(np.sum(d_latent_sample ** 2))
+            alpha = float(np.sum(phys_sample * d_latent_sample) / denom) if denom > 1e-12 else 1.0
+        else:
+            mean_lat = float(np.mean(d_latent_sample)) if len(d_latent_sample) > 0 else 1.0
+            alpha = 0.05 / max(1e-6, mean_lat)
     else:
-        mean_lat = float(np.mean(d_latent_pairs)) if len(d_latent_pairs) > 0 else 1.0
-        alpha = 0.05 / max(1e-6, mean_lat)
+        d_latent_pairs = pdist(taxon_repr, metric='euclidean')
+        if pairwise_phys_dists is not None and n_taxa > 1:
+            triu_i, triu_j = np.triu_indices(n_taxa, k=1)
+            phys_upper = pairwise_phys_dists[triu_i, triu_j]
+            denom = float(np.sum(d_latent_pairs ** 2))
+            alpha = float(np.sum(phys_upper * d_latent_pairs) / denom) if denom > 1e-12 else 1.0
+        else:
+            mean_lat = float(np.mean(d_latent_pairs)) if len(d_latent_pairs) > 0 else 1.0
+            alpha = 0.05 / max(1e-6, mean_lat)
 
     # 2. Continuous convex hull optimization
     dev = device if device is not None else ("cuda" if torch.cuda.is_available() else ("mps" if hasattr(torch.backends, "mps") and torch.backends.mps.is_available() else "cpu"))
@@ -868,23 +1169,63 @@ def compute_fieller_mrca_interval(
     C = float(d0 ** 2 - (t_crit ** 2) * var_d0)
     disc = float(B ** 2 - 4.0 * A * C)
 
+    if abs(A) < 1e-12:
+        # Linear transition boundary (g == 1)
+        if abs(B) > 1e-12:
+            th = float(-C / B)
+            if B > 0:
+                # theta >= th -> t0 <= t_ref - th
+                t_high = min(float(min_time), float(t_ref - th)) if min_time is not None else float(t_ref - th)
+                return [float('-inf'), t_high], {'g': g, 'status': 'LINEAR', 'theta_roots': [th]}
+            else:
+                # theta <= th -> t0 >= t_ref - th
+                return [float(t_ref - th), float('inf')], {'g': g, 'status': 'LINEAR', 'theta_roots': [th]}
+        else:
+            t_high = float(min_time) if min_time is not None else float('inf')
+            return [float('-inf'), t_high], {'g': g, 'status': 'ALL_REALS', 'theta_roots': []}
+
     if A > 0 and disc >= 0:
+        # Case 1: Strong signal (g < 1). Parabola opens upward, bounded roots.
         th1 = float((-B - np.sqrt(disc)) / (2.0 * A))
         th2 = float((-B + np.sqrt(disc)) / (2.0 * A))
         t_low = float(t_ref - th2)
         t_high = float(t_ref - th1)
         if min_time is not None:
             t_high = min(float(min_time), t_high)
-        return [t_low, t_high], {'g': g, 'status': 'BOUNDED'}
+        return [t_low, t_high], {'g': g, 'status': 'BOUNDED', 'theta_roots': [th1, th2]}
+
+    elif A < 0 and disc > 0:
+        # Case 2: Weak signal (g > 1, disc > 0). Parabola opens downward.
+        # q(theta) <= 0 on the exterior of the roots: (-inf, theta_minus] U [theta_plus, inf).
+        # Since A < 0, 2A < 0:
+        #   theta_minus = (-B + sqrt(disc)) / (2A) is the smaller displacement root
+        #   theta_plus  = (-B - sqrt(disc)) / (2A) is the larger displacement root
+        th_minus = float((-B + np.sqrt(disc)) / (2.0 * A))
+        th_plus = float((-B - np.sqrt(disc)) / (2.0 * A))
+        t_recent = float(t_ref - th_plus)
+        t_future = float(t_ref - th_minus)
+        if min_time is not None:
+            t_recent = min(float(min_time), t_recent)
+        info = {
+            'g': g,
+            'status': 'COMPLEMENT',
+            'theta_roots': [th_minus, th_plus],
+            'complement_set': [[float('-inf'), t_recent], [t_future, float('inf')]],
+            'excluded_window': [t_recent, t_future],
+        }
+        # Returns the ancestral crown branch while fully recording the complement set in info
+        return [float('-inf'), t_recent], info
+
     else:
-        # Fieller's g >= 1 indicates rate is not statistically bounded away from 0
-        t_high = float(min_time) if min_time is not None else float(t_ref)
-        if disc >= 0 and abs(A) > 1e-12:
-            th1 = float((-B - np.sqrt(disc)) / (2.0 * A))
-            cand = float(t_ref - th1)
-            if min_time is not None:
-                t_high = min(float(min_time), cand)
-        return [float('-inf'), t_high], {'g': g, 'status': 'UNBOUNDED_ANTIQUITY'}
+        # Case 3: Absent signal (g > 1, disc <= 0). Parabola is <= 0 everywhere; set is all of R.
+        t_high = float(min_time) if min_time is not None else float('inf')
+        info = {
+            'g': g,
+            'status': 'ALL_REALS',
+            'theta_roots': [],
+            'complement_set': [[float('-inf'), float('inf')]],
+        }
+        return [float('-inf'), t_high], info
 
 
 def compute_poisson_mrca_interval(
@@ -1369,7 +1710,10 @@ def run_pgls_dating(
     Xt_Cinv_X = Z.T @ Z_scaled   # (2, 2) exact!
     Xt_Cinv_d = Z_scaled.T @ u   # (2,) exact!
 
-    beta_gls = la.solve(Xt_Cinv_X, Xt_Cinv_d)
+    try:
+        beta_gls = la.solve(Xt_Cinv_X, Xt_Cinv_d)
+    except la.LinAlgError:
+        beta_gls = la.pinv(Xt_Cinv_X) @ Xt_Cinv_d
 
     mu_gls = float(beta_gls[0])
     d0_gls = float(beta_gls[1])
@@ -1377,8 +1721,20 @@ def run_pgls_dating(
     residuals = dists - X @ beta_gls
     res_proj = u - Z @ beta_gls
     ss_res = float(np.sum((res_proj ** 2) * inv_w))
-    sigma2_gls = float(ss_res / max(1, n - 2))
-    cov_beta = sigma2_gls * la.inv(Xt_Cinv_X)
+
+    # Effective sample size and residual degrees of freedom under phylogenetic covariance
+    # Bartlett / Kish effective sample size: n^2 / (1^T C 1) where 1^T C 1 = sum(v_one^2 * w_c)
+    sum_C = float(np.sum((v_one ** 2) * w_c))
+    n_eff_bartlett = float((n ** 2) / max(1.0, sum_C))
+    one_Cinv_one = float(np.sum((v_one ** 2) * inv_w))
+    n_eff = float(min(float(n), max(2.0, n_eff_bartlett)))
+    df_eff = max(1, int(np.round(n_eff - 2.0)))
+
+    sigma2_gls = float(ss_res / max(1.0, float(df_eff)))
+    try:
+        cov_beta = sigma2_gls * la.inv(Xt_Cinv_X)
+    except la.LinAlgError:
+        cov_beta = sigma2_gls * la.pinv(Xt_Cinv_X)
 
     se_mu = float(np.sqrt(max(1e-15, cov_beta[0, 0])))
     se_d0 = float(np.sqrt(max(1e-15, cov_beta[1, 1])))
@@ -1406,14 +1762,14 @@ def run_pgls_dating(
             grad = np.array([d0_gls / (mu_gls ** 2), -1.0 / mu_gls])
             var_mrca = float(grad @ cov_beta @ grad)
             se_mrca = float(np.sqrt(max(0.0, var_mrca)))
-            t_crit = float(stats.t.ppf(0.975, df=max(1, n - 2)))
+            t_crit = float(stats.t.ppf(0.975, df=df_eff))
             ci_lower = float(t_mrca - t_crit * se_mrca)
             ci_upper = min(min_time, float(t_mrca + t_crit * se_mrca))
             ci_analytical = [ci_lower, ci_upper]
 
             # 2. Fieller's theorem (Exact non-linear ratio test inversion)
             ci_fieller, fieller_info = compute_fieller_mrca_interval(
-                mu_gls, d0_gls, cov_beta, t_ref, df=max(1, n - 2), min_time=min_time
+                mu_gls, d0_gls, cov_beta, t_ref, df=df_eff, min_time=min_time
             )
 
             # 3. Select active confidence interval
@@ -1472,7 +1828,9 @@ def run_pgls_dating(
         'residuals': residuals,
         'fitted': X @ beta_gls,
         'times': times,
-        'n': n
+        'n': n,
+        'n_eff': n_eff,
+        'df_eff': df_eff
     }
 
 
@@ -1492,6 +1850,11 @@ def estimate_reml_pagel_lambda(
     independent tip variance. Computed in O(N) using spectral projection.
     """
     n = len(times)
+    if n < 3:
+        return {
+            'best_lambda': 0.95,
+            'status': 'INSUFFICIENT_DATA'
+        }
     if n > 2000:
         # Stratified subsampling across temporal range to estimate scalar phylogenetic signal without OOM
         sub_idx = np.linspace(0, n - 1, 1500, dtype=int)
@@ -1683,12 +2046,13 @@ def run_powerlaw_clock_dating(
     p_f_test = float(stats.f.sf(f_stat, 1, max(1, df_nl)))
 
     aic_nl = float(n * np.log(max(1e-12, rss_nl / n)) + 2 * 3)
-    delta_aic = float(aic_lin - aic_nl)
+    delta_aic = float(aic_nl - aic_lin)  # Formal definition: negative indicates superior fit
+    aic_reduction = float(aic_lin - aic_nl)
 
     # Automatic selection decision:
-    # Requires p < 0.05, delta_AIC >= 2.0, and meaningful curvature deviation (|theta - 1.0| >= 0.03)
+    # Requires p < 0.05, aic_reduction >= 2.0 (delta_AIC <= -2.0), and meaningful curvature deviation (|theta - 1.0| >= 0.03)
     is_nonlinear_preferred = bool(
-        (p_f_test < 0.05) and (delta_aic >= 2.0) and (abs(th_nl - 1.0) >= 0.03)
+        (p_f_test < 0.05) and (aic_reduction >= 2.0 or delta_aic <= -2.0) and (abs(th_nl - 1.0) >= 0.03)
     )
 
     # Instantaneous Rates
@@ -1763,6 +2127,7 @@ def run_powerlaw_clock_dating(
         'rss_linear': rss_lin,
         'aic_linear': aic_lin,
         'delta_aic': delta_aic,
+        'aic_reduction': aic_reduction,
         'f_stat': f_stat,
         'p_f_test': p_f_test,
         'is_nonlinear_preferred': is_nonlinear_preferred,
@@ -1849,8 +2214,12 @@ def run_restricted_spline_clock_dating(
         w_raw, v = la.eigh(cov_matrix)
         w_c = np.maximum(w_raw, 0.0) + ridge
         C_inv = v @ np.diag(1.0 / w_c) @ v.T
+        C_half = v @ np.diag(np.sqrt(w_c)) @ v.T
+        C_inv_half = v @ np.diag(1.0 / np.sqrt(w_c)) @ v.T
     else:
         C_inv = np.eye(n)
+        C_half = np.eye(n)
+        C_inv_half = np.eye(n)
 
     # 1. Fit Linear Null Model: d(t) = beta_0 + beta_1 * t
     X_lin = np.column_stack([np.ones(n), times])
@@ -1869,7 +2238,8 @@ def run_restricted_spline_clock_dating(
     res_sp = dists - pred_sp
     rss_sp = float(res_sp.T @ C_inv @ res_sp)
     aic_sp = float(n * np.log(max(1e-12, rss_sp / n)) + 2 * 3)
-    delta_aic = float(aic_lin - aic_sp)
+    delta_aic = float(aic_sp - aic_lin)  # Formal definition: negative indicates superior fit
+    aic_reduction = float(aic_lin - aic_sp)
 
     # 3. Model Comparison Metrics (Nested F-test & AIC)
     df_sp = n - 3
@@ -1891,33 +2261,39 @@ def run_restricted_spline_clock_dating(
     rate_ratio = float(mu_recent / mu_ancestral) if mu_ancestral > 1e-9 else 1.0
 
     # Automatic selection rule:
-    # Requires statistical significance (p < 0.05), positive model evidence (delta_AIC >= 2.0),
+    # Requires statistical significance (p < 0.05), positive model evidence (aic_reduction >= 2.0 / delta_AIC <= -2.0),
     # positive ancestral rate, and biologically meaningful rate variation (|rate_ratio - 1.0| >= 0.15).
     is_nonlinear_preferred = bool(
-        p_f_test < 0.05 and delta_aic >= 2.0 and mu_ancestral > 0 and abs(rate_ratio - 1.0) >= 0.15
+        p_f_test < 0.05 and (aic_reduction >= 2.0 or delta_aic <= -2.0) and mu_ancestral > 0 and abs(rate_ratio - 1.0) >= 0.15
     )
 
-    # Bootstrap 95% Confidence Intervals
+    # Bootstrap 95% Confidence Intervals (Wild Rademacher Residual Bootstrap)
     boot_t0 = []
     boot_mu_anc = []
     boot_mu_rec = []
     boot_beta2 = []
     if n_boot > 0:
         rng = np.random.default_rng(seed)
+        raw_res = dists - pred_sp
+        decorr_res = C_inv_half @ raw_res
+        Xt_Cinv_X_sp = Xt_Cinv_sp @ X_sp
+        dB_end = float(dB[-1, 0]) if len(dB) > 0 else 0.0
+
         for _ in range(n_boot):
-            b_idx = rng.choice(n, size=n, replace=True)
-            b_t = times[b_idx]
-            b_d = dists[b_idx]
-            if len(np.unique(b_t)) < 4:
-                continue
-            b_B, b_dB = compute_rcs_basis(b_t, knots)
-            b_X = np.column_stack([np.ones(n), b_t, b_B])
+            signs = rng.choice([-1.0, 1.0], size=n)
+            star_decorr = decorr_res * signs
+            star_res = C_half @ star_decorr
+            d_star = pred_sp + star_res
             try:
-                b_beta = la.lstsq(b_X, b_d, rcond=None)[0]
+                b_beta = la.solve(Xt_Cinv_X_sp, Xt_Cinv_sp @ d_star)
                 if b_beta[1] > 1e-9:
-                    boot_t0.append(float(-b_beta[0] / b_beta[1]))
+                    cand_t0 = float(-b_beta[0] / b_beta[1])
+                    if cand_t0 <= t_min:
+                        boot_t0.append(cand_t0)
+                    else:
+                        boot_t0.append(t_min)
                     boot_mu_anc.append(float(b_beta[1]))
-                    b_rec = float(b_beta[1] + b_beta[2] * (b_dB[-1, 0] if len(b_dB) > 0 else 0.0))
+                    b_rec = float(b_beta[1] + b_beta[2] * dB_end)
                     boot_mu_rec.append(b_rec)
                     boot_beta2.append(float(b_beta[2]))
             except Exception:
@@ -1961,6 +2337,7 @@ def run_restricted_spline_clock_dating(
         'rss_linear': rss_lin,
         'aic_linear': aic_lin,
         'delta_aic': delta_aic,
+        'aic_reduction': aic_reduction,
         'f_stat': f_stat,
         'p_f_test': p_f_test,
         'is_nonlinear_preferred': is_nonlinear_preferred,
@@ -2520,24 +2897,20 @@ def run_mrca_dating(
     run_neural = method in ["all", "pgls"]
     mode = str(distance_mode).lower().strip()
 
-    if mode == "auto":
-        if has_tree:
-            effective_dist_mode = "tree"
-        elif run_neural:
-            effective_dist_mode = "latent"
-        else:
-            effective_dist_mode = "tn93"
+    if use_tn93 or mode in ["tn93", "consensus"]:
+        effective_dist_mode = "tn93"
     elif mode in ["latent", "continuous", "hull", "manifold"]:
         effective_dist_mode = "latent"
     elif mode in ["tree", "patristic"]:
         effective_dist_mode = "tree"
-    elif mode in ["tn93", "consensus"]:
-        effective_dist_mode = "tn93"
+    elif mode == "auto":
+        effective_dist_mode = "tree" if has_tree else "tn93"
     else:
-        effective_dist_mode = "tree" if has_tree else "latent"
+        effective_dist_mode = "tree" if has_tree else "tn93"
 
     latent_root_res = None
     cov_matrix = None
+    metricity_diag = None
     msa_codons = None
     msa_aas = None
     tree_cache = None
@@ -2588,16 +2961,20 @@ def run_mrca_dating(
         if n_masked > 0:
             print(f"[*] Latent Convex Hull: Masked {n_masked} partial/degraded sequence(s) (<50% coverage) from root anchor set.")
 
-        # Compute exact pairwise nucleotide Hamming distance for isometric calibration
-        N_t = len(taxa)
-        pairwise_phys = np.zeros((N_t, N_t), dtype=np.float64)
-        for i in range(N_t):
-            for j in range(i + 1, N_t):
-                v = np.isin(char_mat[i], list('ACGT')) & np.isin(char_mat[j], list('ACGT'))
-                diffs = np.sum((char_mat[i] != char_mat[j]) & v)
-                tot = np.sum(v)
-                pairwise_phys[i, j] = diffs / max(1, tot)
-                pairwise_phys[j, i] = pairwise_phys[i, j]
+        # Compute exact pairwise nucleotide Hamming/TN93 distance for isometric calibration
+        if d is not None:
+            d_phys_all = d.squeeze(0).cpu().numpy()
+            pairwise_phys = d_phys_all[np.ix_(sub_indices, sub_indices)]
+        else:
+            N_t = len(taxa)
+            pairwise_phys = np.zeros((N_t, N_t), dtype=np.float64)
+            for i in range(N_t):
+                for j in range(i + 1, N_t):
+                    v = np.isin(char_mat[i], list('ACGT')) & np.isin(char_mat[j], list('ACGT'))
+                    diffs = np.sum((char_mat[i] != char_mat[j]) & v)
+                    tot = np.sum(v)
+                    pairwise_phys[i, j] = diffs / max(1, tot)
+                    pairwise_phys[j, i] = pairwise_phys[i, j]
 
         latent_root_res = optimize_latent_convex_hull_root(
             z_sub, times, taxa_names=taxa, pairwise_phys_dists=pairwise_phys, anchor_mask=anchor_mask, device=device
@@ -2633,7 +3010,7 @@ def run_mrca_dating(
                         print(f"[*] Loading HyphAeon transformer backbone on {device}...")
                         model = load_model(weights=weights, variant=variant, device=device)
 
-                    c_lat, a_lat, _, _, _, aln_taxa_lat, _, tree_cache_lat = prepare_alignment(
+                    c_lat, a_lat, d_lat, _, _, aln_taxa_lat, _, tree_cache_lat = prepare_alignment(
                         str(align_p), str(tree_path) if has_tree else None,
                         model=model, device=device, max_species=max_species,
                         prune_duplicates=False, use_tn93=False
@@ -2654,15 +3031,19 @@ def run_mrca_dating(
                     coverage_l = valid_counts_l / max(1, char_mat_l.shape[1])
                     anchor_mask_l = (coverage_l >= 0.50)
 
-                    N_l = len(taxa_l)
-                    pairwise_phys_l = np.zeros((N_l, N_l), dtype=np.float64)
-                    for i in range(N_l):
-                        for j in range(i + 1, N_l):
-                            v = np.isin(char_mat_l[i], list('ACGT')) & np.isin(char_mat_l[j], list('ACGT'))
-                            diffs = np.sum((char_mat_l[i] != char_mat_l[j]) & v)
-                            tot = np.sum(v)
-                            pairwise_phys_l[i, j] = diffs / max(1, tot)
-                            pairwise_phys_l[j, i] = pairwise_phys_l[i, j]
+                    if d_lat is not None:
+                        d_phys_l_all = d_lat.squeeze(0).cpu().numpy()
+                        pairwise_phys_l = d_phys_l_all[np.ix_(sub_indices_l, sub_indices_l)]
+                    else:
+                        N_l = len(taxa_l)
+                        pairwise_phys_l = np.zeros((N_l, N_l), dtype=np.float64)
+                        for i in range(N_l):
+                            for j in range(i + 1, N_l):
+                                v = np.isin(char_mat_l[i], list('ACGT')) & np.isin(char_mat_l[j], list('ACGT'))
+                                diffs = np.sum((char_mat_l[i] != char_mat_l[j]) & v)
+                                tot = np.sum(v)
+                                pairwise_phys_l[i, j] = diffs / max(1, tot)
+                                pairwise_phys_l[j, i] = pairwise_phys_l[i, j]
 
                     cand_lat_res = optimize_latent_convex_hull_root(
                         z_sub_l, times_l, taxa_names=taxa_l, pairwise_phys_dists=pairwise_phys_l,
@@ -2710,6 +3091,7 @@ def run_mrca_dating(
         print(f"[*] Clock Calibration Discipline: Reserved {n_holdouts} partial/holdout sequence(s) (<50% coverage) as out-of-sample test taxa: {holdout_names}")
         train_idx = np.where(is_train)[0]
     else:
+        is_train = np.ones(len(taxa), dtype=bool)
         train_idx = np.arange(len(taxa))
 
     eff_seq_len = seq_len if seq_len is not None else (n_codons * 3 if 'n_codons' in locals() else 1000)
@@ -2733,10 +3115,7 @@ def run_mrca_dating(
     opt_lambda = 0.95
 
     if run_neural:
-        if cov_matrix is None and len(taxa) > 1500 and not has_tree:
-            print(f"[*] Large cohort (N={len(taxa)}): Skipping full transformer cross-attention to prevent memory exhaustion; using high-speed OLS and spline dating.")
-            run_neural = False
-        elif cov_matrix is None:
+        if cov_matrix is None:
             if device is None:
                 device = get_device()
             if model is None:
@@ -2765,6 +3144,21 @@ def run_mrca_dating(
             K_neural = compute_neural_covariance_kernel(cross_attn, taxa_repr)
             print(f"[✓] Forward pass complete in {time.time() - t_fwd:.2f}s! Extracted {taxa_repr.shape[0]} taxa neural representations.")
 
+            # Zero-cost foundation model metricity diagnostics
+            D_phys_mat = d.squeeze(0).cpu().numpy()
+            cov_for_diag = coverage if 'coverage' in locals() else None
+            metricity_diag = compute_transformer_metricity_diagnostics(
+                d_matrix=D_phys_mat,
+                taxa_repr=taxa_repr,
+                cross_attn=cross_attn,
+                coverage=cov_for_diag
+            )
+            print(f"[*] Transformer Metricity Diagnostic: {metricity_diag['regime_label']}")
+            print(f"    d_bar = {metricity_diag['d_mean']:.4f}, d_90 = {metricity_diag['d_90']:.4f} subs/site | Spectral distortion rho = {metricity_diag['rho_neg']:.4f}")
+            if metricity_diag['rho_iso_spearman'] is not None:
+                print(f"    Isometric concordance: Spearman rho = {metricity_diag['rho_iso_spearman']:.4f}, Pearson r = {metricity_diag['rho_iso_pearson']:.4f}")
+            print(f"    Decision: {metricity_diag['rationale']}")
+
             # Align taxa order with dated taxa
             aln_taxa_map = {t: i for i, t in enumerate(aln_taxa)}
             sub_indices = [aln_taxa_map[t] for t in taxa if t in aln_taxa_map]
@@ -2774,6 +3168,27 @@ def run_mrca_dating(
 
             cov_matrix = K_neural[sub_indices, :][:, sub_indices]
             z_sub = taxa_repr[sub_indices]
+
+            # Autonomous promotion from TN93 to Latent Space when mutational saturation is detected
+            if mode == "auto" and metricity_diag['recommended_regime'] == 'latent' and not has_tree:
+                try:
+                    anchor_mask_l = (coverage[sub_indices] >= 0.50) if 'coverage' in locals() and coverage is not None else None
+                    cand_lat_res = optimize_latent_convex_hull_root(
+                        z_sub, sub_times, taxa_names=sub_taxa,
+                        pairwise_phys_dists=D_phys_mat[np.ix_(sub_indices, sub_indices)],
+                        anchor_mask=anchor_mask_l, device=device
+                    )
+                    lat_r2 = cand_lat_res.get('temporal_r2', 0.0)
+                    lat_r = cand_lat_res.get('temporal_r', 0.0)
+                    if lat_r > 0 and (lat_r2 > ols_res['r2'] - 0.05):
+                        print(f"[✓] Auto-Promoted Continuous Latent Distance Mode: {metricity_diag['rationale']}. Temporal signal in Latent Space: R^2={lat_r2:.3f} (R={lat_r:+.3f}).")
+                        sub_dists = cand_lat_res['dists']
+                        dists = sub_dists
+                        latent_root_res = cand_lat_res
+                        effective_dist_mode = "latent"
+                        root_desc = f"latent_convex_hull (promoted over tn93: {metricity_diag['regime_label']})"
+                except Exception as e_lat:
+                    print(f"[*] Latent auto-promotion notice: {e_lat}")
         else:
             sub_taxa = taxa
             sub_times = times
@@ -2781,6 +3196,8 @@ def run_mrca_dating(
             sub_indices = list(range(len(taxa)))
 
         train_sub = [i for i in range(len(sub_taxa)) if is_train[i]]
+        if len(train_sub) < 3:
+            train_sub = list(range(len(sub_taxa)))
         cov_train = cov_matrix[train_sub, :][:, train_sub]
         train_times = sub_times[train_sub]
         train_dists = sub_dists[train_sub]
@@ -2818,11 +3235,19 @@ def run_mrca_dating(
                     c_attn, t_repr = extract_cross_taxa_attentions_and_embeddings(
                         model, c_b, a_b, tree_cache, device=device
                     )
+                    del c_b, a_b
                     K_b = compute_neural_covariance_kernel(c_attn, t_repr)
+                    del c_attn, t_repr
                     cov_b = K_b[sub_indices, :][:, sub_indices]
+                    del K_b
                     res_b = run_pgls_dating(sub_times, sub_dists, cov_b, ridge=effective_ridge, pagel_lambda=opt_lambda, ci_method="delta")
+                    del cov_b
                     if not np.isnan(res_b['t_mrca']) and res_b['mu'] > 0:
                         site_t0s.append(res_b['t_mrca'])
+                    if "mps" in str(device).lower():
+                        torch.mps.empty_cache()
+                    elif "cuda" in str(device).lower():
+                        torch.cuda.empty_cache()
                 if len(site_t0s) >= 10:
                     pgls_res['ci_mrca'] = [float(np.percentile(site_t0s, 2.5)), float(np.percentile(site_t0s, 97.5))]
                     pgls_res['ci_method'] = 'site-boot'
@@ -2855,7 +3280,7 @@ def run_mrca_dating(
                 t0_str = "n/a (ancestral rate <= 0)"
             else:
                 t0_str = f"{spline_res['t_mrca']:.2f} [{spline_res['ci_mrca'][0]:.1f}, {spline_res['ci_mrca'][1]:.1f}]"
-            print(f"[✓] Restricted Spline Clock: t_MRCA = {t0_str}, μ_anc = {spline_res['rate_ancestral']:.6f}, μ_rec = {spline_res['rate_recent']:.6f} ({ratio_sym} {spline_res['rate_ratio']:.2f}x) (R^2 = {spline_res['r2']:.3f}, ΔAIC = {spline_res['delta_aic']:+.2f}, p = {spline_res['p_f_test']:.4f})")
+            print(f"[✓] Restricted Spline Clock: t_MRCA = {t0_str}, μ_anc = {spline_res['rate_ancestral']:.6f}, μ_rec = {spline_res['rate_recent']:.6f} ({ratio_sym} {spline_res['rate_ratio']:.2f}x) (R^2 = {spline_res['r2']:.3f}, ΔAIC = {spline_res['delta_aic']:+.2f}, AIC drop = {spline_res.get('aic_reduction', -spline_res['delta_aic']):.2f}, p = {spline_res['p_f_test']:.4f})")
         except Exception as e:
             print(f"[!] Notice: Restricted spline fitting fell back to linear ({e})")
 
@@ -2868,7 +3293,7 @@ def run_mrca_dating(
                 fit_times, fit_dists, cov_matrix=power_cov, ridge=0.01, n_boot=min(500, n_bootstrap)
             )
             ci_th_str = f"[{power_res['ci_theta'][0]:.3f}, {power_res['ci_theta'][1]:.3f}]" if (power_res['ci_theta'] and not np.isnan(power_res['ci_theta'][0])) else "[n/a]"
-            print(f"[✓] Power-Law Clock: t_MRCA = {power_res['t_mrca']:.2f} [{power_res['ci_mrca'][0]:.1f}, {power_res['ci_mrca'][1]:.1f}], θ = {power_res['theta']:.3f} {ci_th_str}, mean rate = {power_res['rate_mean']:.6f} subs/site/yr (R^2 = {power_res['r2']:.3f}, ΔAIC = {power_res['delta_aic']:+.2f}, p = {power_res['p_f_test']:.4f})")
+            print(f"[✓] Power-Law Clock: t_MRCA = {power_res['t_mrca']:.2f} [{power_res['ci_mrca'][0]:.1f}, {power_res['ci_mrca'][1]:.1f}], θ = {power_res['theta']:.3f} {ci_th_str}, mean rate = {power_res['rate_mean']:.6f} subs/site/yr (R^2 = {power_res['r2']:.3f}, ΔAIC = {power_res['delta_aic']:+.2f}, AIC drop = {power_res.get('aic_reduction', -power_res['delta_aic']):.2f}, p = {power_res['p_f_test']:.4f})")
         except Exception as e:
             print(f"[!] Notice: Power-law clock fitting fell back to linear ({e})")
 
@@ -3125,6 +3550,7 @@ def run_mrca_dating(
         'tree': str(tree_path) if has_tree else None,
         'root_description': root_desc,
         'distance_mode': effective_dist_mode,
+        'metricity_diagnostics': metricity_diag,
         'latent_root': latent_root_res,
         'taxa_count': len(taxa),
         'timespan': [float(np.min(times)), float(np.max(times))],
@@ -3158,6 +3584,7 @@ def run_mrca_dating(
             'tree': results['tree'],
             'root_description': results['root_description'],
             'distance_mode': effective_dist_mode,
+            'metricity_diagnostics': metricity_diag,
             'latent_root': {
                 'alpha': float(latent_root_res['alpha']),
                 'temporal_r': float(latent_root_res['temporal_r']),

@@ -29,6 +29,10 @@ from .autoclock import (
     run_autoclock_deconvolution,
     HierarchicalAutoClock,
     run_hierarchical_autoclock,
+    fit_clock,
+    recursive_spectral_autoclock,
+    classify_community,
+    classify_leaf_community,
 )
 from .triage import ChronAeonSieve
 from .sketch import (
@@ -53,6 +57,8 @@ __all__ = [
     "plot_r0_diagnostics", "PATHOGEN_PRESETS",
     "AutoClockDeconvolution", "run_autoclock_deconvolution",
     "HierarchicalAutoClock", "run_hierarchical_autoclock",
+    "fit_clock", "recursive_spectral_autoclock",
+    "classify_community", "classify_leaf_community",
     "ChronAeonSieve",
     "CanonicalMinHashSketcher", "AlignmentFreeBinner", "AlignmentFreeCentrifuge",
     "ReferenceCodonAligner", "ReferenceGuidedCodonThreader",

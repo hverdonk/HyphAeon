@@ -135,11 +135,53 @@ def cmd_dating(args):
         sp = res['spline']
         p_str = f"p={sp['p_f_test']:.4f}" if sp['p_f_test'] >= 0.0001 else "p<0.0001"
         ratio_sym = "acceleration" if sp['rate_ratio'] > 1.0 else "deceleration"
-        print(f"    Restricted Spline (2 DF): μ_anc = {sp['rate_ancestral']:.6f}, μ_rec = {sp['rate_recent']:.6f} ({ratio_sym} {sp['rate_ratio']:.2f}x) | F = {sp['f_stat']:.3f} ({p_str}) | ΔAIC = {sp['delta_aic']:+.2f}")
+        sp_drop = sp.get('aic_reduction', -sp['delta_aic'])
+        print(f"    Restricted Spline (2 DF): μ_anc = {sp['rate_ancestral']:.6f}, μ_rec = {sp['rate_recent']:.6f} ({ratio_sym} {sp['rate_ratio']:.2f}x) | F = {sp['f_stat']:.3f} ({p_str}) | ΔAIC = {sp['delta_aic']:+.2f} (AIC drop: {sp_drop:.2f})")
     if res.get('power'):
         pwr = res['power']
         p_str = f"p={pwr['p_f_test']:.4f}" if pwr['p_f_test'] >= 0.0001 else "p<0.0001"
-        print(f"    Power-Law Curvature: θ = {pwr['theta']:.3f} [{pwr['ci_theta'][0]:.3f}, {pwr['ci_theta'][1]:.3f}] | F = {pwr['f_stat']:.3f} ({p_str}) | ΔAIC = {pwr['delta_aic']:+.2f}")
+        pwr_drop = pwr.get('aic_reduction', -pwr['delta_aic'])
+        print(f"    Power-Law Curvature: θ = {pwr['theta']:.3f} [{pwr['ci_theta'][0]:.3f}, {pwr['ci_theta'][1]:.3f}] | F = {pwr['f_stat']:.3f} ({p_str}) | ΔAIC = {pwr['delta_aic']:+.2f} (AIC drop: {pwr_drop:.2f})")
+
+    if getattr(args, "nonlinear_clocks", False) or getattr(args, "dudas_models", False):
+        from .dudas import evaluate_dudas_clock_models, print_dudas_models_table
+        d_times = res.get('times')
+        d_dists = res.get('dists')
+        if d_times is not None and d_dists is not None:
+            rss_o = res.get('ols', {}).get('rss') if isinstance(res.get('ols'), dict) else None
+            aic_o = res.get('ols', {}).get('aic') if isinstance(res.get('ols'), dict) else None
+            n_eff_cand = None
+            if res.get('pgls') and 'n_eff' in res['pgls']:
+                n_eff_cand = res['pgls']['n_eff']
+            elif 'n_eff' in res:
+                n_eff_cand = res['n_eff']
+
+            nonlinear_res = evaluate_dudas_clock_models(
+                times=d_times,
+                dists=d_dists,
+                rss_ols=rss_o,
+                aic_ols=aic_o,
+                n_eff=n_eff_cand
+            )
+            res['nonlinear_clocks'] = nonlinear_res
+            res['dudas_models'] = nonlinear_res
+            print_dudas_models_table(nonlinear_res)
+
+            output_prefix = getattr(args, "output", None)
+            if output_prefix:
+                out_p = Path(output_prefix)
+                json_file = out_p.with_suffix('.json') if not str(out_p).endswith('.json') else out_p
+                if json_file.exists():
+                    try:
+                        import json
+                        with open(json_file, 'r') as jf:
+                            jdata = json.load(jf)
+                        jdata['nonlinear_clocks'] = nonlinear_res
+                        jdata['dudas_models'] = nonlinear_res
+                        with open(json_file, 'w') as jf:
+                            json.dump(jdata, jf, indent=2)
+                    except Exception:
+                        pass
 
     if res.get('loocv'):
         lv = res['loocv']
@@ -162,20 +204,32 @@ def cmd_dating(args):
         if not np.isnan(lv.get('jackknife_mean', np.nan)):
             act_t0 = res.get('t_mrca')
             act_t0_str = f"{act_t0:.2f}" if (act_t0 is not None and not np.isnan(act_t0)) else "n/a"
-            print(f"  • Full-Sample Estimated t_MRCA:       {act_t0_str}")
-            print(f"  • Jackknife Mean t_MRCA:              {lv['jackknife_mean']:.2f}")
-            print(f"  • Jackknife SE(t_MRCA):               {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
-            ci_j = lv['jackknife_ci']
-            print(f"  • Jackknife 95% CI:                   [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
+            act_model_name = str(res.get('active_model', 'active')).lower()
+            ols_t0 = res.get('ols', {}).get('t_mrca', np.nan) if isinstance(res.get('ols'), dict) else np.nan
+
+            if act_model_name in ['spline', 'restricted spline', 'power', 'power-law']:
+                print(f"  • Selected Clock Model ({res.get('active_model', 'Spline').capitalize()}):  {act_t0_str}")
+                if not np.isnan(ols_t0):
+                    print(f"  • Linear {lv['method']} Full-Sample t_MRCA:        {ols_t0:.2f}")
+                print(f"  • Linear {lv['method']} Jackknife Mean t_MRCA:   {lv['jackknife_mean']:.2f}")
+                print(f"  • Linear {lv['method']} Jackknife SE(t_MRCA):     {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
+                ci_j = lv['jackknife_ci']
+                print(f"  • Linear {lv['method']} Jackknife 95% CI:         [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
+            else:
+                print(f"  • Full-Sample Estimated t_MRCA ({lv['method']}):      {act_t0_str}")
+                print(f"  • Jackknife Mean t_MRCA ({lv['method']}):             {lv['jackknife_mean']:.2f}")
+                print(f"  • Jackknife SE(t_MRCA):                    {lv['jackknife_se_years']:.4f} yr ({lv['jackknife_se_days']:.1f} days)")
+                ci_j = lv['jackknife_ci']
+                print(f"  • Jackknife 95% CI:                        [{ci_j[0]:.2f}, {ci_j[1]:.2f}] (Width: {lv['jackknife_ci_width_years']:.3f} yr / {lv['jackknife_ci_width_days']:.1f} days)")
 
             if 'fieller_ci_width_years' in lv and not np.isnan(lv['fieller_ci_width_years']):
                 ratio_val = lv.get('fieller_to_jackknife_ratio', np.nan)
                 ratio_str = f"{ratio_val:.2f}x" if not np.isnan(ratio_val) else "n/a"
                 act_ci = res.get('ci_mrca')
                 act_ci_str = f"[{act_ci[0]:.2f}, {act_ci[1]:.2f}]" if act_ci else "n/a"
-                print(f"  • Fieller Analytical 95% CI:          {act_ci_str} (Width: {lv['fieller_ci_width_years']:.3f} yr / {lv['fieller_ci_width_days']:.1f} days)")
-                print(f"  • Fieller-to-Jackknife Width Ratio:   {ratio_str} (Non-parametric empirical calibration)")
-            print(f"  • Total Jackknife Root Spread:        {lv['jackknife_spread_days']:.1f} days across leave-one-out iterations")
+                print(f"  • Fieller Analytical 95% CI:               {act_ci_str} (Width: {lv['fieller_ci_width_years']:.3f} yr / {lv['fieller_ci_width_days']:.1f} days)")
+                print(f"  • Fieller-to-Jackknife Width Ratio:        {ratio_str} (Non-parametric empirical calibration)")
+            print(f"  • Total Jackknife Root Spread:             {lv['jackknife_spread_days']:.1f} days across leave-one-out iterations")
         else:
             print("  • Notice: Jackknife root estimates non-computable (rate <= 0).")
 
@@ -532,7 +586,7 @@ def cmd_autoclock(args):
             n_landmarks=getattr(args, "n_landmarks", "auto"),
             max_memory_mb=getattr(args, "max_memory_mb", 1024.0),
             rooting_mode=getattr(args, "rooting_mode", "convex_decay"),
-            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", True),
+            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", False),
             dyad_max_days=getattr(args, "dyad_max_days", 90.0),
             dyad_max_dist=getattr(args, "dyad_max_dist", 0.010),
         )
@@ -555,7 +609,7 @@ def cmd_autoclock(args):
             n_landmarks=getattr(args, "n_landmarks", "auto"),
             max_memory_mb=getattr(args, "max_memory_mb", 1024.0),
             rooting_mode=getattr(args, "rooting_mode", "convex_decay"),
-            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", True),
+            contemporaneous_dyads=getattr(args, "contemporaneous_dyads", False),
             dyad_max_days=getattr(args, "dyad_max_days", 90.0),
             dyad_max_dist=getattr(args, "dyad_max_dist", 0.010),
         )
@@ -565,7 +619,7 @@ def cmd_autoclock(args):
         plot_path=getattr(args, "plot_path", None)
     )
 
-    if results.get("n_contemporaneous_clusters", 0) > 0:
+    if getattr(args, "contemporaneous_dyads", False) and results.get("n_contemporaneous_clusters", 0) > 0:
         print(f"\n[★] Contemporaneous Direct Transmission Screening:")
         print(f"    Discovered {results['n_contemporaneous_clusters']} point-source transmission clusters ({results.get('n_contemporaneous_taxa', 0)} taxa) sampled <= {getattr(args, 'dyad_max_days', 90.0):.0f} days apart.")
         if "transmission_mode_counts" in results:
@@ -691,7 +745,7 @@ def main():
     date_parser.add_argument("-t", "--tree", default=None, help="Optional Newick/NEXUS phylogenetic tree (optional if embedded, or if --no-tree/--use-tn93 is set)")
     date_parser.add_argument("--no-tree", action="store_true", help="Skip phylogenetic tree and estimate pairwise evolutionary distances directly from alignment using TN93")
     date_parser.add_argument("--use-tn93", action="store_true", help="Estimate pairwise distances directly from alignment using TN93 (skips tree)")
-    date_parser.add_argument("--distance-mode", choices=["auto", "tree", "latent", "tn93"], default="auto", help="Root-to-tip distance calculation mode: 'auto' (tree if provided, else latent convex hull if neural model available, else tn93), 'tree' (patristic tree distances), 'latent' (continuous convex hull root optimization in sequence representation space), or 'tn93' (empirical TN93 consensus distances)")
+    date_parser.add_argument("--distance-mode", choices=["auto", "tree", "latent", "tn93"], default="auto", help="Root-to-tip distance calculation mode: 'auto' (patristic tree distances if tree provided, else tree-free TN93 time-decay consensus distances; matches 55 published benchmarks), 'tree' (patristic tree distances), 'latent' (continuous convex hull root optimization in sequence representation space), or 'tn93' (empirical TN93 consensus distances)")
     date_parser.add_argument("-d", "--dates", default=None, help="Path to Nextstrain Auspice JSON, metadata CSV/TSV, or omitted to auto-extract timestamps from FASTA headers")
     date_parser.add_argument("--date-col", default=None, help="Column name for sample collection date in metadata CSV/TSV")
     date_parser.add_argument("--strain-col", default=None, help="Column name for taxon / strain identifier in metadata CSV/TSV")
@@ -701,6 +755,15 @@ def main():
     date_parser.add_argument("--no-optimize-root", action="store_true", help="Disable heuristic root search when a tree is provided")
     date_parser.add_argument("--method", choices=["all", "ols", "pgls"], default="all", help="Dating estimator(s) to run: 'all', 'pgls', or 'ols' (default: all)")
     date_parser.add_argument("--clock-model", choices=["auto", "linear", "spline", "power"], default="auto", help="Clock curvature model: 'auto' (F-test/AIC adjudication against restricted spline), 'linear', 'spline' (2-DF restricted natural cubic spline), or 'power' (power-law)")
+    date_parser.add_argument(
+        "--nonlinear-clocks",
+        "--non-linear-clocks",
+        "--dudas-models",
+        "--dudas",
+        dest="nonlinear_clocks",
+        action="store_true",
+        help="Fit and report non-linear and time-varying clock models (quadratic, exponential decay, bilinear crash, polyepoch; date mode only, non-default)",
+    )
     date_parser.add_argument("--ridge", default="auto", help="Regularization parameter for PGLS neural covariance: 'auto' (exact REML profile likelihood estimation of Pagel's lambda) or float (default: auto)")
     date_parser.add_argument("--tune-ridge", action="store_true", help="(Compatibility flag) Automated REML regularization is active by default")
     date_parser.add_argument("--bootstrap", type=int, default=1000, help="Number of bootstrap resamples for empirical confidence intervals (default: 1000)")
@@ -816,7 +879,7 @@ def main():
     autoclock_parser.add_argument("--n-landmarks", default="auto", help="Number of landmark sequences for Nyström low-rank approximation ('auto' or integer, default: auto)")
     autoclock_parser.add_argument("--max-memory-mb", type=float, default=1024.0, help="Maximum RAM budget (MB) for adaptive landmark matrix allocation (default: 1024.0)")
     autoclock_parser.add_argument("--rooting-mode", choices=["convex_decay", "consensus", "earliest"], default="convex_decay", help="Rooting mode for tree-free root-to-tip divergence anchoring: 'convex_decay' (time-decay weighted consensus across cohort, default), 'consensus' (unweighted modal consensus), or 'earliest' (earliest sampled sequence)")
-    autoclock_parser.add_argument("--contemporaneous-dyads", dest="contemporaneous_dyads", action="store_true", default=True, help="Enable screening for contemporaneous direct transmission dyads and point-source clusters (default: enabled)")
+    autoclock_parser.add_argument("--contemporaneous-dyads", dest="contemporaneous_dyads", action="store_true", default=False, help="Enable screening for contemporaneous direct transmission dyads and point-source clusters (default: disabled)")
     autoclock_parser.add_argument("--no-contemporaneous-dyads", dest="contemporaneous_dyads", action="store_false", help="Disable contemporaneous transmission dyad screening")
     autoclock_parser.add_argument("--dyad-max-days", type=float, default=90.0, help="Maximum sampling interval in days for contemporaneous transmission dyads (default: 90.0 days)")
     autoclock_parser.add_argument("--dyad-max-dist", type=float, default=0.010, help="Maximum Tamura-Nei 93 distance for contemporaneous transmission dyads (default: 0.010 subs/site)")
