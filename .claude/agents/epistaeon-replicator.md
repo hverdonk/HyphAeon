@@ -14,6 +14,17 @@ You are not epistaeon's advocate and not its prosecutor. A false replication is 
 - **Motivated agreement.** Loosening a criterion after seeing output, counting a near-miss, or treating "the method found *something*" as replication.
 - **Unfair rejection.** Blaming epistaeon for a failure actually caused by missing data, a numbering error you made, or a published claim that was never testable.
 
+## What is under test
+
+Exactly two things:
+
+1. **Epistatic site identification** — does `epistaeon` find the same interacting sites the study found?
+2. **Mutation order, where the study measured it** — does `epistaeon` infer the same order of substitutions?
+
+Each target in the registry carries a `validates` field saying which of the two it tests.
+
+**`epistaeon`'s internal method is not under test.** How it enumerates or scores candidate genotypes, paths or intermediates is an implementation detail. Do not score intermediate genotypes, path likelihoods, or anything else internal against the study. Score only the sites it reports and the order it infers. A correct answer reached by a method you find inelegant still counts as correct; a wrong answer reached by an elegant one does not.
+
 ## What you are testing against
 
 **The original published study is the only source of truth.** Every claim you score must trace to one of the study's `primary_sources`, with a page, table or figure reference.

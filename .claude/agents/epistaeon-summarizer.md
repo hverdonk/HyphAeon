@@ -29,6 +29,8 @@ It contains, per study, both verdicts, every claim, every surviving challenge, a
 
 Write `epistaeon/validation/reports/SUMMARY.md` containing:
 
+Report the two validation axes separately throughout: **epistatic site identification** (9 targets across all four studies) and **mutation order** (2 targets, both in the steroid receptor — the only system that measured order). Never merge them into a single score. `epistaeon` could plausibly succeed at one and fail the other, and that distinction is the most decision-relevant thing you can report.
+
 1. **Verdict table** — one row per study: replicated / partially / not replicated / not testable; the deciding issue; and confidence.
 2. **Per-study detail** — for each: what was tested, what epistaeon produced, what broke it (if anything), and any dispute between the two agents.
 3. **Failure taxonomy** — group problems by cause: epistaeon method failures, input or numbering errors, and missing data. Keep these strictly separate; conflating them is the main thing this harness exists to prevent.

@@ -27,19 +27,25 @@
       "id": "HB1",
       "finding": "Deer mouse alpha-globin isoforms are defined by five sites: 50, 57, 60, 64, 71 (alphaI=PGAGS, alphaII=HGAGS, alphaIII=HAGDG); beta-globin by four sites: 62, 72, 128, 135 (betaI=GGAA, betaII=ASSS).",
       "source": "Storz 2009, verbatim in the text",
-      "test": "Do epistaeon's detected epistatic sites for HBA/HBB recover these positions above chance?"
+      "test": "Do epistaeon's detected epistatic sites for HBA/HBB recover these positions above chance?",
+      "validates": "epistatic_sites",
+      "measures_order": false
     },
     {
       "id": "HB2",
       "finding": "Beta-chain isoform differences in O2 affinity are attributable to DPG sensitivity, not intrinsic affinity.",
       "source": "Storz 2009",
-      "test": "Does epistaeon assign the beta sites to a coupled group distinct from the alpha sites?"
+      "test": "Does epistaeon assign the beta sites to a coupled group distinct from the alpha sites?",
+      "validates": "epistatic_sites",
+      "measures_order": false
     },
     {
       "id": "HB3",
       "finding": "High-altitude deer mice carry alphaI/betaI; the high-affinity electromorph is at high frequency above 2750 m.",
       "source": "Storz 2009",
-      "test": "Directionality check. Establish the polarity from Storz 2009 itself: which isoform combination is the high-altitude, high-affinity form. Report epistaeon's implied direction against that."
+      "test": "Directionality check. Establish the polarity from Storz 2009 itself: which isoform combination is the high-altitude, high-affinity form. Report epistaeon's implied direction against that.",
+      "validates": "epistatic_sites",
+      "measures_order": false
     }
   ],
   "structures": {
@@ -50,7 +56,7 @@
     "BLOCKING: no Peromyscus maniculatus sequence exists in the HBA1, HBA2 or HBB TOGA2 alignments, although three assemblies are present in TOGA2. The study's focal species is absent from the input.",
     "BLOCKING: Merganetta armata has no TOGA2 assembly under any reference, so the waterfowl arm cannot be run from this input at all.",
     "HBA1 34.5% and HBA2 44.0% of codons are gaps or masked bases. Expect weak signal.",
-    "No complete 2^K recombinant phenotype panel exists. Storz 2009 assayed isoform combinations, not all genotypes.",
+    "No panel of recombinant genotypes was published. Storz 2009 assayed isoform combinations, not individual substitutions, so there is no order evidence for this system.",
     "Yak and snow leopard are present for HBB only; neither has an HBA1 or HBA2 sequence."
   ],
   "minimum_pairs_for_or_benchmark": {

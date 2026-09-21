@@ -20,13 +20,17 @@
       "id": "MB1",
       "finding": "Maximal Mb net surface charge (ZMb) increased along lineages evolving high Mb concentration; ZMb rises from about +1 to +7 in deep divers.",
       "source": "Mirceta 2013",
-      "test": "Do epistaeon's detected sites for MB concentrate on surface, charge-changing positions in 1MBO?"
+      "test": "Do epistaeon's detected sites for MB concentrate on surface, charge-changing positions in 1MBO?",
+      "validates": "epistatic_sites",
+      "measures_order": false
     },
     {
       "id": "MB2",
       "finding": "Increased net positive charge is proposed to prevent aggregation at high Mb concentration.",
       "source": "Mirceta 2013",
-      "test": "Structural, not evolutionary: are the detected sites solvent-exposed rather than buried?"
+      "test": "Structural, not evolutionary: are the detected sites solvent-exposed rather than buried?",
+      "validates": "epistatic_sites",
+      "measures_order": false
     }
   ],
   "structures": {

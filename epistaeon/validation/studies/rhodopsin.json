@@ -16,13 +16,17 @@
       "id": "RH1",
       "finding": "Site 83 has a significant effect on the measured phenotype, and its effect differs between species backgrounds (significant species-by-site interaction).",
       "source": "Dungan & Chang 2017 supplement, Supplementary Table 1 two-way ANOVA",
-      "test": "This is a genuine published epistasis result. Does epistaeon detect site 83 as background-dependent?"
+      "test": "This is a genuine published epistasis result. Does epistaeon detect site 83 as background-dependent?",
+      "validates": "epistatic_sites",
+      "measures_order": false
     },
     {
       "id": "RH2",
       "finding": "Sites 83, 292 and 299 are the assayed positions.",
       "source": "supplement, 21 mentions of site 83",
-      "test": "Recall of these positions."
+      "test": "Recall of these positions.",
+      "validates": "epistatic_sites",
+      "measures_order": false
     }
   ],
   "structures": {

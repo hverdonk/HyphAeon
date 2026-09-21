@@ -1,6 +1,9 @@
 # Validation harness for `epistaeon`
 
-Tests whether `epistaeon` can reproduce the findings of four published studies.
+Tests whether `epistaeon` can reproduce the findings of four published studies,
+on two axes: **which epistatic sites it identifies**, and **the order of
+mutations, where a study measured it**. `epistaeon`'s internal machinery is not
+under test — only the sites and order it reports.
 Built before `epistaeon` exists, so the success criteria are fixed in advance
 rather than written around whatever the implementation happens to produce.
 
@@ -48,8 +51,8 @@ original study ───► adversary  ─► <id>.rebuttal.json ─────
 - **`not_testable` is a first-class verdict.** Several published findings
   cannot be tested against the available inputs: the deer mouse is missing from
   the globin alignments, the Andean waterfowl is absent from TOGA2 entirely,
-  and no complete 2^K phenotype panel was ever published for any of these
-  systems. Scoring those as `epistaeon` failures would be
+  and the phenotype panels that were published cover only a handful of
+  genotypes each. Scoring those as `epistaeon` failures would be
   wrong, and scoring them as successes would be worse. They are counted
   separately and the summarizer may not average them away.
 - **False negatives are hunted too.** The adversary must verify reported
@@ -99,9 +102,10 @@ From the structural and alignment audits already in `data/README.md` and
 | `myoglobin` | MB1–MB2 | Species coverage good; the focal taxon is also the structure's species. |
 | `hemoglobin` | HB1–HB3 | **Largely untestable.** The focal species is absent from the alignments and the waterfowl is absent from TOGA2. |
 
-Eleven replication targets across the four studies, of which **two test
-mutation order against assayed intermediates** — both in the steroid receptor.
-The other three systems published no ordering experiments, so path
-accessibility cannot be validated there at all, whatever `epistaeon` reports. A `not_testable` verdict on
-`hemoglobin` is the expected honest outcome; the harness is built to make that
-finding legible rather than to avoid it.
+Eleven replication targets: **nine test site identification**, **two test
+mutation order** — both in the steroid receptor, the only system whose authors
+assayed intermediates. The other three published no ordering experiments, so
+order cannot be validated there at all, whatever `epistaeon` reports.
+
+A `not_testable` verdict on `hemoglobin` is the expected honest outcome; the
+harness is built to make that finding legible rather than to avoid it.
