@@ -94,11 +94,14 @@ From the structural and alignment audits already in `data/README.md` and
 
 | Study | Targets | Prospects |
 | --- | --- |
-| `steroid_receptor` | SR1–SR3 | **Best case.** Real ancestral sequences, a real 16-genotype panel, full species coverage. |
+| `steroid_receptor` | SR1–SR4 | **Best case, and the only measured mutation order.** Ortlund 2007 and Bridgham 2009 assayed intermediates: SR4 tests the forward order constraint (group Z permissive for group Y), SR3 the forward/reverse asymmetry. |
 | `rhodopsin` | RH1–RH2 | **Best epistasis ground truth**: a published, statistically tested species-by-site interaction at site 83. |
 | `myoglobin` | MB1–MB2 | Species coverage good; the focal taxon is also the structure's species. |
 | `hemoglobin` | HB1–HB3 | **Largely untestable.** The focal species is absent from the alignments and the waterfowl is absent from TOGA2. |
 
-Ten replication targets across the four studies. A `not_testable` verdict on
+Eleven replication targets across the four studies, of which **two test
+mutation order against assayed intermediates** — both in the steroid receptor.
+The other three systems published no ordering experiments, so path
+accessibility cannot be validated there at all, whatever `epistaeon` reports. A `not_testable` verdict on
 `hemoglobin` is the expected honest outcome; the harness is built to make that
 finding legible rather than to avoid it.

@@ -35,19 +35,30 @@
       "id": "SR1",
       "finding": "S106P and L111Q switch AncCR specificity toward cortisol; introduced alone into AncCR they yield a non-functional receptor.",
       "source": "Ortlund 2007; residue tokens S106P and L111Q appear 11 and 10 times",
-      "test": "Does epistaeon rank the 106-111 pair as coupled, and does it place the permissive group before them in the ordering?"
+      "test": "Does epistaeon rank the 106-111 pair as coupled, and does it place the permissive group before them in the ordering?",
+      "measures_order": false
     },
     {
       "id": "SR2",
       "finding": "Permissive substitutions (group X) include Y27R, L29M, F98I, Q105L, N26T, S212D; they are required before the switch is tolerated.",
       "source": "Ortlund 2007 mutation tokens",
-      "test": "Recall of these positions among epistaeon's detected partners of 106/111."
+      "test": "Recall of these positions among epistaeon's detected partners of 106/111.",
+      "measures_order": false
     },
     {
       "id": "SR3",
-      "finding": "The functional shift is contingent: reversal is blocked by later substitutions (epistatic ratchet).",
-      "source": "Bridgham 2009",
-      "test": "Does epistaeon's path likelihood show asymmetry between forward and reverse orderings?"
+      "finding": "Reversal is blocked: from AncGR2, reversing the group X function-switching substitutions (S106P, L111Q) yields a non-functional receptor (AncGR2-x), as does AncGR2-xyz and every combination restoring group x. Reversing the restrictive substitutions first does not restore ancestral function.",
+      "source": "Bridgham 2009, Fig. 1f-1g and accompanying text",
+      "test": "MEASURED ORDER DATA. Does epistaeon's path scoring make the reverse trajectory less accessible than the forward one, and specifically score X-first reversal as passing through a non-viable intermediate? Report the forward/reverse asymmetry as a number, not a direction.",
+      "measures_order": true
+    },
+    {
+      "id": "SR4",
+      "finding": "Order constraint among forward substitutions: introducing group Y (L29M, F98I, deletion S212D) into AncGR1 or into AncGR1+X produces completely non-functional receptors. Introducing group Z (N26T, Q105L) into the non-functional AncGR1+X+Y receptor restores transcriptional activity, so Z is permissive for Y. The historically likely pathways are those in which groups Z and X occurred before group Y was complete.",
+      "source": "Ortlund 2007, Fig. 3A and 3C; group definitions given verbatim in the text",
+      "test": "MEASURED ORDER DATA. Does epistaeon rank orderings with Z before Y above orderings with Y before Z, and does it place the AncGR1+X+Y intermediate among the least accessible genotypes? This is a direct test of path accessibility against assayed intermediates.",
+      "measures_order": true,
+      "scope_note": "The assayed landscape is small: groups X (2 sites), Y (3), Z (2). Scope K to these 7 sites. The full AncGR1 to AncGR2 interval carries 37 substitutions per Bridgham 2009 and is not enumerable."
     }
   ],
   "structures": {
@@ -64,5 +75,5 @@
   "minimum_pairs_for_or_benchmark": {
     "7PRX": 247
   },
-  "expected_outcome_note": "The strongest case available: real resurrected ancestral sequences, a real combinatorial panel, and full species coverage. If epistaeon cannot replicate here, it is unlikely to replicate anywhere."
+  "expected_outcome_note": "The strongest case available, and the only one with measured mutation order: real resurrected ancestral sequences, assayed intermediates, and full species coverage. SR3 and SR4 are the only targets in the whole harness that test path accessibility against experiment. If epistaeon cannot replicate here, it is unlikely to replicate anywhere."
 }
