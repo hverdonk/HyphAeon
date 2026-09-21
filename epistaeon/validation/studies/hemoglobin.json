@@ -1,0 +1,25 @@
+{
+  "study_id": "hemoglobin",
+  "white_paper_case": 1,
+  "gene_targets": ["HBA1", "HBA2", "HBB"],
+  "primary_sources": [
+    {"file": "../data/experimental/hemoglobin_2009_storz.pdf", "cite": "Storz et al., PNAS 2009, doi:10.1073/pnas.0905224106", "role": "defines the deer mouse isoform site sets"},
+    {"file": "../data/experimental/hemoglobin_2015_andean_waterfowl.pdf", "cite": "Natarajan et al., PLOS Genetics 2015, doi:10.1371/journal.pgen.1005681", "role": "waterfowl oxygen-affinity data"},
+    {"file": "../data/experimental/hemoglobin_2015_andean_waterfowl_oxygen_data.docx", "role": "S2 oxygen-affinity table"}
+  ],
+  "published_findings_to_test": [
+    {"id": "HB1", "finding": "Deer mouse alpha-globin isoforms are defined by five sites: 50, 57, 60, 64, 71 (alphaI=PGAGS, alphaII=HGAGS, alphaIII=HAGDG); beta-globin by four sites: 62, 72, 128, 135 (betaI=GGAA, betaII=ASSS).", "source": "Storz 2009, verbatim in the text", "test": "Do epistaeon's detected epistatic sites for HBA/HBB recover these positions above chance?"},
+    {"id": "HB2", "finding": "Beta-chain isoform differences in O2 affinity are attributable to DPG sensitivity, not intrinsic affinity.", "source": "Storz 2009", "test": "Does epistaeon assign the beta sites to a coupled group distinct from the alpha sites?"},
+    {"id": "HB3", "finding": "High-altitude deer mice carry alphaI/betaI; the high-affinity electromorph is at high frequency above 2750 m.", "source": "Storz 2009", "test": "Directionality check only. Note the white paper asserts the opposite polarity for alpha57/alpha64."}
+  ],
+  "structures": {"active": "../data/coordinates/2HHB.cif", "notes": "Human, deoxy (T) state. About half the alpha1beta2 contacts differ in the R state. Alpha-beta pairs are contacts at exactly one interface and never both."},
+  "known_limitations": [
+    "BLOCKING: no Peromyscus maniculatus sequence in the HBA1, HBA2 or HBB TOGA2 alignments, though three assemblies exist in TOGA2. The focal species of this study is absent.",
+    "BLOCKING: Merganetta armata has no TOGA2 assembly under any reference, so the waterfowl arm cannot be run from TOGA2 input at all.",
+    "HBA1 34.5% and HBA2 44.0% of codons are gaps or masked bases; expect weak signal.",
+    "No complete 2^K recombinant phenotype panel exists; Storz assayed isoform combinations, not all genotypes.",
+    "The white paper's claim that alpha57 and alpha64 sit at the alpha1beta1 interface is contradicted by 2HHB: both are haem-pocket residues, over 15 A from the nearest beta1 residue."
+  ],
+  "minimum_pairs_for_or_benchmark": {"2HHB_alpha": 181, "2HHB_beta": 173},
+  "expected_outcome_note": "A verdict of not_testable for the species-specific claims is the likely honest result. Do not manufacture a replication by substituting a different rodent."
+}

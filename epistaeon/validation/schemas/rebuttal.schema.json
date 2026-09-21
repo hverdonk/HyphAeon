@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Epistaeon adversarial review report (agent 2 -> summarizer)",
+  "type": "object",
+  "required": ["study_id", "agent", "independent_reading", "challenges", "verdict_on_replicator", "revised_verdict", "confidence"],
+  "properties": {
+    "study_id": {"type": "string"},
+    "agent": {"const": "adversary"},
+    "independent_reading": {
+      "description": "What the adversary concluded from the ORIGINAL study before accepting the replicator's account.",
+      "type": "object",
+      "required": ["published_findings", "disagreements_with_replicator_reading"],
+      "properties": {
+        "published_findings": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "disagreements_with_replicator_reading": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "challenges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["challenge_id", "target_claim_id", "type", "severity", "argument", "evidence", "survives"],
+        "properties": {
+          "challenge_id": {"type": "string"},
+          "target_claim_id": {"type": "string"},
+          "type": {"enum": ["methodological_flaw", "unstated_assumption", "circular_reasoning", "wrong_ground_truth", "numbering_error", "statistical_error", "data_leakage", "confound", "overreach", "false_negative"]},
+          "severity": {"enum": ["critical", "major", "minor"]},
+          "argument": {"type": "string"},
+          "evidence": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+          "survives": {"description": "Does the replicator's claim survive this challenge?", "enum": ["yes", "no", "weakened", "undetermined"]}
+        }
+      }
+    },
+    "verdict_on_replicator": {"enum": ["upheld", "weakened", "overturned", "insufficient_evidence"]},
+    "revised_verdict": {"description": "The adversary's own verdict on whether the study replicates.", "enum": ["replicated", "partially_replicated", "not_replicated", "not_testable"]},
+    "confidence": {"enum": ["high", "medium", "low"]},
+    "credit_where_due": {"description": "Parts of the replication that are sound. Required, to keep the review fair.", "type": "array", "items": {"type": "string"}}
+  }
+}
