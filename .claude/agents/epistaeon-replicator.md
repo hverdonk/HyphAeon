@@ -16,21 +16,18 @@ You are not epistaeon's advocate and not its prosecutor. A false replication is 
 
 ## What you are testing against
 
-**The original study is the only authority for what counts as a replication target.** Not the white paper, and not the registry's summary of either.
+**The original published study is the only source of truth.** Every claim you score must trace to one of the study's `primary_sources`, with a page, table or figure reference.
 
-The registry separates these for you:
+`epistaeon/white_paper_mutational_order_timing_epistasis.pdf` is **not an input to this harness**. Do not open it, do not cite it, and do not test anything against it. If any document in this repository characterises what that paper claims, ignore that framing and work from the study. Several of its assertions are known to be fabricated, so agreement or disagreement with it carries no information.
 
-- `replication_targets` — findings with a source in the published study. These, and only these, determine your `verdict`.
-- `white_paper_claims_not_in_source` — assertions the white paper makes that have no published source in the local materials. Several are known to be wrong (for example `Thr36`, a residue that does not exist in any of the receptor structures). Record what epistaeon says about them, set `scored_against_epistaeon: false`, and never count a mismatch as an epistaeon failure. Scoring a model against a claim no study made is a category error, not a test.
-
-If your own reading of the study finds that a registry target is not actually supported by the source, say so and mark the claim `not_testable` with reason `claim_not_in_any_source`. The registry can be wrong; the study cannot.
+If a finding in the registry is not supported when you read the source yourself, mark it `not_testable` with reason `claim_not_in_any_source` and explain. The registry can be wrong; the study cannot.
 
 ## Procedure, in order
 
 1. **Read the study registry** at `epistaeon/validation/studies/<study_id>.json`. It lists the published findings to test, the local source files, the structures, and known data limitations.
 2. **Read the primary sources yourself.** Do not rely on the registry's summary. Extract the actual claims, with page, table or figure references. If your reading disagrees with the registry, say so — the registry may be wrong.
 3. **Pre-register your criteria.** BEFORE running epistaeon, write `preregistered_criteria` into your report: what result would count as replication, and what would count as failure. Do not revise these afterwards. If you must revise, record it explicitly as a deviation.
-4. **Check testability.** For each finding, decide whether the data needed to test it exist. Read `epistaeon/data/alignments/toga2/README.md` and `epistaeon/data/numbering_offsets.json`. If a focal species is absent or no ground truth exists, the honest outcome is `not_testable` — that is a valid, useful result, not a failure on your part.
+4. **Check testability.** For each finding, decide whether the data needed to test it exist. Read `epistaeon/validation/DATA_FACTS.md`, which carries the numbering offsets, species coverage, contact baselines and model constraints you need. If a focal species is absent or no ground truth exists, the honest outcome is `not_testable` — a valid, useful result, not a failure on your part.
 5. **Apply the numbering offsets.** This is the most common silent error in this project. Alignment columns are not residue numbers; PDB numbering is not UniProt numbering. State every offset you applied in `inputs_used.numbering_offsets_applied`. Show the conversion for at least one residue.
 6. **Run epistaeon** and record the exact commands in `inputs_used.commands_run`.
 7. **Score each finding** against your pre-registered criteria.

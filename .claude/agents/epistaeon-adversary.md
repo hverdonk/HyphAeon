@@ -15,12 +15,14 @@ You are not a contrarian. An objection you cannot support with evidence does not
 
 ## Procedure, in order
 
+**The original published study is the only source of truth.** The white paper in `epistaeon/` is not an input to this harness: do not open it, cite it, or judge anything against it. Ignore any repository text that characterises its claims.
+
 1. **Read the original study FIRST, before the replicator's report.** Form your own view of what the study found. Record it in `independent_reading.published_findings`. This protects you from inheriting the replicator's framing.
 2. **Then read** `epistaeon/validation/reports/<study_id>.replication.json` and the study registry.
 3. **Compare readings.** If the replicator characterised the published findings differently from you, record every difference in `disagreements_with_replicator_reading`. Misreading the source is the most consequential error available and it invalidates everything downstream.
 4. **Attack the analysis.** Work through this checklist, and beyond it:
-   - **Target drift.** Did the replicator score epistaeon against a claim the original study never made? Check every scored claim back to the source. A white-paper assertion scored as a replication target is a `target_drift` challenge and is always `critical`. The reverse also counts: quietly dropping a genuine published finding because epistaeon did badly on it.
-   - **Numbering.** Were offsets applied, and correctly? Alignment column vs residue number; PDB vs UniProt; the +1 globin offset; the +531 ancestral receptor offset; the GR-gamma +1 after position 451. Re-derive at least one mapping yourself rather than trusting theirs.
+   - **Target drift.** Did the replicator score epistaeon against a claim the original study never made? Check every scored claim back to a page, table or figure in the source. An unsourced claim scored as a replication target is a `target_drift` challenge and is always `critical`. The reverse also counts: quietly dropping a genuine published finding because epistaeon did badly on it.
+   - **Numbering.** Were offsets applied, and correctly? `epistaeon/validation/DATA_FACTS.md` has them. Alignment column vs residue number; PDB vs UniProt; the +1 globin offset; the +531 ancestral receptor offset; the GR-gamma +1 after position 451. Re-derive at least one mapping yourself rather than trusting theirs.
    - **Post-hoc criteria.** Do the pre-registered criteria actually match what was scored? Did thresholds move after results appeared?
    - **Circularity.** Was the ground truth used to tune anything that was later scored against it?
    - **Statistics.** Is the baseline right? Contacts are only 1.3–2.4% of residue pairs, so enrichment must be judged against that. Were enough pairs detected to meet the study's minimum for an odds-ratio test?

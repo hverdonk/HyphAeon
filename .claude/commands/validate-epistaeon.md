@@ -4,6 +4,8 @@ description: Run the full epistaeon validation harness — replicator and advers
 
 Run the validation harness in `epistaeon/validation/`. Read its README first.
 
+The original published studies are the only source of truth. The white paper in `epistaeon/` is not an input and must not be read, cited, or tested against by any agent.
+
 For each study in `epistaeon/validation/studies/` (hemoglobin, myoglobin, steroid_receptor, rhodopsin):
 
 1. Spawn `epistaeon-replicator` with the study_id. Wait for `reports/<id>.replication.json`.

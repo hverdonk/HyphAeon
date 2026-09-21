@@ -1,11 +1,11 @@
 {
   "study_id": "hemoglobin",
-  "white_paper_case": 1,
   "gene_targets": [
     "HBA1",
     "HBA2",
     "HBB"
   ],
+  "authority_rule": "The original published study is the only source of truth. Every claim scored must trace to one of this study's primary_sources, with a page, table or figure reference. If a finding in this registry is not supported by the source, mark it not_testable with reason claim_not_in_any_source and say so; the registry can be wrong, the study cannot.",
   "primary_sources": [
     {
       "file": "../data/experimental/hemoglobin_2009_storz.pdf",
@@ -22,48 +22,40 @@
       "role": "S2 oxygen-affinity table"
     }
   ],
-  "structures": {
-    "active": "../data/coordinates/2HHB.cif",
-    "notes": "Human, deoxy (T) state. About half the alpha1beta2 contacts differ in the R state. Alpha-beta pairs are contacts at exactly one interface and never both."
-  },
-  "known_limitations": [
-    "BLOCKING: no Peromyscus maniculatus sequence in the HBA1, HBA2 or HBB TOGA2 alignments, though three assemblies exist in TOGA2. The focal species of this study is absent.",
-    "BLOCKING: Merganetta armata has no TOGA2 assembly under any reference, so the waterfowl arm cannot be run from TOGA2 input at all.",
-    "HBA1 34.5% and HBA2 44.0% of codons are gaps or masked bases; expect weak signal.",
-    "No complete 2^K recombinant phenotype panel exists; Storz assayed isoform combinations, not all genotypes.",
-    "The white paper's claim that alpha57 and alpha64 sit at the alpha1beta1 interface is contradicted by 2HHB: both are haem-pocket residues, over 15 A from the nearest beta1 residue."
-  ],
-  "minimum_pairs_for_or_benchmark": {
-    "2HHB_alpha": 181,
-    "2HHB_beta": 173
-  },
-  "expected_outcome_note": "A verdict of not_testable for the species-specific claims is the likely honest result. Do not manufacture a replication by substituting a different rodent.",
   "replication_targets": [
     {
       "id": "HB1",
       "finding": "Deer mouse alpha-globin isoforms are defined by five sites: 50, 57, 60, 64, 71 (alphaI=PGAGS, alphaII=HGAGS, alphaIII=HAGDG); beta-globin by four sites: 62, 72, 128, 135 (betaI=GGAA, betaII=ASSS).",
       "source": "Storz 2009, verbatim in the text",
-      "test": "Do epistaeon's detected epistatic sites for HBA/HBB recover these positions above chance?",
-      "provenance": "published_study",
-      "is_replication_target": true
+      "test": "Do epistaeon's detected epistatic sites for HBA/HBB recover these positions above chance?"
     },
     {
       "id": "HB2",
       "finding": "Beta-chain isoform differences in O2 affinity are attributable to DPG sensitivity, not intrinsic affinity.",
       "source": "Storz 2009",
-      "test": "Does epistaeon assign the beta sites to a coupled group distinct from the alpha sites?",
-      "provenance": "published_study",
-      "is_replication_target": true
+      "test": "Does epistaeon assign the beta sites to a coupled group distinct from the alpha sites?"
     },
     {
       "id": "HB3",
       "finding": "High-altitude deer mice carry alphaI/betaI; the high-affinity electromorph is at high frequency above 2750 m.",
       "source": "Storz 2009",
-      "test": "Directionality check only. Note the white paper asserts the opposite polarity for alpha57/alpha64.",
-      "provenance": "published_study",
-      "is_replication_target": true
+      "test": "Directionality check. Establish the polarity from Storz 2009 itself: which isoform combination is the high-altitude, high-affinity form. Report epistaeon's implied direction against that."
     }
   ],
-  "white_paper_claims_not_in_source": [],
-  "authority_rule": "The original study is the sole authority for what counts as a replication target. Claims in white_paper_claims_not_in_source have no published source in the local materials; epistaeon must NOT be scored against them. Record what epistaeon says about them for information only, and never count a mismatch as an epistaeon failure."
+  "structures": {
+    "active": "../data/coordinates/2HHB.cif",
+    "notes": "Human deoxy (T) state, 1.74 A, four chains complete. About half the alpha1beta2 contacts differ in the R state. Alpha-beta pairs are contacts at exactly one interface (alpha1beta1 or alpha1beta2) and never both, so an interface convention must be fixed and reported. Sites 57 and 64 are haem-pocket residues, 6.5-7.5 A from haem and over 15 A from the nearest beta1 residue."
+  },
+  "known_limitations": [
+    "BLOCKING: no Peromyscus maniculatus sequence exists in the HBA1, HBA2 or HBB TOGA2 alignments, although three assemblies are present in TOGA2. The study's focal species is absent from the input.",
+    "BLOCKING: Merganetta armata has no TOGA2 assembly under any reference, so the waterfowl arm cannot be run from this input at all.",
+    "HBA1 34.5% and HBA2 44.0% of codons are gaps or masked bases. Expect weak signal.",
+    "No complete 2^K recombinant phenotype panel exists. Storz 2009 assayed isoform combinations, not all genotypes.",
+    "Yak and snow leopard are present for HBB only; neither has an HBA1 or HBA2 sequence."
+  ],
+  "minimum_pairs_for_or_benchmark": {
+    "2HHB_alpha": 181,
+    "2HHB_beta": 173
+  },
+  "expected_outcome_note": "The species needed to test this study's central findings are missing from the input. A verdict of not_testable is the likely honest result. Do not substitute a different rodent and call it a replication."
 }

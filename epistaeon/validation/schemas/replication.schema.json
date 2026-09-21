@@ -90,8 +90,7 @@
           "published_source",
           "epistaeon_result",
           "outcome",
-          "evidence",
-          "claim_provenance"
+          "evidence"
         ],
         "properties": {
           "claim_id": {
@@ -101,7 +100,7 @@
             "type": "string"
           },
           "published_source": {
-            "description": "File plus page/table/figure.",
+            "description": "File plus page, table or figure. Must be one of the study's primary_sources.",
             "type": "string"
           },
           "epistaeon_result": {
@@ -136,16 +135,6 @@
           },
           "numbers": {
             "type": "object"
-          },
-          "claim_provenance": {
-            "enum": [
-              "published_study",
-              "white_paper_only"
-            ]
-          },
-          "scored_against_epistaeon": {
-            "type": "boolean",
-            "description": "False for white_paper_only claims; they are recorded, not scored."
           }
         }
       }
@@ -156,8 +145,7 @@
         "partially_replicated",
         "not_replicated",
         "not_testable"
-      ],
-      "description": "Covers replication targets only. White-paper-only claims never affect this verdict."
+      ]
     },
     "confidence": {
       "enum": [

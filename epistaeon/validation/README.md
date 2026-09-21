@@ -1,9 +1,14 @@
 # Validation harness for `epistaeon`
 
-Tests whether `epistaeon` can reproduce the findings of the four published
-studies the white paper rests on. Built before `epistaeon` exists, so that the
-success criteria are fixed in advance rather than written around whatever the
-implementation happens to produce.
+Tests whether `epistaeon` can reproduce the findings of four published studies.
+Built before `epistaeon` exists, so the success criteria are fixed in advance
+rather than written around whatever the implementation happens to produce.
+
+**The original studies are the only source of truth.** The white paper is not
+an input: agents are instructed not to read it, the registries contain no claim
+drawn from it, and the validator rejects any report citing it as a source.
+Its assertions are unreliable, so agreement or disagreement with it would carry
+no information.
 
 ## Design
 
@@ -34,20 +39,17 @@ original study ───► adversary  ─► <id>.rebuttal.json ─────
 - **Independent reading.** The adversary reads the source before the
   replicator's report, so a misreading cannot propagate. Reading disputes are
   carried all the way into the summary.
-- **The study decides what counts as a replication target, not the white paper.**
-  Each registry splits its findings into `replication_targets` (sourced to the
-  published study) and `white_paper_claims_not_in_source` (assertions the white
-  paper makes with no published basis in the local materials). Only the former
-  affect any verdict. The latter are recorded for information — several are
-  known to be false, such as `Thr36`, a residue absent from every receptor
-  structure — and the validator rejects any report that scores `epistaeon`
-  against them. Testing a model against a claim no study made is a category
-  error, not a test. The adversary treats target drift as a critical challenge.
-- **`not_testable` is a first-class verdict.** Much of this white paper cannot
-  be tested at all: the deer mouse is missing from the globin alignments, the
-  Andean waterfowl is absent from TOGA2 entirely, no complete 2^K phenotype
-  panel exists, and the trajectory-order ground truth the paper assumes was
-  never measured by anyone. Scoring those as `epistaeon` failures would be
+- **Sourcing is enforced, not requested.** Every scored claim must trace to a
+  page, table or figure in one of the study's `primary_sources`. A claim citing
+  anything else is rejected by the validator, and the adversary treats an
+  unsourced replication target as a `critical` target-drift challenge. Dropping
+  a genuine published finding because `epistaeon` did badly on it counts the
+  same way.
+- **`not_testable` is a first-class verdict.** Several published findings
+  cannot be tested against the available inputs: the deer mouse is missing from
+  the globin alignments, the Andean waterfowl is absent from TOGA2 entirely,
+  and no complete 2^K phenotype panel was ever published for any of these
+  systems. Scoring those as `epistaeon` failures would be
   wrong, and scoring them as successes would be worse. They are counted
   separately and the summarizer may not average them away.
 - **False negatives are hunted too.** The adversary must verify reported
@@ -80,6 +82,7 @@ python3 epistaeon/validation/compact_reports.py --validate reports/rhodopsin.rep
 | Path | Contents |
 | --- | --- |
 | `studies/*.json` | Per-study registry: published findings to test, local sources, structures, known data limits, minimum pair counts for the odds-ratio benchmark |
+| `DATA_FACTS.md` | Operational facts agents need — numbering offsets, contact baselines, species coverage, model constraints. Facts about the data, not findings to replicate |
 | `schemas/*.json` | Report schemas for the two hand-offs |
 | `reports/` | Agent output (gitignored except this structure) |
 | `compact_reports.py` | Schema validation plus deterministic compaction |
@@ -89,12 +92,13 @@ python3 epistaeon/validation/compact_reports.py --validate reports/rhodopsin.rep
 From the structural and alignment audits already in `data/README.md` and
 `data/alignments/toga2/README.md`:
 
-| Study | Prospects |
+| Study | Targets | Prospects |
 | --- | --- |
-| `steroid_receptor` | **Best case.** Real ancestral sequences, a real 16-genotype panel, full species coverage. |
-| `rhodopsin` | **Best epistasis ground truth**: a published, statistically tested species-by-site interaction at site 83. |
-| `myoglobin` | Species coverage good; ordering claims have no experimental ground truth. |
-| `hemoglobin` | **Largely untestable.** The focal species is absent from the alignments and the waterfowl is absent from TOGA2. |
+| `steroid_receptor` | SR1–SR3 | **Best case.** Real ancestral sequences, a real 16-genotype panel, full species coverage. |
+| `rhodopsin` | RH1–RH2 | **Best epistasis ground truth**: a published, statistically tested species-by-site interaction at site 83. |
+| `myoglobin` | MB1–MB2 | Species coverage good; the focal taxon is also the structure's species. |
+| `hemoglobin` | HB1–HB3 | **Largely untestable.** The focal species is absent from the alignments and the waterfowl is absent from TOGA2. |
 
-A `not_testable` verdict on `hemoglobin` is the expected honest outcome. The
-harness is built to make that finding legible rather than to avoid it.
+Ten replication targets across the four studies. A `not_testable` verdict on
+`hemoglobin` is the expected honest outcome; the harness is built to make that
+finding legible rather than to avoid it.
