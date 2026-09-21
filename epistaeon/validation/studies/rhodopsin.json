@@ -1,22 +1,57 @@
 {
   "study_id": "rhodopsin",
   "white_paper_case": 4,
-  "gene_targets": ["RHO"],
+  "gene_targets": [
+    "RHO"
+  ],
   "primary_sources": [
-    {"file": "../data/experimental/rhodopsin_2017_cetacean_supplement.pdf", "cite": "Dungan & Chang, Proc R Soc B 2017, doi:10.1098/rspb.2016.2743", "role": "mutant spectral and retinal-release results"}
+    {
+      "file": "../data/experimental/rhodopsin_2017_cetacean_supplement.pdf",
+      "cite": "Dungan & Chang, Proc R Soc B 2017, doi:10.1098/rspb.2016.2743",
+      "role": "mutant spectral and retinal-release results"
+    }
   ],
-  "published_findings_to_test": [
-    {"id": "RH1", "finding": "Site 83 has a significant effect on the measured phenotype, and its effect differs between species backgrounds (significant species-by-site interaction).", "source": "Dungan & Chang 2017 supplement, Supplementary Table 1 two-way ANOVA", "test": "This is a genuine published epistasis result. Does epistaeon detect site 83 as background-dependent?"},
-    {"id": "RH2", "finding": "Sites 83, 292 and 299 are the assayed positions.", "source": "supplement, 21 mentions of site 83", "test": "Recall of these positions."},
-    {"id": "RH3", "finding": "The white paper claims permissive transmembrane substitutions (G121L, E122Q) rigidified the pocket before spectral tuning (D83N, A292S).", "source": "white paper section 3.4", "test": "Ordering claim. Check whether any local source supports it; Yokoyama's ancestral rhodopsin supplement was not obtainable."}
-  ],
-  "structures": {"active": "../data/coordinates/1U19.cif", "notes": "Bovine, dark-state 11-cis retinal, numbering equals UniProt and equals human. All named residues present. Ala292 and Gly121 are 3.3 A and 3.7 A from retinal and 10.3 A apart."},
+  "structures": {
+    "active": "../data/coordinates/1U19.cif",
+    "notes": "Bovine, dark-state 11-cis retinal, numbering equals UniProt and equals human. All named residues present. Ala292 and Gly121 are 3.3 A and 3.7 A from retinal and 10.3 A apart."
+  },
   "known_limitations": [
     "Retinal-release after photoactivation is not a direct dark-noise rate; do not treat the white paper's dark-noise mechanism as measured here.",
     "Teleosts are absent from the mammal-only TOGA2 alignment, as is Rhinolophus unihastatus. Cetaceans (75) and bats (113) are well represented.",
     "1U19 is the dark state; any claim about transducin coupling needs an active-state structure, which is not in the repo.",
     "RH3's ordering has no local experimental source."
   ],
-  "minimum_pairs_for_or_benchmark": {"1U19": 317},
-  "expected_outcome_note": "RH1 is the single best epistasis ground truth in the whole white paper: a published, statistically tested background dependence. Weight it heavily."
+  "minimum_pairs_for_or_benchmark": {
+    "1U19": 317
+  },
+  "expected_outcome_note": "RH1 is the single best epistasis ground truth in the whole white paper: a published, statistically tested background dependence. Weight it heavily.",
+  "replication_targets": [
+    {
+      "id": "RH1",
+      "finding": "Site 83 has a significant effect on the measured phenotype, and its effect differs between species backgrounds (significant species-by-site interaction).",
+      "source": "Dungan & Chang 2017 supplement, Supplementary Table 1 two-way ANOVA",
+      "test": "This is a genuine published epistasis result. Does epistaeon detect site 83 as background-dependent?",
+      "provenance": "published_study",
+      "is_replication_target": true
+    },
+    {
+      "id": "RH2",
+      "finding": "Sites 83, 292 and 299 are the assayed positions.",
+      "source": "supplement, 21 mentions of site 83",
+      "test": "Recall of these positions.",
+      "provenance": "published_study",
+      "is_replication_target": true
+    }
+  ],
+  "white_paper_claims_not_in_source": [
+    {
+      "id": "RH3",
+      "finding": "The white paper claims permissive transmembrane substitutions (G121L, E122Q) rigidified the pocket before spectral tuning (D83N, A292S).",
+      "source": "white paper section 3.4",
+      "test": "Ordering claim. Check whether any local source supports it; Yokoyama's ancestral rhodopsin supplement was not obtainable.",
+      "provenance": "white_paper_only",
+      "is_replication_target": false
+    }
+  ],
+  "authority_rule": "The original study is the sole authority for what counts as a replication target. Claims in white_paper_claims_not_in_source have no published source in the local materials; epistaeon must NOT be scored against them. Record what epistaeon says about them for information only, and never count a mismatch as an epistaeon failure."
 }

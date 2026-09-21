@@ -32,7 +32,8 @@ Write `epistaeon/validation/reports/SUMMARY.md` containing:
 1. **Verdict table** — one row per study: replicated / partially / not replicated / not testable; the deciding issue; and confidence.
 2. **Per-study detail** — for each: what was tested, what epistaeon produced, what broke it (if anything), and any dispute between the two agents.
 3. **Failure taxonomy** — group problems by cause: epistaeon method failures, input or numbering errors, missing data, and white-paper claims that were never testable. Keep these strictly separate; conflating them is the main thing this harness exists to prevent.
-4. **Overall assessment of epistaeon** — what it does demonstrably well, where it fails, and what remains unknown because it could not be tested. State the denominator plainly: how many findings were genuinely testable out of how many claimed.
-5. **What would change the verdict** — the specific data or method change that would most alter the assessment.
+4. **White-paper claims with no published source** — listed separately, never folded into any verdict. For each, say whether epistaeon agreed with it and note that agreement or disagreement carries no evidential weight, since no study made the claim. Where the claim is known to be false (such as `Thr36`), epistaeon disagreeing with it is mildly reassuring, not a failure.
+5. **Overall assessment of epistaeon** — what it does demonstrably well, where it fails, and what remains unknown because it could not be tested. State the denominator plainly: how many findings were genuinely testable out of how many claimed.
+6. **What would change the verdict** — the specific data or method change that would most alter the assessment.
 
 Be blunt. If most studies were untestable, the headline is that epistaeon is largely unvalidated, regardless of how the testable ones went. Do not average away that distinction.

@@ -70,6 +70,10 @@ def _content_checks(report, path):
                 problems.append(f"claim {claim.get('claim_id')} is not_testable without a reason")
             if not claim.get("evidence"):
                 problems.append(f"claim {claim.get('claim_id')} has no evidence entries")
+            if claim.get("claim_provenance") == "white_paper_only" and claim.get("scored_against_epistaeon"):
+                problems.append(
+                    f"claim {claim.get('claim_id')} is white_paper_only but marked as scored; "
+                    "epistaeon may not be scored against claims no study made")
     if report.get("agent") == "adversary":
         for ch in report.get("challenges", []):
             if not ch.get("evidence"):
@@ -85,6 +89,7 @@ def compact() -> dict:
     out = {"studies": {}, "missing_reports": [], "totals": {}}
     counts = {"replicated": 0, "partially_replicated": 0, "not_replicated": 0, "not_testable": 0}
     testable = untestable = 0
+    unsourced_total = 0
 
     for sid in studies:
         rep_p = REPORTS / f"{sid}.replication.json"
@@ -96,16 +101,22 @@ def compact() -> dict:
             continue
         rep, reb = validate(rep_p), validate(reb_p)
 
-        claims = []
+        claims, unsourced = [], []
         for c in rep.get("claims", []):
-            claims.append({
+            prov = c.get("claim_provenance", "published_study")
+            entry = {
                 "claim_id": c["claim_id"],
                 "published_finding": c["published_finding"],
+                "claim_provenance": prov,
                 "outcome": c["outcome"],
                 "not_testable_reason": c.get("not_testable_reason"),
                 "epistaeon_result": c["epistaeon_result"],
                 "numbers": c.get("numbers", {}),
-            })
+            }
+            if prov == "white_paper_only":
+                unsourced.append(entry)       # recorded, never scored
+                continue
+            claims.append(entry)
             if c["outcome"] == "not_testable":
                 untestable += 1
             else:
@@ -118,6 +129,7 @@ def compact() -> dict:
         ]
         counts[reb["revised_verdict"]] = counts.get(reb["revised_verdict"], 0) + 1
 
+        unsourced_total += len(unsourced)
         out["studies"][sid] = {
             "replicator_verdict": rep["verdict"],
             "replicator_confidence": rep["confidence"],
@@ -127,6 +139,7 @@ def compact() -> dict:
             "verdicts_agree": rep["verdict"] == reb["revised_verdict"],
             "reading_disputes": reb["independent_reading"].get("disagreements_with_replicator_reading", []),
             "claims": claims,
+            "white_paper_claims_recorded": unsourced,
             "surviving_challenges": surviving,
             "critical_unsurvived": [c for c in surviving if c["severity"] == "critical" and c["survives"] == "no"],
             "replicator_limitations": rep.get("limitations", []),
@@ -139,6 +152,7 @@ def compact() -> dict:
         "verdicts": counts,
         "claims_testable": testable,
         "claims_not_testable": untestable,
+        "white_paper_claims_recorded_not_scored": unsourced_total,
     }
     REPORTS.mkdir(exist_ok=True)
     dest = REPORTS / "compacted.json"
@@ -146,7 +160,9 @@ def compact() -> dict:
     print(f"[ok] compacted {len(out['studies'])}/{len(studies)} studies -> {dest}")
     if out["missing_reports"]:
         print("[!] missing reports:", ", ".join(m["study_id"] for m in out["missing_reports"]))
-    print(f"    testable claims: {testable} | not testable: {untestable} | verdicts: {counts}")
+    print(f"    testable claims: {testable} | not testable: {untestable} | "
+          f"white-paper claims recorded but not scored: {unsourced_total}")
+    print(f"    verdicts: {counts}")
     return out
 
 

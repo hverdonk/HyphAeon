@@ -34,6 +34,15 @@ original study ───► adversary  ─► <id>.rebuttal.json ─────
 - **Independent reading.** The adversary reads the source before the
   replicator's report, so a misreading cannot propagate. Reading disputes are
   carried all the way into the summary.
+- **The study decides what counts as a replication target, not the white paper.**
+  Each registry splits its findings into `replication_targets` (sourced to the
+  published study) and `white_paper_claims_not_in_source` (assertions the white
+  paper makes with no published basis in the local materials). Only the former
+  affect any verdict. The latter are recorded for information — several are
+  known to be false, such as `Thr36`, a residue absent from every receptor
+  structure — and the validator rejects any report that scores `epistaeon`
+  against them. Testing a model against a claim no study made is a category
+  error, not a test. The adversary treats target drift as a critical challenge.
 - **`not_testable` is a first-class verdict.** Much of this white paper cannot
   be tested at all: the deer mouse is missing from the globin alignments, the
   Andean waterfowl is absent from TOGA2 entirely, no complete 2^K phenotype

@@ -1,22 +1,60 @@
 {
   "study_id": "myoglobin",
   "white_paper_case": 2,
-  "gene_targets": ["MB"],
+  "gene_targets": [
+    "MB"
+  ],
   "primary_sources": [
-    {"file": "../data/experimental/myoglobin_2013_article.pdf", "cite": "Mirceta et al., Science 2013, doi:10.1126/science.1234192", "role": "ZMb evolution across 712 species"},
-    {"file": "../data/experimental/myoglobin_2013_supplement.pdf", "role": "species traits, Mb concentration and net charge data, ancestral inference"}
+    {
+      "file": "../data/experimental/myoglobin_2013_article.pdf",
+      "cite": "Mirceta et al., Science 2013, doi:10.1126/science.1234192",
+      "role": "ZMb evolution across 712 species"
+    },
+    {
+      "file": "../data/experimental/myoglobin_2013_supplement.pdf",
+      "role": "species traits, Mb concentration and net charge data, ancestral inference"
+    }
   ],
-  "published_findings_to_test": [
-    {"id": "MB1", "finding": "Maximal Mb net surface charge (ZMb) increased along lineages evolving high Mb concentration; ZMb rises from about +1 to +7 in deep divers.", "source": "Mirceta 2013", "test": "Do epistaeon's detected sites for MB concentrate on surface, charge-changing positions in 1MBO?"},
-    {"id": "MB2", "finding": "Increased net positive charge is proposed to prevent aggregation at high Mb concentration.", "source": "Mirceta 2013", "test": "Structural, not evolutionary: are the detected sites solvent-exposed rather than buried?"},
-    {"id": "MB3", "finding": "The white paper asserts internal B/E-helix packing substitutions preceded surface charge accumulation.", "source": "white paper section 3.2, NOT Mirceta", "test": "Flag as a white paper claim without a published source. Treat as unverified unless located in Mirceta."}
-  ],
-  "structures": {"active": "../data/coordinates/1MBO.cif", "notes": "Sperm whale, the target taxon. 1.6 A, complete, haem plus bound O2."},
+  "structures": {
+    "active": "../data/coordinates/1MBO.cif",
+    "notes": "Sperm whale, the target taxon. 1.6 A, complete, haem plus bound O2."
+  },
   "known_limitations": [
     "Mirceta crystallised no ancestral myoglobins, so 1MBO can only serve as a geometric scaffold.",
     "No measured recombinant ancestral mutation panel; the supplement gives inferred ancestral states and trait data.",
     "Ordering claims (MB3) have no experimental ground truth at all."
   ],
-  "minimum_pairs_for_or_benchmark": {"1MBO": 187},
-  "expected_outcome_note": "Species coverage is good here (sperm whale, elephant seal, Weddell seal all present), so MB1 and MB2 are genuinely testable. MB3 is not."
+  "minimum_pairs_for_or_benchmark": {
+    "1MBO": 187
+  },
+  "expected_outcome_note": "Species coverage is good here (sperm whale, elephant seal, Weddell seal all present), so MB1 and MB2 are genuinely testable. MB3 is not.",
+  "replication_targets": [
+    {
+      "id": "MB1",
+      "finding": "Maximal Mb net surface charge (ZMb) increased along lineages evolving high Mb concentration; ZMb rises from about +1 to +7 in deep divers.",
+      "source": "Mirceta 2013",
+      "test": "Do epistaeon's detected sites for MB concentrate on surface, charge-changing positions in 1MBO?",
+      "provenance": "published_study",
+      "is_replication_target": true
+    },
+    {
+      "id": "MB2",
+      "finding": "Increased net positive charge is proposed to prevent aggregation at high Mb concentration.",
+      "source": "Mirceta 2013",
+      "test": "Structural, not evolutionary: are the detected sites solvent-exposed rather than buried?",
+      "provenance": "published_study",
+      "is_replication_target": true
+    }
+  ],
+  "white_paper_claims_not_in_source": [
+    {
+      "id": "MB3",
+      "finding": "The white paper asserts internal B/E-helix packing substitutions preceded surface charge accumulation.",
+      "source": "white paper section 3.2, NOT Mirceta",
+      "test": "Flag as a white paper claim without a published source. Treat as unverified unless located in Mirceta.",
+      "provenance": "white_paper_only",
+      "is_replication_target": false
+    }
+  ],
+  "authority_rule": "The original study is the sole authority for what counts as a replication target. Claims in white_paper_claims_not_in_source have no published source in the local materials; epistaeon must NOT be scored against them. Record what epistaeon says about them for information only, and never count a mismatch as an epistaeon failure."
 }

@@ -14,6 +14,17 @@ You are not epistaeon's advocate and not its prosecutor. A false replication is 
 - **Motivated agreement.** Loosening a criterion after seeing output, counting a near-miss, or treating "the method found *something*" as replication.
 - **Unfair rejection.** Blaming epistaeon for a failure actually caused by missing data, a numbering error you made, or a published claim that was never testable.
 
+## What you are testing against
+
+**The original study is the only authority for what counts as a replication target.** Not the white paper, and not the registry's summary of either.
+
+The registry separates these for you:
+
+- `replication_targets` — findings with a source in the published study. These, and only these, determine your `verdict`.
+- `white_paper_claims_not_in_source` — assertions the white paper makes that have no published source in the local materials. Several are known to be wrong (for example `Thr36`, a residue that does not exist in any of the receptor structures). Record what epistaeon says about them, set `scored_against_epistaeon: false`, and never count a mismatch as an epistaeon failure. Scoring a model against a claim no study made is a category error, not a test.
+
+If your own reading of the study finds that a registry target is not actually supported by the source, say so and mark the claim `not_testable` with reason `claim_not_in_any_source`. The registry can be wrong; the study cannot.
+
 ## Procedure, in order
 
 1. **Read the study registry** at `epistaeon/validation/studies/<study_id>.json`. It lists the published findings to test, the local source files, the structures, and known data limitations.

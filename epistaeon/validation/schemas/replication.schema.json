@@ -2,52 +2,188 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Epistaeon replication report (agent 1 -> agent 2)",
   "type": "object",
-  "required": ["study_id", "agent", "preregistered_criteria", "inputs_used", "claims", "verdict", "confidence", "limitations"],
+  "required": [
+    "study_id",
+    "agent",
+    "preregistered_criteria",
+    "inputs_used",
+    "claims",
+    "verdict",
+    "confidence",
+    "limitations"
+  ],
   "properties": {
-    "study_id": {"type": "string"},
-    "agent": {"const": "replicator"},
+    "study_id": {
+      "type": "string"
+    },
+    "agent": {
+      "const": "replicator"
+    },
     "preregistered_criteria": {
       "description": "Written BEFORE running epistaeon. What would count as replication, and what would count as failure.",
       "type": "object",
-      "required": ["written_before_run", "pass_conditions", "fail_conditions"],
+      "required": [
+        "written_before_run",
+        "pass_conditions",
+        "fail_conditions"
+      ],
       "properties": {
-        "written_before_run": {"type": "boolean"},
-        "pass_conditions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-        "fail_conditions": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+        "written_before_run": {
+          "type": "boolean"
+        },
+        "pass_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "fail_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
       }
     },
     "inputs_used": {
       "type": "object",
-      "required": ["alignment", "structure", "numbering_offsets_applied", "epistaeon_version"],
+      "required": [
+        "alignment",
+        "structure",
+        "numbering_offsets_applied",
+        "epistaeon_version"
+      ],
       "properties": {
-        "alignment": {"type": "string"},
-        "structure": {"type": "string"},
-        "numbering_offsets_applied": {"type": "array", "items": {"type": "string"}},
-        "epistaeon_version": {"type": "string"},
-        "commands_run": {"type": "array", "items": {"type": "string"}}
-      }
-    },
-    "claims": {
-      "type": "array", "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": ["claim_id", "published_finding", "published_source", "epistaeon_result", "outcome", "evidence"],
-        "properties": {
-          "claim_id": {"type": "string"},
-          "published_finding": {"type": "string"},
-          "published_source": {"description": "File plus page/table/figure.", "type": "string"},
-          "epistaeon_result": {"type": "string"},
-          "outcome": {"enum": ["reproduced", "contradicted", "inconclusive", "not_testable"]},
-          "not_testable_reason": {"enum": ["missing_data", "missing_species", "no_ground_truth", "method_unimplemented", "other", null]},
-          "evidence": {"description": "Exact numbers, file paths, line numbers. No unsupported assertions.", "type": "array", "items": {"type": "string"}, "minItems": 1},
-          "numbers": {"type": "object"}
+        "alignment": {
+          "type": "string"
+        },
+        "structure": {
+          "type": "string"
+        },
+        "numbering_offsets_applied": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "epistaeon_version": {
+          "type": "string"
+        },
+        "commands_run": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
-    "verdict": {"enum": ["replicated", "partially_replicated", "not_replicated", "not_testable"]},
-    "confidence": {"enum": ["high", "medium", "low"]},
-    "limitations": {"description": "Weaknesses in the replicator's OWN analysis; be explicit rather than defensive.", "type": "array", "items": {"type": "string"}},
-    "known_repo_issues_encountered": {"type": "array", "items": {"type": "string"}},
-    "open_questions_for_reviewer": {"type": "array", "items": {"type": "string"}}
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "published_finding",
+          "published_source",
+          "epistaeon_result",
+          "outcome",
+          "evidence",
+          "claim_provenance"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string"
+          },
+          "published_finding": {
+            "type": "string"
+          },
+          "published_source": {
+            "description": "File plus page/table/figure.",
+            "type": "string"
+          },
+          "epistaeon_result": {
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "reproduced",
+              "contradicted",
+              "inconclusive",
+              "not_testable"
+            ]
+          },
+          "not_testable_reason": {
+            "enum": [
+              "missing_data",
+              "missing_species",
+              "no_ground_truth",
+              "method_unimplemented",
+              "claim_not_in_any_source",
+              "other",
+              null
+            ]
+          },
+          "evidence": {
+            "description": "Exact numbers, file paths, line numbers. No unsupported assertions.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "numbers": {
+            "type": "object"
+          },
+          "claim_provenance": {
+            "enum": [
+              "published_study",
+              "white_paper_only"
+            ]
+          },
+          "scored_against_epistaeon": {
+            "type": "boolean",
+            "description": "False for white_paper_only claims; they are recorded, not scored."
+          }
+        }
+      }
+    },
+    "verdict": {
+      "enum": [
+        "replicated",
+        "partially_replicated",
+        "not_replicated",
+        "not_testable"
+      ],
+      "description": "Covers replication targets only. White-paper-only claims never affect this verdict."
+    },
+    "confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ]
+    },
+    "limitations": {
+      "description": "Weaknesses in the replicator's OWN analysis; be explicit rather than defensive.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "known_repo_issues_encountered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "open_questions_for_reviewer": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
   }
 }
