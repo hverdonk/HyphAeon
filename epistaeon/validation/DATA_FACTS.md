@@ -68,7 +68,6 @@ absent by construction.
 | Needed species | Status |
 | --- | --- |
 | *Peromyscus maniculatus* (deer mouse) | In TOGA2 (3 assemblies) but **absent from HBA1, HBA2 and HBB** |
-| *Merganetta armata* (torrent duck) | **No TOGA2 assembly at all**, under any reference |
 | *Physeter macrocephalus* (sperm whale) | Present in MB and RHO |
 | *Mirounga leonina*, *Leptonychotes weddellii* | Present in MB |
 | Naked mole-rat, star-nosed mole, *Myotis nattereri* | Present in RHO |

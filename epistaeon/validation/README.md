@@ -50,9 +50,8 @@ original study ───► adversary  ─► <id>.rebuttal.json ─────
   same way.
 - **`not_testable` is a first-class verdict.** Several published findings
   cannot be tested against the available inputs: the deer mouse is missing from
-  the globin alignments, the Andean waterfowl is absent from TOGA2 entirely,
-  and the phenotype panels that were published cover only a handful of
-  genotypes each. Scoring those as `epistaeon` failures would be
+  the globin alignments, and the phenotype panels that were published cover
+  only a handful of genotypes each. Scoring those as `epistaeon` failures would be
   wrong, and scoring them as successes would be worse. They are counted
   separately and the summarizer may not average them away.
 - **False negatives are hunted too.** The adversary must verify reported
@@ -100,7 +99,7 @@ From the structural and alignment audits already in `data/README.md` and
 | `steroid_receptor` | SR1–SR4 | **Best case, and the only measured mutation order.** Ortlund 2007 and Bridgham 2009 assayed intermediates: SR4 tests the forward order constraint (group Z permissive for group Y), SR3 the forward/reverse asymmetry. |
 | `rhodopsin` | RH1–RH2 | **Best epistasis ground truth**: a published, statistically tested species-by-site interaction at site 83. |
 | `myoglobin` | MB1–MB2 | Species coverage good; the focal taxon is also the structure's species. |
-| `hemoglobin` | HB1–HB3 | **Largely untestable.** The focal species is absent from the alignments and the waterfowl is absent from TOGA2. |
+| `hemoglobin` | HB1–HB3 | **Largely untestable.** Storz 2009's focal species, the deer mouse, has no globin sequence in the alignments. |
 
 Eleven replication targets: **nine test site identification**, **two test
 mutation order** — both in the steroid receptor, the only system whose authors

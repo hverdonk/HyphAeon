@@ -20,7 +20,6 @@ when this inventory was prepared (2026-09-15).
 | Case | Local files | Published source and scope |
 | --- | --- | --- |
 | Hemoglobin | `experimental/hemoglobin_2009_storz.pdf` | Storz et al., *PNAS* 2009, [doi:10.1073/pnas.0905224106](https://doi.org/10.1073/pnas.0905224106). High-altitude hemoglobin functional data; not a complete ancestral genotype panel. |
-| Hemoglobin | `experimental/hemoglobin_2015_andean_waterfowl.pdf`, `hemoglobin_2015_andean_waterfowl_oxygen_data.docx`, `hemoglobin_2015_andean_waterfowl_isoform_data.docx`, `hemoglobin_2015_andean_waterfowl_alignment.pdf` | Natarajan et al., *PLOS Genetics* 2015, [doi:10.1371/journal.pgen.1005681](https://doi.org/10.1371/journal.pgen.1005681), [S2 oxygen-affinity table](https://doi.org/10.1371/journal.pgen.1005681.s013), [S1 isoform table](https://doi.org/10.1371/journal.pgen.1005681.s012), [S2 alignment figure](https://doi.org/10.1371/journal.pgen.1005681.s002). The oxygen-affinity data use KCl and IHP conditions; they are not 2,3-DPG assays. |
 | Myoglobin | `experimental/myoglobin_2013_article.pdf`, `myoglobin_2013_supplement.pdf` | Mirceta et al., *Science* 2013, [doi:10.1126/science.1234192](https://doi.org/10.1126/science.1234192). Supplement includes species traits, myoglobin concentration/charge data, and ancestral inference; it does not supply a complete measured recombinant ancestral-mutation panel. |
 | Steroid receptor | `experimental/steroid_receptor_2007_ortlund.pdf`, `steroid_receptor_2009_bridgham.pdf` | Ortlund et al., *Science* 2007, [doi:10.1126/science.1142819](https://doi.org/10.1126/science.1142819); Bridgham et al., *Nature* 2009, [doi:10.1038/nature08249](https://doi.org/10.1038/nature08249). Reconstructed receptor mutagenesis, ligand specificity, and epistasis. |
 | Steroid receptor | `experimental/steroid_receptor_2011_plos.pdf`, `steroid_receptor_2011_ec50_data.doc`, `steroid_receptor_2011_sequence_accessions.doc`, `steroid_receptor_2011_ancestral_sequences.doc`, `steroid_receptor_2011_stability_data.doc` | Carroll et al., *PLOS Genetics* 2011, [doi:10.1371/journal.pgen.1002117](https://doi.org/10.1371/journal.pgen.1002117), [S1 EC50 data](https://doi.org/10.1371/journal.pgen.1002117.s003), [S2 accession list](https://doi.org/10.1371/journal.pgen.1002117.s004), [S3 ancestral sequences](https://doi.org/10.1371/journal.pgen.1002117.s005), [S5 stability calculations](https://doi.org/10.1371/journal.pgen.1002117.s007). The stability table is calculated, not measured thermal unfolding. |
@@ -291,7 +290,7 @@ mechanistically close.
 
 **Still open: cross-species transfer.** 1MBO is *Physeter catodon*, the Case 2
 target taxon. But 2HHB is human while Case 1 targets *Peromyscus* and
-*Merganetta*, and 1U19 is bovine while Case 4 targets cetaceans and bats. The
+other rodents, and 1U19 is bovine while the rhodopsin work targets cetaceans and bats. The
 numbering above is verified against the human and bovine references only; an
 alignment from each target ortholog to the PDB chain, with explicit indel
 handling, is still required.

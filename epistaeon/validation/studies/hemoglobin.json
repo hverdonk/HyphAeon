@@ -11,15 +11,6 @@
       "file": "../data/experimental/hemoglobin_2009_storz.pdf",
       "cite": "Storz et al., PNAS 2009, doi:10.1073/pnas.0905224106",
       "role": "defines the deer mouse isoform site sets"
-    },
-    {
-      "file": "../data/experimental/hemoglobin_2015_andean_waterfowl.pdf",
-      "cite": "Natarajan et al., PLOS Genetics 2015, doi:10.1371/journal.pgen.1005681",
-      "role": "waterfowl oxygen-affinity data"
-    },
-    {
-      "file": "../data/experimental/hemoglobin_2015_andean_waterfowl_oxygen_data.docx",
-      "role": "S2 oxygen-affinity table"
     }
   ],
   "replication_targets": [
@@ -54,7 +45,7 @@
   },
   "known_limitations": [
     "BLOCKING: no Peromyscus maniculatus sequence exists in the HBA1, HBA2 or HBB TOGA2 alignments, although three assemblies are present in TOGA2. The study's focal species is absent from the input.",
-    "BLOCKING: Merganetta armata has no TOGA2 assembly under any reference, so the waterfowl arm cannot be run from this input at all.",
+    "Storz 2009 is a deer mouse study only. This registry covers no bird taxa; the alignments are mammal-only in any case.",
     "HBA1 34.5% and HBA2 44.0% of codons are gaps or masked bases. Expect weak signal.",
     "No panel of recombinant genotypes was published. Storz 2009 assayed isoform combinations, not individual substitutions, so there is no order evidence for this system.",
     "Yak and snow leopard are present for HBB only; neither has an HBA1 or HBA2 sequence."

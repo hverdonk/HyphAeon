@@ -78,10 +78,8 @@ results silently if ignored.
    sequence here. Likely cause (inferred, not confirmed): TOGA2 keeps only
    species with exactly one ortholog, and deer mice carry multiple α- and
    β-globin copies. This removes Case 1's focal species.
-7. **Andean waterfowl (*Merganetta armata*) is not in TOGA2 at all** — no
-   assembly under any reference, not just this mammal set. Its sequences would
-   have to come from elsewhere, e.g. the GenBank accessions behind Natarajan
-   et al. 2015 (`../../experimental/`).
+7. **Birds are absent entirely.** This is the human-referenced, mammal-only
+   set, so no avian taxon can be included from this input.
 8. **Other white-paper taxa:** yak and snow leopard have HBB only (no HBA1 or
    HBA2). Sperm whale, southern elephant seal and Weddell seal are in MB.
    Naked mole-rat, star-nosed mole, *Myotis nattereri* and sperm whale are in
