@@ -73,7 +73,14 @@ results silently if ignored.
 5. **Mammals only.** All 3,847 sequences and all 882 species-tree tips are
    mammals; this is the human-referenced TOGA2 set. (The species table also
    lists birds, turtles and fish because it covers TOGA2's other references.)
-6. **Deer mouse is missing from every globin alignment.** TOGA2 has three
+6. **Deer mouse was missing from every globin alignment, and has been added.**
+   As downloaded, TOGA2 had no *Peromyscus maniculatus* globin sequence. One
+   high-altitude allele per gene was merged from GenBank into `HBA1`, `HBA2`
+   and `HBB` under the tree tip `HLperManSon3` — see
+   `../../sequences/deer_mouse/README.md` for method and caveats. The original
+   gap is described below.
+
+   **Original gap.** TOGA2 has three
    *Peromyscus maniculatus* assemblies, but none has an HBA1, HBA2 or HBB
    sequence here. Likely cause (inferred, not confirmed): TOGA2 keeps only
    species with exactly one ortholog, and deer mice carry multiple α- and
