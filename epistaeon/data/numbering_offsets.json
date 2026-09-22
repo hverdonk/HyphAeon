@@ -136,7 +136,7 @@
           ],
           "engineered_mutations": [],
           "mismatches": 0,
-          "note": "Full-length NR3C1 numbering. White-paper residues are AncCR numbering: add 531 (Tyr27->558, Leu29->560, Thr36->567, Ser106->637, Leu111->642). Chain B is a PGC1a coactivator peptide, not GR."
+          "note": "Full-length NR3C1 numbering. Ortlund/Bridgham residues are in AncCR numbering: Y27R->558, L29M->560, F98I->629, Q105L->636, S106P->637, L111Q->642, S212del->742 (note +530 past the deletion). Chain B is a PGC1a coactivator peptide, not GR."
         }
       },
       "ligand": "82H, velsecorat (non-steroidal GR modulator)"
@@ -148,12 +148,15 @@
         "A": {
           "role": "AncCR",
           "offset_to_uniprot": null,
-          "offset_to_human_GR_NR3C1": 531,
+          "offset_to_human_GR_NR3C1": {
+            "-2..210": 531,
+            "212..": 530
+          },
           "pdb_range": [
             -2,
             247
           ],
-          "note": "local LBD numbering, not UniProt. Anc + 531 = human GR. N-terminal positions -2/-1/0 are expression-tag residues."
+          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -163,12 +166,15 @@
         "A": {
           "role": "AncCR",
           "offset_to_uniprot": null,
-          "offset_to_human_GR_NR3C1": 531,
+          "offset_to_human_GR_NR3C1": {
+            "-2..210": 531,
+            "212..": 530
+          },
           "pdb_range": [
             -2,
             247
           ],
-          "note": "local LBD numbering"
+          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -178,12 +184,15 @@
         "A": {
           "role": "AncCR",
           "offset_to_uniprot": null,
-          "offset_to_human_GR_NR3C1": 531,
+          "offset_to_human_GR_NR3C1": {
+            "-2..210": 531,
+            "212..": 530
+          },
           "pdb_range": [
             -2,
             246
           ],
-          "note": "local LBD numbering"
+          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -193,12 +202,15 @@
         "A": {
           "role": "AncGR1",
           "offset_to_uniprot": null,
-          "offset_to_human_GR_NR3C1": 531,
+          "offset_to_human_GR_NR3C1": {
+            "-2..210": 531,
+            "212..": 530
+          },
           "pdb_range": [
             -2,
             247
           ],
-          "note": "local LBD numbering"
+          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -208,12 +220,15 @@
         "A": {
           "role": "AncGR2",
           "offset_to_uniprot": null,
-          "offset_to_human_GR_NR3C1": 531,
+          "offset_to_human_GR_NR3C1": {
+            "-2..210": 531,
+            "212..": 530
+          },
           "pdb_range": [
             -2,
             246
           ],
-          "note": "local LBD numbering CAUTION: AncGR2 has a one-residue indel relative to AncCR/AncGR1 near position 211; from about 212 onward 3GN8 author numbers are one lower than the equivalent AncCR residue, so +531 is not valid there. Use a per-residue alignment."
+          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues. CAUTION for 3GN8 specifically: AncGR2 carries the deletion, so its author numbers run one lower than the equivalent AncCR residue from about 212 onward."
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
