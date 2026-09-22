@@ -255,7 +255,7 @@
             "F602Y",
             "C638G"
           ],
-          "note": "Full-length NR3C1 numbering. White-paper residues are AncCR numbering: add 531 (Tyr27->558, Leu29->560, Thr36->567, Ser106->637, Leu111->642). Chain B is a synthetic coactivator peptide, not GR. DOMAIN-SWAPPED: residues 526-551 pack onto the symmetry mate's core, so within-chain contacts for 526-558 are wrong. Replaced by 7PRX."
+          "note": "Full-length NR3C1 numbering. Ortlund/Bridgham residues are in AncCR numbering (+531 up to 210, +530 from 212). Chain B is a synthetic coactivator peptide, not GR. DOMAIN-SWAPPED: residues 526-551 pack onto the symmetry mate's core, so within-chain contacts for 526-558 are wrong. Replaced by 7PRX."
         }
       },
       "ligand": "LSJ, synthetic non-steroidal dibenzoxapine sulfonamide (2 copies)",
