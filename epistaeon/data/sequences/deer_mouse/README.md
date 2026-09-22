@@ -50,7 +50,7 @@ byte-identical, all rows retain equal length, and the merged row still reads
 **Caveats, each a deliberate choice:**
 
 1. **Named after an existing tree tip.** `aeon_core`'s loader drops any
-   sequence absent from `speciesTree.nh`. The tree already contains three
+   sequence absent from `speciesTree.nh`. The tree already contains two sister
    *P. maniculatus* assemblies, so the row is named `HLperManSon3`
    (*P. m. sonoriensis*) rather than editing the tree. The species assignment
    is correct; the specific assembly is a stand-in for branch placement, and
