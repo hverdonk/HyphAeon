@@ -27,36 +27,6 @@ intermediate is historically unlikely: selection does not traverse dead
 proteins. So the question "which order?" is really "which orders pass only
 through viable intermediates?"
 
-### The one system with measured order
-
-The resurrected corticoid receptors are the only case here where order was
-*experimentally measured*, by building intermediate genotypes and assaying
-them. Everything else in the repository has site-level ground truth only.
-
-Receptor lineage: `AncCR → AncGR1 → AncGR2` (MR-like → still MR-like →
-cortisol-specific). All mutagenesis was done **on the AncGR1 background**.
-
-| Set | Substitutions | Role |
-| --- | --- | --- |
-| **X** | S106P, L111Q | adaptive, switches specificity |
-| **Y** | L29M, F98I, S212del | completes the switch but destabilises |
-| **Z** | N26T, Q105L | **permissive** for Y |
-| Y27R | (earlier interval, AncCR→AncGR1) | permissive, predates the others |
-
-Measured genotypes (Ortlund 2007, Fig. 3A):
-
-```
-AncGR1            functional     AncGR1+Y        NON-FUNCTIONAL
-AncGR1+X          functional     AncGR1+X+Y      NON-FUNCTIONAL
-AncGR1+Z          functional     AncGR1+X+Y+Z    functional, fully GR-like
-```
-
-So **Z and X must precede Y**, and Y27R precedes all of them. Bridgham 2009
-adds the reverse direction: from AncGR2, reversing X gives a non-functional
-receptor, while reversing the restrictive substitutions first restores nothing.
-
-Numbering throughout is AncCR local LBD numbering, as both papers use.
-
 ---
 
 ## 2. Facts you must not get wrong
@@ -91,10 +61,15 @@ cross-site layers, and the batch dimension is the site. Therefore **no part of
 this pipeline conditions a site on the rest of its own sequence**. If a result
 appears to show background dependence, establish where it came from.
 
-**Two consequences of that, both verified numerically:**
+**Two consequences of that:**
 
-1. Embeddings are *additive* across sites, so any genotype's embedding costs
-   `1 + 2K` forward passes instead of one each (measured error ~1e-7).
+1. A genotype's own residues cannot inform each other. What distinguishes two
+   genotypes' forward passes is **where each sits among the other taxa**: every
+   genotype is appended to the alignment as its own row and placed by TN93
+   distance to all of them, with its MDS coordinates projected into the
+   existing frame. Each genotype therefore costs one full forward pass, and
+   exact mode over `n` units costs `2^n` of them — the binding cost of a run,
+   and what `--max-genotypes` bounds.
 2. For any state function φ, `Σ Δφ` along a path telescopes to
    `φ(derived) − φ(ancestor)` — **identical for every ordering**. A scorer
    built on plain `exp(Δφ/T)` gives a uniform distribution and a before-matrix
@@ -126,26 +101,94 @@ curl -sL -o epistaeon/data/model/model.safetensors \
 python3 -m epistaeon.cli order \
   --alignment epistaeon/data/alignments/toga2/NR3C1.codonified.fa \
   --tree epistaeon/data/alignments/toga2/speciesTree.nh \
-  --ancestor anc.fa --descendant der.fa \
-  --focal-taxon hg38 \
-  --sites sites.txt --blocks blocks.json \
-  --mode exact --scorer typicality-gate \
-  --weights epistaeon/data/model/model.safetensors --cpu \
-  --focal-unit 1 --permissive-units 0,2 \
+  --focal-taxon AncGR2 \
+  --ancestor AncGR1 \
+  --sites sites.txt \
+  --blocks blocks.json \
+  --mode exact \
+  --scorer typicality-gate \
+  --weights epistaeon/data/model/model.safetensors \
+  --cpu \
+  --focal-unit 1 \
+  --permissive-units 0,2 \
   -o out/
 ```
 
-`--ancestor` and `--descendant` must be **aligned to each other** (equal
-length, gaps allowed). They may be a domain; the CLI maps them onto full-length
-alignment columns through the focal row.
+**Both endpoints are rows of the alignment**, named not supplied as FASTA.
+`--focal-taxon` (aliases `--descendant`, `--derived`) names the derived row;
+`--ancestor` names the ancestral one. Nothing is realigned, so no numbering
+mapping is involved. An endpoint only has to be *in* the alignment: a row that
+duplicate pruning, tree matching or `--max-species` left out of the analysed
+taxa still works as an endpoint, and the run says so.
+
+**Omit `--ancestor`** and each ancestral state becomes the **plurality residue
+of its alignment column** over the other rows, with φ anchored at the model's
+`[ROOT]` embedding instead of an ancestral sequence. That is a consensus, not a
+reconstruction: it can differ from the real ancestor at any column, so check
+`provenance.plurality_support` before reading the result as history. To use a
+reconstruction such as AncGR1, add it to the alignment as a row and name it.
+
+`--tree` is optional. Omit it with `--use-tn93` and the distances between taxa
+are estimated from the alignment itself, which is also how every genotype is
+placed. Results from the two are not interchangeable.
+
+**A substitution is a codon change, synonymous ones included**, so applying
+every unit reproduces the derived row **exactly, nucleotide for nucleotide**
+(verified both ways: TN93 0.0 from mask 0 to the ancestor row and from the full
+mask to the derived row). Ordering only the amino-acid changes would leave the
+end of the trajectory short of the derived sequence at every synonymous column
+— 126 of them for `HLmusEve1 → hg38`, two thirds of the branch's nucleotide
+distance — and TN93 measures nucleotides, so that gap would displace every
+genotype. Synonymous units are named `K4=AAG>AAA`; `provenance` carries the
+`substitution_classes` counts and each member's codons.
+
+The consequence for `n`: a full mammalian branch is ~190 codon substitutions
+(`HLmusEve1 → hg38`: 59 nonsynonymous, 126 synonymous, 9 indel), far past the
+exact limit. **`--sites` or `--blocks` is not optional** on a real branch.
+
+**Positions** in `--sites` and `--blocks` are 1-based residues of the ancestor
+row, or of the derived row when there is no ancestor. Use `c<N>` for alignment
+column `N` where that row is gapped — which is how a deletion's column is
+named, since the row has no residue to number there.
+
+### What `--blocks` does
+
+`--sites` picks *which* substitutions to consider; `--blocks` groups them into
+**units that move together**, and a unit is what gets ordered. The DP orders
+`n` units, so grouping is what keeps `n` small enough to enumerate: the
+receptor's X/Y/Z is 3 units covering 7 substitutions.
+
+The file is JSON mapping a group name to positions, numbered exactly as
+`--sites` is:
+
+```json
+{
+  "X": [106, 111],
+  "Y": [29, 98, 212],
+  "Z": [26, 105]
+}
+```
+
+- The group **name** is what appears in the MAP order, the before/after matrix
+  and `--focal-unit`/`--permissive-units`, which take **unit indices** in the
+  order the groups are read, singletons last.
+- Any substitution not named in a group becomes **its own unit**, so nothing is
+  silently dropped. With 194 substitutions and three groups covering 7 of them
+  you get 3 + 187 = 190 units, not 3 — pair `--blocks` with `--sites` to drop
+  the rest.
+- A position named in a group that is not a substitution between these two
+  endpoints is an error naming your own position, as is one that appears in two
+  groups.
+- Substitutions inside a unit are applied simultaneously and are never ordered
+  against each other.
 
 **Modes** (`--mode`, auto-selected by n):
 
 | Mode | When | Notes |
 | --- | --- | --- |
-| `exact` | n ≤ 22 units | exact MAP, Z(M) and all marginals; 2^n memory |
+| `exact` | n ≤ 22 units **and** 2^n ≤ `--max-genotypes` (default 4096) | exact MAP, Z(M) and all marginals; 2^n forward passes, one TN93 call |
 | `blocks` | large n, grouped | `--blocks` groups substitutions; the receptor's X/Y/Z is n=3 |
-| `sample` | n > 22 ungrouped | importance-sampled marginals with an ESS diagnostic |
+| `sample` | n beyond either limit | importance-sampled marginals with an ESS diagnostic; one TN93 call per genotype, still capped by `--max-genotypes` |
 
 **Scorers** (`--scorer`): `potts-metropolis` (default), `typicality-gate`,
 `softmax-repaired`, `dphi-product` (documented baseline only — its temperature
@@ -162,8 +205,12 @@ Check these before believing anything:
 - **`discrimination.degenerate_uniform`** — if true, every ordering had equal
   weight and the scorer told you nothing. Compare `map_prob_normalised` against
   `uniform_baseline` (= 1/n!) every time.
-- **`provenance.additivity_ok`** — gates the fast embedding path. The run aborts
-  if it fails.
+- **`provenance.ancestral_states`** and **`plurality_support`** — whether the
+  ancestral background is a real row or a per-column consensus, and how thin
+  that consensus is. A support near 0.5 is a coin toss, not an ancestor.
+- **`provenance.endpoints_in_background`** — false means that endpoint supplied
+  codons without being one of the analysed taxa.
+- **`provenance.forward_passes`** — one per distinct genotype; the run's cost.
 - **`provenance.per_unit_relative_delta`** — how far one substitution moves the
   embedding, against float32 precision.
 - **`relative_branch_position_monotone`** — φ can overshoot, so a "fraction"
@@ -172,7 +219,7 @@ Check these before believing anything:
 ### Tests
 
 ```bash
-cd epistaeon && python3 -m pytest tests/ -q      # 18 tests
+cd epistaeon && python3 -m pytest tests/ -q      # 30 tests
 ```
 
 The suite includes exact-DP-versus-brute-force for n = 3–6 and an
@@ -198,16 +245,19 @@ never be folded into a performance score.
 
 ## 4. Known open issues
 
-- **The ancestral background is a chimera (bug).** `_relattice` in
-  `epistaeon/src/epistaeon/cli.py` builds its ancestral string from the focal
-  row and overwrites only the substituted columns, so the background stays
-  ~73% human rather than AncGR1 (66 of 248 LBD positions differ). The whole
-  claim under test is background dependence, so results are provisional until
-  the full ancestral domain is written into the focal row.
+- **The chimeric ancestral background is fixed.** Endpoints are now alignment
+  rows, so the ancestral background is that whole row rather than the focal row
+  with the substituted columns overwritten. Any result produced before that
+  change (`_relattice`, since removed) is void.
 - **No scorer yet recovers the measured receptor order** (Z and X before Y).
   `potts-metropolis` degenerates to uniform because the co-selection network
-  found no coupling among those units. Treat the scorer comparison as
-  provisional pending the fix above.
+  found no coupling among those units. The scorer comparison has not been
+  re-run since endpoints became alignment rows.
+- **The ancestral reconstructions are not in the TOGA2 alignment.** AncGR1 and
+  AncGR2 live in `epistaeon/data/sequences/ancestral/` as protein sequences,
+  while endpoints must now be alignment rows, so the receptor analysis needs
+  them codon-aligned into the alignment first. Column plurality is not a
+  substitute for them.
 - **Natarajan 2013** (*Science*, deer mouse) is the only measured hemoglobin
   epistasis and is not yet in the harness registry.
 - **3RY9 is mislabelled.** It matches AncGR1.1 at 99.2% and AncGR1 at 92.0%, so
