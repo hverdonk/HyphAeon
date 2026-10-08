@@ -174,6 +174,37 @@ def test_sampling_approximates_exact():
     assert sm.diagnostics["effective_sample_size"] > 100
 
 
+def test_sampling_survives_tiny_path_weights():
+    """Weights far below float range must not read as an inaccessible lattice.
+
+    A viability scorer routinely puts every path weight at e^-5000 or below.
+    Exponentiating each importance weight on its own underflows to zero there,
+    and dividing the estimates by a zero total is indistinguishable from every
+    ordering having been blocked.
+    """
+    n = 4
+    lat = _lattice(n)
+    energy = _toy(n)
+
+    def logw(mask, u):
+        return min(0.0, (energy(mask | (1 << u)) - energy(mask)) / 0.5)
+
+    def tiny(mask, u):
+        return logw(mask, u) - 2000.0        # same ordering, ruinous scale
+
+    ref = T.sample(lat, logw, n_samples=4000, seed=2)
+    res = T.sample(lat, tiny, n_samples=4000, seed=2)
+    assert res.accessible
+    off = ~np.eye(n, dtype=bool)
+    # a constant per-step offset cancels in the normalised marginals
+    assert np.abs(res.before[off] - ref.before[off]).max() < 1e-9
+    assert res.diagnostics["effective_sample_size"] == pytest.approx(
+        ref.diagnostics["effective_sample_size"], rel=1e-9
+    )
+    # and it shows up in the reported scale, not in the marginals
+    assert res.log_total_weight == pytest.approx(ref.log_total_weight - n * 2000.0)
+
+
 def test_designated_marginal_matches_brute_force():
     """P(focal after >= k of a permissive set) -- the receptor's statistic."""
     n = 4

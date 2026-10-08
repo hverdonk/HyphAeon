@@ -36,7 +36,7 @@ everywhere.
 | --- | --- |
 | φ anchor | Embedding of the **actual ancestral sequence** inserted as a taxon; `[ROOT]` token embedding as fallback |
 | Stage 5 timing | Relative position along the branch only; absolute drift/sweep behind `--ne`/`--s`, raising rather than returning a negative time when `2·Ne·s ≤ 1` |
-| Site selection | Auto-derive K from the ancestor/derived diff, **with block mode and an explicit site-subset flag also available** |
+| Site selection | Auto-derive K from the ancestor/derived **codon** diff, synonymous changes included so the trajectory ends on the derived row exactly, **with block mode and an explicit site-subset flag also available** (a real branch is ~190 units, so one of them is required) |
 | Scoring | Pluggable scorers behind one interface; default `potts-metropolis` |
 | Trajectory inference | Exact subset DP; three selectable modes (below), auto-chosen by n with manual override |
 
@@ -70,18 +70,32 @@ Existing `epistaeon/data/`, `scripts/` and `validation/` stay put.
 - `aeon_core.io.write_json`, `write_csv`; numbering from `epistaeon/data/numbering_offsets.json`
   (never hardcode: AncCR→human GR is +531 to position 210, +530 from 212)
 
-## Core mechanic — embeddings for any genotype, cheaply
+## Core mechanic — embeddings for any genotype
 
-The encoder has no cross-site mixing, so `z = (1/L) Σ_s h_s` with each `h_s`
-depending only on column `s`. Therefore:
+**Superseded.** The original plan exploited the encoder's lack of cross-site
+mixing (`z = (1/L) Σ_s h_s`, each `h_s` depending only on column `s`) to get
+every genotype's embedding from `1 + 2K` passes by arithmetic, gated on an
+additivity test. That shortcut wrote the genotype into an existing taxon's row,
+which gave it that taxon's phylogenetic position and left the ancestral
+background a chimera of the focal row.
 
-- one full pass on the ancestral background → `Σ_s h_s`
-- `2K` single-site passes → `h_k(anc)`, `h_k(der)` per mutable site
-- any genotype: `z(S) = (1/L)(Σ_s h_s − Σ_k h_k(anc) + Σ_k h_k(state_k))`
+As implemented, each **intermediate** is instead its own row: appended to the
+alignment, placed by TN93 distance to every taxon, with MDS coordinates
+projected into the existing frame (Gower) so the real taxa and the `[ROOT]`
+origin are identical across genotypes. Each intermediate's distance row is its
+own, so nothing is shared between them and embeddings are **not** additive:
 
-**1 + 2K forward passes total**; every genotype's embedding is then arithmetic.
-Gate on the additivity test below; if it fails, fall back to one pass per
-genotype and cap K.
+- one full forward pass per distinct intermediate, memoised by mask
+- exact mode over `n` units costs `2^n` passes, bounded by `--max-genotypes`
+- one TN93 call for the whole lattice in exact mode; one per genotype when
+  sampling
+
+The **endpoints are read from their own rows** rather than appended as copies
+of themselves, so no genotype duplicates a real taxon. That leaves an endpoint
+embedded among `N` taxa and an intermediate among `N + 1`, a frame difference
+worth ~6x one substitution; it is measured per run as
+`first_step_relative_delta` against `per_unit_relative_delta` and must be
+checked before trusting an endpoint-adjacent step.
 
 ## Scoring layer (`scoring.py`)
 
@@ -134,10 +148,17 @@ full auto-derived set is only reachable for shorter branches.
 ## CLI and outputs
 
 ```
-epistaeon order --alignment <fa> --tree <nwk> --ancestor <fa> --descendant <fa> \
-                --focal-taxon <name> [--scorer potts-metropolis] [--mode auto] \
+epistaeon order --alignment <fa> [--tree <nwk> | --use-tn93] \
+                --focal-taxon <row> [--ancestor <row>] \
+                [--scorer potts-metropolis] [--mode auto] [--max-genotypes 4096] \
                 [--blocks blocks.json] [--sites sites.txt] [--weights/--variant] -o out/
 ```
+
+Both endpoints are **alignment rows**, named rather than supplied as FASTA
+(`--focal-taxon` also accepts `--descendant`/`--derived`). With no `--ancestor`,
+each ancestral state is its column's plurality residue and φ is anchored at
+`[ROOT]`. Positions are 1-based residues of the ancestor row, or of the derived
+row when there is none, with `c<N>` for a column that row is gapped at.
 
 `order.json` must contain, at minimum:
 
@@ -148,8 +169,10 @@ epistaeon order --alignment <fa> --tree <nwk> --ancestor <fa> --descendant <fa> 
 5. `C_ij` before/after matrix
 6. `R_ik` position-probability matrix
 7. designated marginals, e.g. `P(group Y after ≥k of {X, Z})`
-8. `provenance`: model variant, scorer, mode, φ anchor, α, `T_sel`,
-   additivity-test result, per-site delta magnitudes vs float precision
+8. `provenance`: model variant, scorer, mode, φ anchor, α, `T_sel`, distance
+   source, both endpoint rows and whether each is in the background, how the
+   ancestral states were obtained (row or plurality, with support), forward
+   passes used, per-unit delta magnitudes vs float precision
 
 `pairs.csv`: coupled sites, for the harness's site-identification targets.
 
@@ -163,11 +186,14 @@ epistaeon order --alignment <fa> --tree <nwk> --ancestor <fa> --descendant <fa> 
 3. **Inert-scorer regression.** Feeding pure `exp(ΔE/T)` weights must yield a
    uniform distribution and `C = 0.5` everywhere; the default scorer must *not*.
    This is the test that catches a telescoping scorer, the original design error.
-4. **Additivity test — gates the fast path.** Random double mutant computed
-   analytically from cached deltas vs a direct full pass; agreement to float
-   tolerance.
+4. **Genotype placement and endpoint exactness.** Re-projecting a point already
+   in the MDS configuration returns its own coordinates; an endpoint resolves to
+   its row whether or not it survived into the analysed taxa; and applying every
+   unit reproduces the derived row nucleotide for nucleotide (TN93 0.0 at both
+   ends of the branch, checked on two real ancestor rows).
 5. **Zero-weight handling.** A blocked edge gives `-inf` not `NaN`; an all-blocked
-   lattice reports "no accessible path".
+   lattice reports "no accessible path" — and path weights too small to
+   exponentiate must *not* be reported that way.
 6. **Negative control.** Shuffle alignment columns within each taxon; inferred
    order must degrade to chance (`C → 0.5`).
 7. **End-to-end on the receptor case.** `NR3C1.codonified.fa` + `speciesTree.nh`;

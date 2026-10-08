@@ -64,12 +64,31 @@ appears to show background dependence, establish where it came from.
 **Two consequences of that:**
 
 1. A genotype's own residues cannot inform each other. What distinguishes two
-   genotypes' forward passes is **where each sits among the other taxa**: every
-   genotype is appended to the alignment as its own row and placed by TN93
+   genotypes' forward passes is **where each sits among the other taxa**: an
+   intermediate is appended to the alignment as its own row and placed by TN93
    distance to all of them, with its MDS coordinates projected into the
-   existing frame. Each genotype therefore costs one full forward pass, and
+   existing frame. Each intermediate therefore costs one full forward pass, and
    exact mode over `n` units costs `2^n` of them — the binding cost of a run,
    and what `--max-genotypes` bounds.
+
+   **The endpoints are not appended.** The ancestral and derived sequences are
+   rows of the alignment already, so they are read from there rather than
+   duplicated beside themselves. The price is that an endpoint is embedded
+   among `N` taxa and an intermediate among `N + 1`, and **the extra row moves
+   an embedding more than a substitution does**. Measured on
+   `HLmusEve1 → hg38` with 12 taxa:
+
+   | what | relative ‖dz‖ |
+   | --- | --- |
+   | one substitution, appended vs appended | 0.0039 |
+   | the first step, endpoint row vs appended | 0.0225 |
+   | the extra row, measured on a bystander taxon | 0.0088 |
+
+   So the step out of the ancestral endpoint (and into the derived one, when
+   the lattice is unrestricted) is **~6× a real substitution and mostly frame
+   change, not biology**. `provenance.first_step_relative_delta` and
+   `endpoint_frame_shift` report it per run. Do not read an ordering that turns
+   on an endpoint-adjacent step without checking those two numbers first.
 2. For any state function φ, `Σ Δφ` along a path telescopes to
    `φ(derived) − φ(ancestor)` — **identical for every ordering**. A scorer
    built on plain `exp(Δφ/T)` gives a uniform distribution and a before-matrix
@@ -100,7 +119,6 @@ curl -sL -o epistaeon/data/model/model.safetensors \
 ```bash
 python3 -m epistaeon.cli order \
   --alignment epistaeon/data/alignments/toga2/NR3C1.codonified.fa \
-  --tree epistaeon/data/alignments/toga2/speciesTree.nh \
   --focal-taxon AncGR2 \
   --ancestor AncGR1 \
   --sites sites.txt \
@@ -117,9 +135,12 @@ python3 -m epistaeon.cli order \
 **Both endpoints are rows of the alignment**, named not supplied as FASTA.
 `--focal-taxon` (aliases `--descendant`, `--derived`) names the derived row;
 `--ancestor` names the ancestral one. Nothing is realigned, so no numbering
-mapping is involved. An endpoint only has to be *in* the alignment: a row that
-duplicate pruning, tree matching or `--max-species` left out of the analysed
-taxa still works as an endpoint, and the run says so.
+mapping is involved. `--max-species` **keeps both endpoints** whatever Faith's
+PD would have chosen — without that, downsampling drops exactly the
+well-sampled taxa (`hg38` among them) that make natural endpoints. An endpoint
+that is still missing from the analysed taxa (absent from the tree) is appended
+as its own row like an intermediate, and the run says so; see
+`provenance.endpoints_read_from_the_alignment`.
 
 **Omit `--ancestor`** and each ancestral state becomes the **plurality residue
 of its alignment column** over the other rows, with φ anchored at the model's
@@ -210,7 +231,11 @@ Check these before believing anything:
   that consensus is. A support near 0.5 is a coin toss, not an ancestor.
 - **`provenance.endpoints_in_background`** — false means that endpoint supplied
   codons without being one of the analysed taxa.
-- **`provenance.forward_passes`** — one per distinct genotype; the run's cost.
+- **`provenance.forward_passes`** — one per distinct intermediate; the run's
+  cost. `genotypes_read_from_a_real_row` counts the endpoints that came from
+  the alignment instead.
+- **`provenance.first_step_relative_delta`** vs **`per_unit_relative_delta`** —
+  the endpoint-frame artifact against the real substitution signal. See §2.
 - **`provenance.per_unit_relative_delta`** — how far one substitution moves the
   embedding, against float32 precision.
 - **`relative_branch_position_monotone`** — φ can overshoot, so a "fraction"

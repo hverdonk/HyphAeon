@@ -13,38 +13,21 @@ import numpy as np
 
 from . import __version__
 from .io import write_json, write_matrix_csv
-from .lattice import Lattice, blocks_from_groups, derive_substitutions
+from .lattice import Lattice
 from .timing import TimingNotSupported, absolute_timing, relative_positions
 from .trajectory import EXACT_UNIT_LIMIT, infer
 
 
-def _read_fasta_first(path: str) -> str:
-    seq, started = [], False
-    for line in open(path):
-        line = line.strip()
-        if line.startswith(">"):
-            if started:
-                break
-            started = True
-            continue
-        seq.append(line)
-    return "".join(seq)
-
-
-def _build_scorer(name, ctx, lattice, cache, args, provenance):
+def _build_scorer(name, ctx, lattice, genotypes, anchor_name, args, provenance):
     """Assemble the requested scorer from model-derived quantities."""
     from . import scoring as S
-    from .background import extant_embeddings, isometric_scale, root_token_embedding
+    from .background import extant_embeddings, root_token_embedding
 
-    def embedding_of(mask: int) -> np.ndarray:
-        return cache.embedding(lattice, mask)
-
-    cloud = extant_embeddings(ctx)
-    anchor_name = "ancestral-sequence"
-    anchor = embedding_of(0)
-    if args.anchor == "root-token":
+    embedding_of = genotypes.embedding
+    if anchor_name == "root-token":
         anchor = root_token_embedding(ctx)
-        anchor_name = "root-token"
+    else:
+        anchor = embedding_of(0)
     provenance["phi_anchor"] = anchor_name
 
     alpha = 1.0
@@ -56,7 +39,7 @@ def _build_scorer(name, ctx, lattice, cache, args, provenance):
 
     if name == "potts-metropolis":
         from .couplings import couplings_from_coselection, site_terms_from_lrt
-        site_terms = site_terms_from_lrt(ctx, lattice)
+        site_terms = site_terms_from_lrt(genotypes, lattice)
         cesi, diag = couplings_from_coselection(ctx, lattice)
         provenance.update(diag)
         if not cesi:
@@ -71,6 +54,7 @@ def _build_scorer(name, ctx, lattice, cache, args, provenance):
         return S.PottsMetropolis(energy=energy, temperature=args.t_sel), phi
 
     if name == "typicality-gate":
+        cloud = extant_embeddings(ctx)
         viability = S.typicality_mahalanobis(embedding_of, cloud)
         floor = None if args.viability_floor is None else float(args.viability_floor)
         return S.TypicalityGate(viability=viability, temperature=args.t_sel, floor=floor), phi
@@ -86,45 +70,6 @@ def _build_scorer(name, ctx, lattice, cache, args, provenance):
         return S.DeltaPhiProduct(delta_phi=dphi, temperature=args.t_sel), phi
 
     raise SystemExit(f"unknown scorer {name!r}; choose from {sorted(S.SCORERS)}")
-
-
-def ctx_focal_protein(ctx) -> str:
-    """Focal row as a full-length string over alignment columns, gaps included."""
-    from aeon_core.dataset import AA_MAP
-    rev = {v: k for k, v in AA_MAP.items()}
-    a = ctx.a_tensor.squeeze(-1).numpy()
-    return "".join(rev.get(int(a[s, ctx.focal_index]), "-") for s in range(ctx.n_codons))
-
-
-def _relattice(aligned_ancestral, mapped, args, original_subs, colmap):
-    """Rebuild the lattice in alignment coordinates, re-applying any blocking."""
-    anc = list(aligned_ancestral)
-    for sub in mapped:
-        anc[sub.index] = sub.ancestral          # the branch starts from the ancestral state
-    blocks = names = None
-    if args.blocks:
-        groups = json.load(open(args.blocks))
-        by_old = {s.index: i for i, s in enumerate(original_subs)}
-        remap = {}
-        for name, positions in groups.items():
-            cols = []
-            for pos in positions:
-                old_index = int(pos) - 1
-                if old_index in colmap:
-                    cols.append(colmap[old_index])
-            if cols:
-                remap[name] = cols
-        index_of = {s.index: i for i, s in enumerate(mapped)}
-        blocks, names = [], []
-        claimed = set()
-        for name, cols in remap.items():
-            members = [index_of[c] for c in cols if c in index_of]
-            if members:
-                blocks.append(sorted(members)); names.append(name); claimed.update(members)
-        for i, s in enumerate(mapped):
-            if i not in claimed:
-                blocks.append([i]); names.append(s.name())
-    return Lattice("".join(anc), list(mapped), blocks=blocks, block_names=names)
 
 
 def _discrimination(res) -> Dict[str, object]:
@@ -156,101 +101,182 @@ def _discrimination(res) -> Dict[str, object]:
 
 
 def cmd_order(args: argparse.Namespace) -> int:
-    from .background import build_additive_cache, load_context, verify_additivity
+    from .background import GenotypeRows, derive_endpoints, load_context, resolve_positions
 
-    ancestral = _read_fasta_first(args.ancestor)
-    derived = _read_fasta_first(args.descendant)
-    sites = None
-    if args.sites:
-        sites = [int(x) - 1 for x in open(args.sites).read().split()]
-    subs = derive_substitutions(ancestral, derived, sites=sites)
-    if not subs:
-        raise SystemExit("ancestor and descendant are identical at the sites considered")
+    if args.anchor == "ancestral-sequence" and args.ancestor is None:
+        raise SystemExit(
+            "--anchor ancestral-sequence needs --ancestor; with no ancestor row "
+            "the only available anchor is --anchor root-token"
+        )
+    anchor_name = args.anchor or ("ancestral-sequence" if args.ancestor else "root-token")
 
     mode = args.mode
     ctx = load_context(
-        args.alignment, args.tree, focal_taxon=args.focal_taxon,
+        args.alignment, args.tree, derived_taxon=args.focal_taxon,
+        ancestor_taxon=args.ancestor,
         weights=args.weights, variant=args.variant, cpu=args.cpu,
         max_species=args.max_species, use_tn93=args.use_tn93,
     )
 
-    # The ancestor/derived pair is usually a domain while the alignment is full
-    # length, so substitution indices must be translated into alignment columns
-    # before residues can be written into the focal row.
-    from .background import map_to_alignment
-    colmap = map_to_alignment(ctx, ancestral)
-    unmapped = [s for s in subs if s.index not in colmap]
-    if unmapped:
-        print(
-            f"[!] {len(unmapped)} of {len(subs)} substitutions could not be "
-            f"placed in the alignment and are dropped: "
-            f"{[s.name() for s in unmapped][:8]}",
-            file=sys.stderr,
-        )
-    mapped = [
-        type(s)(index=colmap[s.index], ancestral=s.ancestral,
-                derived=s.derived, label=s.name())
-        for s in subs if s.index in colmap
-    ]
-    if not mapped:
+    # Positions are numbered within the reference row, so --sites and --blocks
+    # can only be resolved once the endpoints exist; derive them unrestricted
+    # first, then again with the requested columns.
+    rows = ctx.rows()
+    ends = derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name)
+    if args.sites:
+        columns = resolve_positions(open(args.sites).read().split(), ends)
+        ends = derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name, columns=columns)
+    subs = ends.substitutions
+    if not subs:
         raise SystemExit(
-            "no substitution could be placed in the alignment; check that "
-            "--ancestor matches the focal taxon's protein"
+            "the ancestral and derived rows are identical at the sites considered"
         )
-    aligned_ancestral = list(ctx_focal_protein(ctx))
-    lattice = _relattice(aligned_ancestral, mapped, args, subs, colmap)
-    print(f"[*] placed {lattice.n_substitutions} substitutions, "
-          f"{lattice.n_units} ordering units")
+
+    blocks = names = None
+    if args.blocks:
+        # resolved column indices are not what the user typed, so the groups are
+        # checked here rather than in blocks_from_groups, which cannot name the
+        # offending position in their coordinates
+        groups = json.load(open(args.blocks))
+        by_column = {s.index: i for i, s in enumerate(subs)}
+        blocks, names, claimed = [], [], set()
+        for group, tokens in groups.items():
+            members = []
+            for token, col in zip(tokens, resolve_positions(tokens, ends)):
+                if col not in by_column:
+                    raise SystemExit(
+                        f"--blocks: group {group!r} names position {token}, which is "
+                        f"not one of the {len(subs)} substitutions between these endpoints"
+                    )
+                if by_column[col] in claimed:
+                    raise SystemExit(
+                        f"--blocks: position {token} appears in more than one group"
+                    )
+                members.append(by_column[col])
+                claimed.add(by_column[col])
+            if members:
+                blocks.append(sorted(members))
+                names.append(group)
+        for i, sub in enumerate(subs):
+            if i not in claimed:
+                blocks.append([i])
+                names.append(sub.name())
+    lattice = Lattice(ends.ancestral_protein, subs, blocks=blocks, block_names=names)
+    source = ctx.ancestor_name or "column plurality"
+    counts = ends.class_counts()
+    breakdown = ", ".join(f"{n} {k}" for k, n in sorted(counts.items()))
+    print(f"[*] {lattice.n_substitutions} codon substitutions from {source} to "
+          f"{ctx.derived_name} ({breakdown}), {lattice.n_units} ordering units")
     provenance: Dict[str, object] = {
         "epistaeon_version": __version__,
         "model_variant": args.variant or "(explicit weights)",
         "weights": args.weights,
         "alignment": args.alignment,
         "tree": args.tree,
-        "focal_taxon": ctx.focal_name,
+        "distance_source": ctx.distance_source,
+        "derived_taxon": ctx.derived_name,
+        "ancestor_taxon": ctx.ancestor_name,
+        "ancestral_states": (
+            f"alignment row {ctx.ancestor_name!r}" if ctx.ancestor_name
+            else "plurality residue per column over the other rows (inferred, "
+                 "not a reconstruction)"
+        ),
+        "position_numbering": f"1-based residues of {ends.reference_name!r}",
+        "substitution_unit": "codon change (synonymous changes included)",
+        "substitution_classes": ends.class_counts(),
+        "endpoints_read_from_the_alignment": {
+            name: name in ctx.taxa
+            for name in (ctx.ancestor_name, ctx.derived_name) if name
+        },
         "n_taxa": ctx.n_taxa,
         "n_codons": ctx.n_codons,
         "scorer": args.scorer,
         "mode": mode,
         "t_sel": args.t_sel,
     }
+    if ends.plurality_support:
+        provenance["plurality_support"] = {
+            lattice.unit_name(u): min(
+                ends.plurality_support[s.index] for s in lattice.unit_members(u)
+            )
+            for u in range(lattice.n_units)
+        }
 
+    # Each genotype carries its own distance row, so its embedding costs a full
+    # forward pass and nothing is shared between genotypes. Exact inference
+    # touches all 2^n of them, which is the binding cost, not the DP itself.
+    n_genotypes = 1 << lattice.n_units
     if mode == "auto":
-        mode = "exact" if lattice.n_units <= EXACT_UNIT_LIMIT else "sample"
-    if mode == "exact" and lattice.n_units > EXACT_UNIT_LIMIT:
-        raise SystemExit(
-            f"exact mode needs <= {EXACT_UNIT_LIMIT} units, got {lattice.n_units}. "
-            "Group them with --blocks, restrict with --sites, or use --mode sample."
-        )
+        mode = ("exact" if lattice.n_units <= EXACT_UNIT_LIMIT
+                and n_genotypes <= args.max_genotypes else "sample")
+    if mode == "exact":
+        if lattice.n_units > EXACT_UNIT_LIMIT:
+            raise SystemExit(
+                f"exact mode needs <= {EXACT_UNIT_LIMIT} units, got {lattice.n_units}. "
+                "Group them with --blocks, restrict with --sites, or use --mode sample."
+            )
+        if n_genotypes > args.max_genotypes:
+            raise SystemExit(
+                f"exact mode over {lattice.n_units} units needs {n_genotypes} forward "
+                f"passes, above --max-genotypes {args.max_genotypes}. Group units with "
+                "--blocks, use --mode sample, or raise the budget."
+            )
     print(f"[*] inference mode: {mode}")
     provenance["mode"] = mode
 
-    cache = build_additive_cache(ctx, lattice)
-    ok, err = verify_additivity(ctx, lattice, cache)
-    provenance["forward_passes"] = cache.passes_used
-    provenance["additivity_ok"] = bool(ok)
-    provenance["additivity_relative_error"] = err
-    if not ok:
-        raise SystemExit(
-            f"additivity check failed (relative error {err:.3g}). The cached "
-            "embeddings are invalid for this checkpoint -- it appears to mix "
-            "information across sites. Re-run without the fast path."
-        )
-    # how large is a single-substitution signal, against float precision?
-    z_anc = cache.embedding(lattice, 0)
-    z_scale = max(1e-12, float(np.linalg.norm(z_anc)))
-    deltas = [
-        float(np.linalg.norm((d - a) / float(ctx.n_codons)) / z_scale)
-        for a, d in cache.per_unit.values()
+    genotypes = GenotypeRows(ctx, ends, lattice, budget=args.max_genotypes)
+    provenance["genotype_placement"] = (
+        "each intermediate is appended to the alignment as its own row, placed "
+        "by TN93 distance to every taxon, with MDS coordinates projected into "
+        "the existing frame; the endpoints are read from their own rows rather "
+        "than appended as copies of themselves"
+    )
+    if mode == "exact":
+        # one TN93 call for the whole lattice beats one per genotype
+        print(f"[*] placing {n_genotypes} genotypes by TN93")
+        genotypes.prefetch(range(n_genotypes))
+    else:
+        reachable = min(n_genotypes, args.n_samples * lattice.n_units)
+        print(f"[*] sampling will embed up to {reachable} genotypes, one forward "
+              f"pass each, against a budget of {args.max_genotypes}")
+
+    # How large is a single-substitution signal? Both genotypes compared here
+    # must be appended rows: measuring a unit against the ancestral endpoint
+    # instead measures the extra row, which is the larger effect by far.
+    z_scale = max(1e-12, float(np.linalg.norm(genotypes.embedding(0))))
+    probed = min(lattice.n_units, 6) if lattice.n_units > 1 else 0
+    deltas = []
+    for u in range(probed):
+        base = 1 << ((u + 1) % lattice.n_units)
+        deltas.append(float(
+            np.linalg.norm(genotypes.embedding(base | 1 << u) - genotypes.embedding(base))
+            / z_scale
+        ))
+    if deltas:
+        provenance["per_unit_relative_delta"] = {
+            "min": min(deltas), "median": float(np.median(deltas)), "max": max(deltas),
+            "units_probed": probed,
+            "float32_eps": float(np.finfo(np.float32).eps),
+            "_meaning": "||dz|| / ||z|| for one unit applied to a background "
+                        "that already carries another unit, so both genotypes "
+                        "are appended rows: how much of the embedding a single "
+                        "substitution moves, against float32 precision",
+        }
+    endpoint_steps = [
+        float(np.linalg.norm(genotypes.embedding(1 << u) - genotypes.embedding(0)) / z_scale)
+        for u in range(probed or lattice.n_units)
     ]
-    provenance["per_unit_relative_delta"] = {
-        "min": min(deltas), "median": float(np.median(deltas)), "max": max(deltas),
-        "float32_eps": float(np.finfo(np.float32).eps),
-        "_meaning": "||dz|| / ||z|| for one unit: how much of the embedding a "
-                    "single substitution moves, against float32 precision",
+    provenance["first_step_relative_delta"] = {
+        "median": float(np.median(endpoint_steps)),
+        "_meaning": "the same measure for the first step out of the ancestral "
+                    "endpoint, which is read from its own row while the "
+                    "intermediate is appended. The gap against "
+                    "per_unit_relative_delta is the frame shift, not biology.",
     }
 
-    scorer, phi = _build_scorer(args.scorer, ctx, lattice, cache, args, provenance)
+    scorer, phi = _build_scorer(
+        args.scorer, ctx, lattice, genotypes, anchor_name, args, provenance
+    )
 
     focal_unit = None
     permissive = None
@@ -265,6 +291,17 @@ def cmd_order(args: argparse.Namespace) -> int:
         **({"n_samples": args.n_samples, "seed": args.seed} if mode == "sample" else {}),
     )
     print(f"[*] {res.summary()}")
+    provenance["forward_passes"] = genotypes.forward_passes
+    provenance["tn93_calls"] = genotypes.tn93_calls
+    provenance["genotypes_read_from_a_real_row"] = genotypes.real_row_hits
+    provenance["endpoint_frame_shift"] = {
+        "value": genotypes.endpoint_frame_shift(),
+        "_meaning": "an endpoint is embedded among N taxa and an intermediate "
+                    "among N + 1; this is how far that extra row moves a "
+                    "taxon's embedding, relative to its norm. Compare it with "
+                    "per_unit_relative_delta before trusting a step that "
+                    "crosses between the two.",
+    }
 
     payload: Dict[str, object] = {
         "provenance": provenance,
@@ -273,8 +310,14 @@ def cmd_order(args: argparse.Namespace) -> int:
                 "unit": u,
                 "name": lattice.unit_name(u),
                 "members": [
-                    {"index0": s.index, "ancestral": s.ancestral,
-                     "derived": s.derived, "is_indel": s.is_indel}
+                    {"column0": s.index,
+                     "residue_number": ends.residue_number.get(s.index),
+                     "ancestral": s.ancestral,
+                     "derived": s.derived,
+                     "ancestral_codon": ends.ancestral_codons[s.index],
+                     "derived_codon": ends.derived_codons[s.index],
+                     "class": ends.classes.get(s.index),
+                     "is_indel": s.is_indel}
                     for s in lattice.unit_members(u)
                 ],
             }
@@ -299,9 +342,19 @@ def cmd_order(args: argparse.Namespace) -> int:
             "A normalised P(MAP) near the uniform baseline means the scorer is "
             "not discriminating, not that all orderings are equally viable.",
             "The checkpoint scores each codon site independently, so no part of "
-            "this pipeline conditions a site on the rest of its own sequence.",
+            "this pipeline conditions a site on the rest of its own sequence. "
+            "What differs between two genotypes' forward passes is the "
+            "genotype's own distances to the other taxa, not cross-site "
+            "context within the genotype.",
         ],
     }
+    if not ctx.ancestor_name:
+        payload["caveats"].append(
+            "No --ancestor row was given, so each ancestral state is the "
+            "plurality residue in that alignment column. That is a consensus, "
+            "not an ancestral reconstruction, and it can differ from the real "
+            "ancestor at any column; see provenance.plurality_support."
+        )
 
     if res.accessible and res.map_order:
         phis = [phi(0)]
@@ -341,21 +394,34 @@ def build_parser() -> argparse.ArgumentParser:
     o = sub.add_parser("order", help="rank orderings of the substitutions between two sequences")
     o.add_argument("--alignment", required=True)
     o.add_argument("--tree", default=None, help="Newick tree; omit with --use-tn93")
-    o.add_argument("--ancestor", required=True, help="FASTA with the ancestral sequence")
-    o.add_argument("--descendant", required=True, help="FASTA with the derived sequence")
-    o.add_argument("--focal-taxon", default=None, help="alignment row genotypes are written into")
+    o.add_argument("--focal-taxon", "--descendant", "--derived", required=True,
+                   dest="focal_taxon", metavar="NAME",
+                   help="alignment row holding the derived (end-point) sequence")
+    o.add_argument("--ancestor", default=None, metavar="NAME",
+                   help="alignment row holding the ancestral sequence; omit to take "
+                        "each ancestral state from its column's plurality residue "
+                        "and anchor phi at the [ROOT] embedding")
     o.add_argument("--scorer", default="potts-metropolis",
                    choices=["potts-metropolis", "typicality-gate", "softmax-repaired", "dphi-product"])
     o.add_argument("--mode", default="auto", choices=["auto", "exact", "sample"])
-    o.add_argument("--blocks", default=None, help="JSON mapping group name -> 1-based positions")
-    o.add_argument("--sites", default=None, help="file of 1-based positions to restrict to")
-    o.add_argument("--anchor", default="ancestral-sequence",
-                   choices=["ancestral-sequence", "root-token"])
+    o.add_argument("--blocks", default=None,
+                   help="JSON mapping group name -> positions, numbered as --sites")
+    o.add_argument("--sites", default=None,
+                   help="file of positions to restrict to: 1-based residues of the "
+                        "ancestor row (or of the derived row when there is none), "
+                        "or c<N> for 1-based alignment column N")
+    o.add_argument("--anchor", default=None,
+                   choices=["ancestral-sequence", "root-token"],
+                   help="phi anchor; defaults to the ancestral sequence when "
+                        "--ancestor is given and to root-token otherwise")
     o.add_argument("--alpha", type=float, default=None, help="isometric scale for phi")
     o.add_argument("--t-sel", type=float, default=0.5, dest="t_sel")
     o.add_argument("--viability-floor", type=float, default=None)
     o.add_argument("--focal-unit", default=None, help="unit index for designated marginals")
     o.add_argument("--permissive-units", default=None, help="comma-separated unit indices")
+    o.add_argument("--max-genotypes", type=int, default=4096,
+                   help="forward-pass budget for exact mode, which embeds all 2^n "
+                        "genotypes (default 4096)")
     o.add_argument("--n-samples", type=int, default=20000)
     o.add_argument("--seed", type=int, default=0)
     o.add_argument("--ne", type=float, default=None, help="effective population size")

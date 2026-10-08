@@ -4,7 +4,7 @@ epistaeon/couplings.py
 Potts terms taken from the model, for the default scorer.
 
 Site terms are the model's own output: the change in predicted selection
-evidence (LRT) at a site when the focal taxon's residue is switched from the
+evidence (LRT) at a site when the genotype row's residue is switched from the
 ancestral to the derived state. Couplings come from hyphaeon's attribution
 co-selection network (CESI), which scores how much two sites' attribution
 vectors move together across taxa.
@@ -15,30 +15,23 @@ constant. It supplies the background dependence that the site-independent
 encoder cannot, but it is not learned site-site coupling.
 """
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
-import numpy as np
-import torch
-
-from .background import Context, _tensors_for
+from .background import Context, GenotypeRows
 from .lattice import Lattice
 
 
-def site_terms_from_lrt(ctx: Context, lattice: Lattice) -> Dict[int, float]:
-    """f_u = LRT(derived state) - LRT(ancestral state) at the unit's sites."""
-    ctx.model.eval()
+def site_terms_from_lrt(genotypes: GenotypeRows, lattice: Lattice) -> Dict[int, float]:
+    """f_u = LRT(derived state) - LRT(ancestral state) at the unit's sites.
+
+    Both states are scored as their own genotype row, the same way the
+    embeddings are, so the site term sees the genotype placed by its own
+    distances rather than borrowing a real taxon's position.
+    """
     out: Dict[int, float] = {}
-    with torch.no_grad():
-        for u in range(lattice.n_units):
-            sites = sorted({s.index for s in lattice.unit_members(u)})
-            total = 0.0
-            for mask, sign in ((1 << u, 1.0), (0, -1.0)):
-                c, a = _tensors_for(ctx, lattice, mask, sites=sites)
-                y, *_ = ctx.model.forward_cached(
-                    c.to(ctx.device), a.to(ctx.device), ctx.tree_cache
-                )
-                total += sign * float(torch.clamp(y, min=0.0).sum().item())
-            out[u] = total
+    for u in range(lattice.n_units):
+        sites = sorted({s.index for s in lattice.unit_members(u)})
+        out[u] = genotypes.lrt(1 << u, sites) - genotypes.lrt(0, sites)
     return out
 
 

@@ -257,11 +257,15 @@ def sample(
     C = np.zeros((n, n))
     R = np.zeros((n, n))
     des_counts: Dict[int, float] = {}
-    wsum = 0.0
-    wsq = 0.0
     best_logp = -inf
     best_order: List[int] = []
     pset = set(int(p) for p in (permissive_units or []))
+    # Log weights are kept and shifted by their maximum before being
+    # exponentiated. Exponentiating each one as it is drawn underflows to zero
+    # whenever the path weights are small -- which a viability scorer makes
+    # routine -- and every estimate then divides by a zero total, which is
+    # indistinguishable from every ordering having been blocked.
+    drawn: List[Tuple[List[int], float]] = []
 
     for _ in range(int(n_samples)):
         mask = 0
@@ -291,11 +295,24 @@ def sample(
             mask |= 1 << u
         if blocked:
             continue
-        iw = float(np.exp(log_p - log_q))
-        wsum += iw
-        wsq += iw * iw
+        drawn.append((list(order), log_p - log_q))
         if log_p > best_logp:
             best_logp, best_order = log_p, list(order)
+
+    if not drawn:
+        return TrajectoryResult(
+            mode="sample", n_units=n, unit_names=names, map_order=[],
+            map_log_prob=-inf, log_total_weight=-inf, map_prob_normalised=0.0,
+            before=np.full((n, n), np.nan), position=np.full((n, n), np.nan),
+            accessible=False, note="no unblocked ordering was sampled",
+        )
+
+    log_iws = np.array([lw for _order, lw in drawn])
+    shift = float(log_iws.max())
+    weights = np.exp(log_iws - shift)
+    wsum = float(weights.sum())
+    wsq = float((weights * weights).sum())
+    for (order, _lw), iw in zip(drawn, weights):
         pos_of = {u: k for k, u in enumerate(order)}
         for i in range(n):
             R[i, pos_of[i]] += iw
@@ -306,14 +323,6 @@ def sample(
             before_focal = {u for u in order[: pos_of[focal_unit]]}
             present = len(pset & before_focal)
             des_counts[present] = des_counts.get(present, 0.0) + iw
-
-    if wsum <= 0.0:
-        return TrajectoryResult(
-            mode="sample", n_units=n, unit_names=names, map_order=[],
-            map_log_prob=-inf, log_total_weight=-inf, map_prob_normalised=0.0,
-            before=np.full((n, n), np.nan), position=np.full((n, n), np.nan),
-            accessible=False, note="no unblocked ordering was sampled",
-        )
 
     C /= wsum
     R /= wsum
@@ -327,7 +336,8 @@ def sample(
     ess = (wsum * wsum) / wsq if wsq > 0 else 0.0
     # log Z estimate = log(mean importance weight) + log(n!) is not formed here;
     # report the sampled mean weight so P(MAP) can be scaled consistently.
-    log_mean_w = float(np.log(wsum / max(1, int(n_samples))))
+    # the shift taken out of the weights above goes back in here
+    log_mean_w = float(np.log(wsum / max(1, int(n_samples)))) + shift
     return TrajectoryResult(
         mode="sample", n_units=n, unit_names=names, map_order=best_order,
         map_log_prob=float(best_logp), log_total_weight=log_mean_w,
