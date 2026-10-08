@@ -1,0 +1,11 @@
+{
+  "dropout": 0.1,
+  "embed_dim": 384,
+  "max_k": 32,
+  "max_species": 256,
+  "num_heads": 12,
+  "num_layers": 6,
+  "num_thresholds": 16,
+  "num_tokens": 66,
+  "window_size": 1
+}
