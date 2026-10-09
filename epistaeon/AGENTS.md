@@ -64,31 +64,35 @@ appears to show background dependence, establish where it came from.
 **Two consequences of that:**
 
 1. A genotype's own residues cannot inform each other. What distinguishes two
-   genotypes' forward passes is **where each sits among the other taxa**: an
-   intermediate is appended to the alignment as its own row and placed by TN93
-   distance to all of them, with its MDS coordinates projected into the
-   existing frame. Each intermediate therefore costs one full forward pass, and
-   exact mode over `n` units costs `2^n` of them — the binding cost of a run,
-   and what `--max-genotypes` bounds.
+   genotypes' forward passes is **where each sits among the other taxa**.
 
-   **The endpoints are not appended.** The ancestral and derived sequences are
-   rows of the alignment already, so they are read from there rather than
-   duplicated beside themselves. The price is that an endpoint is embedded
-   among `N` taxa and an intermediate among `N + 1`, and **the extra row moves
-   an embedding more than a substitution does**. Measured on
-   `HLmusEve1 → hg38` with 12 taxa:
+   **A genotype replaces the derived taxon's sequence**; it is never appended
+   as an extra row. An extra row is an extra *taxon*, and the model reads taxa
+   as evidence of a realized evolutionary process — so appending a genotype
+   would feed the embedding of every site evidence for a sequence that may
+   never have been viable. The alignment therefore keeps exactly its own taxa,
+   and the lineage under study occupies the row it already has.
+
+   Because that row's sequence changes, **the distance matrix is recomputed
+   from the modified alignment** (TN93 for the host against every other taxon)
+   and its MDS frame with it. Only the host's row and column can change, since
+   every other pair is untouched and TN93 is pairwise; the patch is verified
+   against a full recompute each run (`matrix_patch_max_error`, 0.0 observed).
+
+   Each genotype costs one full forward pass, so exact mode over `n` units
+   costs `2^n` — the binding cost of a run, and what `--max-genotypes` bounds.
+   At the derived end the host row holds its own sequence, so the alignment,
+   its matrix and its frame are the originals and the embedding is that
+   taxon's own (verified identical). Measured on `HLmusEve1 → hg38`, 12 taxa:
 
    | what | relative ‖dz‖ |
    | --- | --- |
-   | one substitution, appended vs appended | 0.0039 |
-   | the first step, endpoint row vs appended | 0.0225 |
-   | the extra row, measured on a bystander taxon | 0.0088 |
+   | one substitution | 0.0030 – 0.0048 |
+   | the recomputed frame, on a bystander taxon | 0.0001 |
 
-   So the step out of the ancestral endpoint (and into the derived one, when
-   the lattice is unrestricted) is **~6× a real substitution and mostly frame
-   change, not biology**. `provenance.first_step_relative_delta` and
-   `endpoint_frame_shift` report it per run. Do not read an ordering that turns
-   on an endpoint-adjacent step without checking those two numbers first.
+   The frame moves ~30× less than the signal, so recomputing it per genotype
+   is benign; `provenance.background_frame_shift` reports it per run. Check it
+   against `per_unit_relative_delta` before trusting an ordering.
 2. For any state function φ, `Σ Δφ` along a path telescopes to
    `φ(derived) − φ(ancestor)` — **identical for every ordering**. A scorer
    built on plain `exp(Δφ/T)` gives a uniform distribution and a before-matrix
@@ -119,6 +123,7 @@ curl -sL -o epistaeon/data/model/model.safetensors \
 ```bash
 python3 -m epistaeon.cli order \
   --alignment epistaeon/data/alignments/toga2/NR3C1.codonified.fa \
+  --use-tn93 \
   --focal-taxon AncGR2 \
   --ancestor AncGR1 \
   --sites sites.txt \
@@ -137,10 +142,13 @@ python3 -m epistaeon.cli order \
 `--ancestor` names the ancestral one. Nothing is realigned, so no numbering
 mapping is involved. `--max-species` **keeps both endpoints** whatever Faith's
 PD would have chosen — without that, downsampling drops exactly the
-well-sampled taxa (`hg38` among them) that make natural endpoints. An endpoint
-that is still missing from the analysed taxa (absent from the tree) is appended
-as its own row like an intermediate, and the run says so; see
-`provenance.endpoints_read_from_the_alignment`.
+well-sampled taxa (`hg38` among them) that make natural endpoints.
+
+**`--focal-taxon` must be one of the analysed taxa**, because every genotype
+replaces that row; a name that duplicate pruning collapsed resolves onto the
+identical row that was kept. `--ancestor` need only be *in* the alignment: it
+supplies codons, and if it is not an analysed taxon it simply is not part of
+the background (`provenance.ancestor_in_background`).
 
 **Omit `--ancestor`** and each ancestral state becomes the **plurality residue
 of its alignment column** over the other rows, with φ anchored at the model's
@@ -149,9 +157,28 @@ reconstruction: it can differ from the real ancestor at any column, so check
 `provenance.plurality_support` before reading the result as history. To use a
 reconstruction such as AncGR1, add it to the alignment as a row and name it.
 
-`--tree` is optional. Omit it with `--use-tn93` and the distances between taxa
-are estimated from the alignment itself, which is also how every genotype is
-placed. Results from the two are not interchangeable.
+**`order` requires `--use-tn93`**, and refuses a tree. Each genotype's
+distances are recomputed from its sequence, and **a tree has no branch for a
+sequence that is not in it** — that alone rules out the tree path, whatever the
+scale.
+
+Patristic and TN93 distances are both **substitutions per site**, so they are
+the same kind of quantity, but they are not the same matrix here.
+`speciesTree.nh` is one tree shipped once for all seven gene alignments, so its
+branch lengths are a genome-wide scale, while TN93 measures the gene in front
+of you — and NR3C1 is conserved. Measured over 40 taxa:
+
+| | median | max |
+| --- | --- | --- |
+| patristic, from `speciesTree.nh` | 0.759 | 1.441 |
+| TN93, from `NR3C1.codonified.fa` | 0.114 | 0.178 |
+
+They correlate at r = 0.84 (Spearman 0.84), but **no single factor reconciles
+them**: the best scalar fit is `tn93 ≈ 0.137 × patristic` at R² = 0.46, and the
+ratio falls from 0.168 for the closest quartile of pairs to 0.123 for the
+farthest, which is TN93 saturating. So a TN93 row patched into a patristic
+matrix would read as far closer to every taxon than any real sequence is. The
+other commands still take a tree.
 
 **A substitution is a codon change, synonymous ones included**, so applying
 every unit reproduces the derived row **exactly, nucleotide for nucleotide**
@@ -231,11 +258,13 @@ Check these before believing anything:
   that consensus is. A support near 0.5 is a coin toss, not an ancestor.
 - **`provenance.endpoints_in_background`** — false means that endpoint supplied
   codons without being one of the analysed taxa.
-- **`provenance.forward_passes`** — one per distinct intermediate; the run's
-  cost. `genotypes_read_from_a_real_row` counts the endpoints that came from
-  the alignment instead.
-- **`provenance.first_step_relative_delta`** vs **`per_unit_relative_delta`** —
-  the endpoint-frame artifact against the real substitution signal. See §2.
+- **`provenance.forward_passes`** — one per distinct genotype; the run's cost.
+  `genotypes_read_from_a_real_row` counts the genotypes that turned out to be
+  the host's own sequence and needed no pass.
+- **`provenance.background_frame_shift`** vs **`per_unit_relative_delta`** —
+  the recomputed-frame wobble against the substitution signal. See §2.
+- **`provenance.matrix_patch_max_error`** — 0.0 unless patching the host's row
+  and column ever stops matching a full TN93 recompute.
 - **`provenance.per_unit_relative_delta`** — how far one substitution moves the
   embedding, against float32 precision.
 - **`relative_branch_position_monotone`** — φ can overshoot, so a "fraction"

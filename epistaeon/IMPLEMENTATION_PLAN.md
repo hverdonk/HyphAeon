@@ -79,23 +79,36 @@ additivity test. That shortcut wrote the genotype into an existing taxon's row,
 which gave it that taxon's phylogenetic position and left the ancestral
 background a chimera of the focal row.
 
-As implemented, each **intermediate** is instead its own row: appended to the
-alignment, placed by TN93 distance to every taxon, with MDS coordinates
-projected into the existing frame (Gower) so the real taxa and the `[ROOT]`
-origin are identical across genotypes. Each intermediate's distance row is its
-own, so nothing is shared between them and embeddings are **not** additive:
+As implemented, each genotype **replaces the derived taxon's sequence** in the
+alignment. It is not appended: an extra row is an extra taxon, and the model
+reads taxa as evidence of a realized evolutionary process, so an appended
+genotype would inform the embedding of every site with evidence for a sequence
+that may never have been viable. The alignment keeps exactly its own taxa.
 
-- one full forward pass per distinct intermediate, memoised by mask
+Because the host row's sequence changes, the **distance matrix is recomputed
+from the modified alignment** -- TN93 for the host against every other taxon --
+and its MDS frame with it. Only the host's row and column can change, since
+every other pair is untouched and TN93 is pairwise; the patch is checked
+against a full recompute (`matrix_patch_max_error`). Embeddings are **not**
+additive:
+
+- one full forward pass per distinct genotype, memoised by mask
 - exact mode over `n` units costs `2^n` passes, bounded by `--max-genotypes`
 - one TN93 call for the whole lattice in exact mode; one per genotype when
   sampling
 
-The **endpoints are read from their own rows** rather than appended as copies
-of themselves, so no genotype duplicates a real taxon. That leaves an endpoint
-embedded among `N` taxa and an intermediate among `N + 1`, a frame difference
-worth ~6x one substitution; it is measured per run as
-`first_step_relative_delta` against `per_unit_relative_delta` and must be
-checked before trusting an endpoint-adjacent step.
+At the derived end the host row holds its own sequence, so the alignment, its
+matrix and its frame are the originals and the embedding is that taxon's own.
+Recomputing the frame moves a bystander taxon ~30x less than one substitution
+moves the host (0.0001 against 0.0030-0.0048), reported per run as
+`background_frame_shift`.
+
+Consequence: `order` requires `--use-tn93`. A genotype has no branch in any
+tree, so its row can only come from its sequence. Patristic and TN93 distances
+are both subs/site, but `speciesTree.nh` is one genome-wide tree shared by all
+seven gene alignments while TN93 measures this gene: on NR3C1 the medians are
+0.76 against 0.11, they correlate at r = 0.84, and the best single factor fits
+at only R^2 = 0.46.
 
 ## Scoring layer (`scoring.py`)
 
@@ -186,11 +199,12 @@ row when there is none, with `c<N>` for a column that row is gapped at.
 3. **Inert-scorer regression.** Feeding pure `exp(ΔE/T)` weights must yield a
    uniform distribution and `C = 0.5` everywhere; the default scorer must *not*.
    This is the test that catches a telescoping scorer, the original design error.
-4. **Genotype placement and endpoint exactness.** Re-projecting a point already
-   in the MDS configuration returns its own coordinates; an endpoint resolves to
-   its row whether or not it survived into the analysed taxa; and applying every
-   unit reproduces the derived row nucleotide for nucleotide (TN93 0.0 at both
-   ends of the branch, checked on two real ancestor rows).
+4. **Genotype placement and endpoint exactness.** Patching the host's row and
+   column equals a full TN93 recompute of the modified alignment (0.0 observed);
+   at the derived end the matrix, frame and embedding are the unmodified
+   alignment's; the taxon count is identical for every genotype; and applying
+   every unit reproduces the derived row nucleotide for nucleotide (TN93 0.0 at
+   both ends, checked on two real ancestor rows).
 5. **Zero-weight handling.** A blocked edge gives `-inf` not `NaN`; an all-blocked
    lattice reports "no accessible path" — and path weights too small to
    exponentiate must *not* be reported that way.

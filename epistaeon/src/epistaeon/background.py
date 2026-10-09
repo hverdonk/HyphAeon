@@ -15,23 +15,21 @@ nucleotide for nucleotide. Ordering only the amino-acid changes would leave the
 end of the trajectory short of the derived sequence at every synonymous column,
 which a nucleotide distance then sees.
 
-Every intermediate genotype is scored in its own row. The genotype's codons are
-taken from the two endpoint rows, appended to the alignment as an extra taxon,
-and placed among the others by TN93 distances to every real sequence. Its MDS
-coordinates are projected into the existing frame (Gower's out-of-sample
-formula) rather than recomputed, so the real taxa, their distances and the
-[ROOT] origin are identical for every genotype -- the only thing that changes
-between two forward passes is the genotype itself.
+A genotype is scored by **replacing the derived taxon's sequence** with it. It
+is never added as an extra row: an extra row is an extra taxon, and the model
+reads taxa as evidence of a realized evolutionary process, so an appended
+genotype would inform how every site is embedded with evidence for a sequence
+that may never have been viable. The alignment keeps exactly its own taxa and
+the lineage under study occupies the row it already has.
 
-The endpoints are not appended, because they are not hypothetical: the
-ancestral and derived sequences are rows of the alignment already, and they are
-read from there rather than duplicated beside themselves. The consequence to
-report is that an endpoint is embedded among N taxa and an intermediate among
-N + 1; `GenotypeRows.endpoint_frame_shift` measures what that is worth.
+That makes the alignment a different alignment, so its **distance matrix is
+recomputed from it** -- TN93 for the host against every other taxon -- and its
+MDS frame with it. Only the host's row and column can change, because every
+other pair of sequences is untouched and TN93 is a function of the pair alone.
 
-Because each genotype brings its own distance row, the per-site hidden states
-of one genotype are not reusable for another, and every genotype costs one
-full forward pass. Embeddings are memoised by mask.
+Because each genotype brings its own matrix, the per-site hidden states of one
+genotype are not reusable for another, and every genotype costs one full
+forward pass. Embeddings are memoised by mask.
 """
 
 from collections import Counter
@@ -43,7 +41,9 @@ import torch
 
 from aeon_core.dataset import (
     CODON_TO_AA,
+    compute_mds_coordinates,
     compute_tn93_cross_distance_matrix,
+    compute_tn93_distance_matrix,
     get_aa_token,
     get_codon_token,
     load_alignment_and_tree,
@@ -240,23 +240,6 @@ def resolve_positions(tokens: Iterable, endpoints: Endpoints) -> List[int]:
     return out
 
 
-# -- MDS placement ---------------------------------------------------------------
-
-def project_mds(base_dist: np.ndarray, base_coords: np.ndarray, new_dist: np.ndarray) -> np.ndarray:
-    """Place one new point in an existing classical-MDS frame (Gower 1968).
-
-    The new point's inner products with the centred configuration are recovered
-    from its squared distances, then regressed onto the existing coordinates.
-    Re-projecting a point already in the configuration returns its coordinates.
-    """
-    D2 = np.asarray(base_dist, dtype=np.float64) ** 2
-    d2 = np.asarray(new_dist, dtype=np.float64) ** 2
-    b = -0.5 * (d2 - d2.mean() - D2.mean(axis=1) + D2.mean())
-    X = np.asarray(base_coords, dtype=np.float64)
-    coords, *_ = np.linalg.lstsq(X, b, rcond=None)
-    return coords
-
-
 # -- the loaded alignment -----------------------------------------------------------
 
 @dataclass
@@ -274,6 +257,7 @@ class Context:
     n_codons: int
     device: torch.device
     derived_name: str
+    derived_index: int               # the host row every genotype replaces
     ancestor_name: Optional[str] = None
     distance_source: str = "tree"
     variant: Optional[str] = None
@@ -309,6 +293,30 @@ def load_context(
     use_tn93: bool = False,
 ) -> Context:
     """Load alignment + distances + model and locate the endpoint rows."""
+    # Patristic and TN93 distances are both substitutions per site, but they are
+    # not the same matrix. A hypothetical genotype has no branch in any tree, so
+    # its row can only be computed from its sequence; and the tree here is one
+    # genome-wide tree shared by every gene alignment, while TN93 measures the
+    # gene in front of you. On NR3C1 that is a ~7x gap (patristic median 0.76
+    # against 0.11), the two correlate at r = 0.84, and no single factor
+    # reconciles them (R^2 = 0.46 for the best scalar fit, the ratio falling
+    # with distance as TN93 saturates). So the host's row cannot be put on the
+    # tree's scale, and a patched row would read as far closer to every taxon
+    # than any real sequence is.
+    if not (use_tn93 or (tree is not None
+                         and str(tree).strip().lower() in ("tn93", "none", "skip"))):
+        raise SystemExit(
+            "`order` needs --use-tn93. Each genotype's distances are recomputed "
+            "from its sequence, and a tree has no branch for a sequence that is "
+            "not in it. Patristic and TN93 distances are both substitutions per "
+            "site, but a shared genome-wide tree and a single gene's TN93 are "
+            "not interchangeable: on NR3C1 the patristic distances run ~7x the "
+            "TN93 ones and no single factor reconciles them, so a TN93 row "
+            "patched into a patristic matrix would place the genotype far "
+            "closer to every taxon than any real sequence is. Pass --use-tn93 "
+            "(the tree is then unused) and re-run."
+        )
+
     # Downsampling is applied here rather than inside the loader, because the
     # endpoints have to survive it: the derived row is where every genotype is
     # written, and Faith's PD picks divergent taxa, which drops exactly the
@@ -328,19 +336,26 @@ def load_context(
         if a_name == d_name:
             raise SystemExit(f"--ancestor and --focal-taxon both resolve to {d_name!r}")
 
-    # An endpoint that is one of the analysed taxa is read from its own row
-    # rather than appended as a copy of itself, so it is worth resolving a
-    # pruned duplicate onto the identical sequence that was kept.
+    # Every genotype replaces this row's sequence, so it has to be one of the
+    # analysed taxa. A pruned duplicate resolves onto the identical sequence
+    # that was kept, which is the same alignment row for this purpose.
     if d_name not in taxa:
         same = [t for t in taxa if seqs[t] == seqs[d_name]]
         if same:
             print(f"[*] --focal-taxon {d_name!r} is identical to {same[0]!r}, which "
-                  "duplicate pruning kept; using that row as the derived endpoint")
+                  "duplicate pruning kept; genotypes replace that row")
             d_name = same[0]
+        else:
+            raise SystemExit(
+                f"--focal-taxon {d_name!r} is in the alignment but not among the "
+                f"{len(taxa)} analysed taxa, and it is the row every genotype "
+                "replaces. It is missing from the tree, so either add it there "
+                "or run with --use-tn93."
+            )
 
     keep = [t for t in (d_name, a_name) if t is not None and t in taxa]
     if max_species is not None and len(taxa) > max_species:
-        from aeon_core.dataset import compute_mds_coordinates, downsample_taxa_faith_pd
+        from aeon_core.dataset import downsample_taxa_faith_pd
         pool = [i for i, t in enumerate(taxa) if t not in keep]
         budget = max(1, int(max_species) - len(keep))
         _sub, chosen = downsample_taxa_faith_pd(
@@ -357,12 +372,9 @@ def load_context(
         print(f"[*] Downsampling: kept {len(taxa)} taxa, including the endpoints "
               f"({', '.join(keep)})")
 
-    for role, name in (("--focal-taxon", d_name), ("--ancestor", a_name)):
-        if name is not None and name not in taxa:
-            print(f"[*] {role} {name!r} supplies codons but is not one of the "
-                  f"{len(taxa)} analysed taxa, so that endpoint is appended as "
-                  "its own row like an intermediate rather than read from the "
-                  "alignment")
+    if a_name is not None and a_name not in taxa:
+        print(f"[*] --ancestor {a_name!r} supplies codons but is not one of the "
+              f"{len(taxa)} analysed taxa, so it is not part of the background")
 
     device = get_device(cpu=cpu)
     model = load_model(weights=weights, variant=variant, device=device)
@@ -373,7 +385,7 @@ def load_context(
         dist=dist,
         mds=z.squeeze(0).numpy().astype(np.float64),
         tree_cache=tree_cache, taxa=taxa, seqs=seqs, n_codons=L, device=device,
-        derived_name=d_name, ancestor_name=a_name,
+        derived_name=d_name, derived_index=taxa.index(d_name), ancestor_name=a_name,
         distance_source="tn93" if tn93 else "tree", variant=variant,
     )
 
@@ -381,20 +393,26 @@ def load_context(
 # -- genotypes in their own row ---------------------------------------------------------
 
 class GenotypeRows:
-    """Intermediates get their own row; the endpoints use the rows they already have.
+    """Each genotype replaces the derived taxon's sequence in the alignment.
 
-    An intermediate genotype is a sequence the alignment does not contain, so
-    it is appended as an extra row and placed by TN93 distance to every taxon,
-    with its MDS coordinates projected into the alignment's own frame so the
-    real taxa and the [ROOT] origin never move between genotypes.
+    A genotype is not a taxon. Appending it as an extra row would hand the
+    model one more piece of evidence about a realized evolutionary process --
+    evidence for a sequence that may never have been viable -- and that
+    evidence would then inform how every site is embedded. So the alignment
+    keeps exactly its own taxa, and the lineage under study occupies the row it
+    already has: the derived taxon's.
 
-    The two endpoints are different: they *are* taxa. The ancestral and derived
-    sequences already sit in the alignment, so they are read from there rather
-    than appended a second time -- no genotype duplicates a real row.
+    Because that row's sequence changes, the alignment the model is given is a
+    different alignment, and its **distance matrix is recomputed from it** --
+    TN93 for the host against every other taxon, then MDS from the result. Only
+    the host's row and column can change, since every other pair of sequences
+    is untouched and TN93 is pairwise, so patching those entries is identical
+    to recomputing the whole matrix (`check_matrix_patch_equals_full_recompute`
+    verifies it).
 
-    The cost of that is a frame difference the caller must report: an endpoint
-    is embedded among N taxa and an intermediate among N + 1, and an extra row
-    shifts every embedding slightly. `endpoint_frame_shift` measures it.
+    At the derived end of the branch the host row holds its original sequence,
+    so the alignment, its matrix and its MDS frame are the originals, and the
+    genotype's embedding is the derived taxon's own.
     """
 
     def __init__(
@@ -416,6 +434,9 @@ class GenotypeRows:
             col: (get_codon_token(x), get_aa_token(x))
             for col, x in endpoints.derived_codons.items()
         }
+        self.host = ctx.derived_index
+        self._others = [i for i in range(ctx.n_taxa) if i != self.host]
+        self._other_names = [ctx.taxa[i] for i in self._others]
         self._dist_rows: Dict[int, np.ndarray] = {}
         self._embeddings: Dict[int, np.ndarray] = {}
         self.forward_passes = 0
@@ -423,18 +444,16 @@ class GenotypeRows:
         self.real_row_hits = 0
 
     def real_row(self, mask: int) -> Optional[int]:
-        """Index of the taxon this genotype *is*, if it is one of the endpoints.
+        """The host's index when this genotype is the host's own sequence.
 
-        Only the endpoint taxa count. An intermediate that happens to match
-        some other taxon is still a hypothetical genotype on this branch, and
-        collapsing it onto that taxon would change what is being scored.
+        Only the host row counts. A genotype matching some other taxon is
+        still a hypothetical sequence in the host's place, and the alignment it
+        produces is not that taxon's alignment.
         """
         if not self.use_real_row:
             return None
-        seq = self.nucleotides(mask)
-        for name in (self.ctx.ancestor_name, self.ctx.derived_name):
-            if name is not None and name in self.ctx.taxa and self.ctx.seqs[name] == seq:
-                return self.ctx.taxa.index(name)
+        if self.nucleotides(mask) == self.ctx.seqs[self.ctx.derived_name]:
+            return self.host
         return None
 
     # sequence ------------------------------------------------------------------
@@ -447,9 +466,9 @@ class GenotypeRows:
     def nucleotides(self, mask: int) -> str:
         return "".join(self.codons(mask))
 
-    # placement -----------------------------------------------------------------
+    # the modified alignment's distances ------------------------------------------
     def prefetch(self, masks: Iterable[int]) -> None:
-        """TN93 distances for every listed intermediate that lacks them, in one call."""
+        """TN93 distances for every listed genotype that lacks them, in one call."""
         todo = [
             m for m in dict.fromkeys(masks)
             if m not in self._dist_rows and self.real_row(m) is None
@@ -457,67 +476,100 @@ class GenotypeRows:
         if not todo:
             return
         ids = [f"__epistaeon_genotype_{m}" for m in todo]
-        pool = {t: self.ctx.seqs[t] for t in self.ctx.taxa}
+        pool = {t: self.ctx.seqs[t] for t in self._other_names}
         pool.update({gid: self.nucleotides(m) for gid, m in zip(ids, todo)})
-        dist = compute_tn93_cross_distance_matrix(pool, ids, self.ctx.taxa)
+        dist = compute_tn93_cross_distance_matrix(pool, ids, self._other_names)
         self.tn93_calls += 1
         for m, row in zip(todo, dist):
             self._dist_rows[m] = np.asarray(row, dtype=np.float64)
 
     def distances(self, mask: int) -> np.ndarray:
-        """TN93 distance from this genotype to every taxon."""
+        """TN93 distance from this genotype to each of the other taxa."""
         self.prefetch([mask])
+        if mask not in self._dist_rows:            # the host's own sequence
+            self._dist_rows[mask] = self.ctx.dist[self.host][self._others]
         return self._dist_rows[mask]
 
-    def _assemble(self, mask: int, sites: Optional[Sequence[int]] = None):
-        """Alignment tensors with this genotype appended as row N, plus its cache."""
-        ctx = self.ctx
+    def matrix(self, mask: int) -> np.ndarray:
+        """The modified alignment's distance matrix.
+
+        Only the host's row and column move: every other pair of sequences is
+        unchanged and TN93 is a function of the pair alone.
+        """
         row = self.distances(mask)
-        n = ctx.n_taxa
-        dist = np.zeros((n + 1, n + 1), dtype=np.float32)
-        dist[:n, :n] = ctx.dist
-        dist[n, :n] = dist[:n, n] = row
-        coords = np.vstack([ctx.mds, project_mds(ctx.dist, ctx.mds, row)]).astype(np.float32)
-        tree_cache = ctx.model.precompute_tree_cache(
-            torch.from_numpy(dist).unsqueeze(0).to(ctx.device),
-            torch.from_numpy(coords).unsqueeze(0).to(ctx.device),
-        )
+        dist = self.ctx.dist.copy()
+        dist[self.host, self._others] = row
+        dist[self._others, self.host] = row
+        dist[self.host, self.host] = 0.0
+        return dist
+
+    def _assemble(self, mask: int, sites: Optional[Sequence[int]] = None):
+        """Tensors for the modified alignment, plus the cache for its own matrix."""
+        ctx = self.ctx
+        if self.real_row(mask) is not None:
+            dist, coords, tree_cache = ctx.dist, ctx.mds, ctx.tree_cache
+        else:
+            dist = self.matrix(mask)
+            # MDS is recomputed from this alignment's own matrix, not projected
+            coords = compute_mds_coordinates(dist.astype(np.float32), n_components=4)
+            tree_cache = ctx.model.precompute_tree_cache(
+                torch.from_numpy(dist.astype(np.float32)).unsqueeze(0).to(ctx.device),
+                torch.from_numpy(np.asarray(coords, dtype=np.float32)).unsqueeze(0).to(ctx.device),
+            )
 
         g_c, g_a = self._anc_c.clone(), self._anc_a.clone()
         for sub in self.lattice.applied(mask):
             g_c[sub.index], g_a[sub.index] = self._der[sub.index]
         cols = list(range(ctx.n_codons)) if sites is None else list(sites)
-        c = torch.cat([ctx.c_tensor[cols], g_c[cols].view(-1, 1, 1)], dim=1)
-        a = torch.cat([ctx.a_tensor[cols], g_a[cols].view(-1, 1, 1)], dim=1)
+        c = ctx.c_tensor[cols].clone()
+        a = ctx.a_tensor[cols].clone()
+        c[:, self.host, 0] = g_c[cols]
+        a[:, self.host, 0] = g_a[cols]
         return c, a, tree_cache
 
-    def endpoint_frame_shift(self) -> float:
-        """How far an extra row moves an embedding, relative to its own norm.
+    def check_matrix_patch_equals_full_recompute(self, mask: int) -> float:
+        """Largest disagreement between the patched matrix and a full recompute.
 
-        Measured on a taxon that is not an endpoint, with and without one
-        intermediate appended, so it isolates the N vs N + 1 difference between
-        how an endpoint and an intermediate are embedded.
+        `matrix` rewrites only the host's row and column on the argument that
+        every other pair is untouched. This recomputes the whole thing from the
+        modified alignment and returns the worst absolute difference, so the
+        shortcut is checked rather than asserted.
+        """
+        seqs = {t: self.ctx.seqs[t] for t in self._other_names}
+        seqs[self.ctx.derived_name] = self.nucleotides(mask)
+        order = list(self.ctx.taxa)
+        full = compute_tn93_distance_matrix(seqs, order)
+        self.tn93_calls += 1
+        return float(np.abs(np.asarray(full, dtype=np.float64) - self.matrix(mask)).max())
+
+    def background_frame_shift(self) -> float:
+        """How far recomputing the matrix moves a bystander taxon's embedding.
+
+        The host's sequence is what the ordering is about, but changing it
+        changes the matrix and so the MDS frame, which moves every taxon a
+        little. Measured on a taxon that is neither endpoint, between the
+        ancestral genotype and one intermediate: if it approaches the host's
+        own per-unit delta, the signal is competing with the frame.
         """
         ctx = self.ctx
         probe = next(
             (i for i in range(ctx.n_taxa)
              if ctx.taxa[i] not in (ctx.ancestor_name, ctx.derived_name)),
-            0,
-        )
-        mask = next(
-            (m for m in (1, self.lattice.full_mask ^ 1, self.lattice.full_mask)
-             if self.real_row(m) is None),
             None,
         )
-        if mask is None:
+        other = next((m for m in range(1, self.lattice.full_mask + 1)
+                      if self.real_row(m) is None), None)
+        if probe is None or other is None:
             return 0.0
-        base = extant_embeddings(ctx)[probe]
-        c, a, tree_cache = self._assemble(mask)
-        _attn, reprs = extract_cross_taxa_attentions_and_embeddings(
-            ctx.model, c, a, tree_cache, device=ctx.device
-        )
-        self.forward_passes += 1
-        return float(np.linalg.norm(np.asarray(reprs[probe]) - base) / np.linalg.norm(base))
+        out = []
+        for mask in (0, other):
+            c, a, tree_cache = self._assemble(mask)
+            _attn, reprs = extract_cross_taxa_attentions_and_embeddings(
+                ctx.model, c, a, tree_cache, device=ctx.device
+            )
+            self.forward_passes += 1
+            out.append(np.asarray(reprs[probe], dtype=np.float64))
+        return float(np.linalg.norm(out[0] - out[1]) / max(1e-12, np.linalg.norm(out[0])))
 
     # model outputs --------------------------------------------------------------
     def _check_budget(self, mask: int) -> None:
@@ -552,7 +604,7 @@ class GenotypeRows:
                     self.ctx.model, c, a, tree_cache, device=self.ctx.device
                 )
                 self.forward_passes += 1
-                self._embeddings[mask] = np.asarray(reprs[self.ctx.n_taxa], dtype=np.float64)
+                self._embeddings[mask] = np.asarray(reprs[self.host], dtype=np.float64)
         return self._embeddings[mask]
 
     def lrt(self, mask: int, sites: Sequence[int]) -> float:

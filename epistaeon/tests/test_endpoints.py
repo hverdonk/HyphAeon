@@ -13,7 +13,6 @@ from epistaeon.background import (  # noqa: E402
     GenotypeRows,
     codons_of,
     derive_endpoints,
-    project_mds,
     residue_of,
     resolve_positions,
     resolve_row,
@@ -161,32 +160,20 @@ def test_only_the_endpoint_taxa_are_read_from_their_own_rows():
     class Ctx:                                  # only what real_row touches
         taxa = ["anc", "der", "bystander"]
         ancestor_name, derived_name = "anc", "der"
+        derived_index = 1
     Ctx.seqs = {name: "".join(cs) for name, cs in rows.items()}
 
     g = GenotypeRows.__new__(GenotypeRows)
     g.ctx, g.ends, g.lattice, g.use_real_row = Ctx(), ends, lat, True
+    g.host = Ctx.derived_index
 
-    assert g.real_row(0) == 0                   # the ancestral endpoint
-    assert g.real_row(lat.full_mask) == 1       # the derived endpoint
-    # applying only unit 0 happens to equal 'bystander', which is not an endpoint
+    # only the host's own sequence leaves the alignment unmodified
+    assert g.real_row(lat.full_mask) == 1
+    # the ancestral genotype sits in the host's row, so the alignment differs
+    # from the one the ancestor taxon belongs to
+    assert g.real_row(0) is None
+    # and a genotype matching some other taxon is still a hypothetical sequence
     assert g.nucleotides(1) == Ctx.seqs["bystander"]
     assert g.real_row(1) is None
 
 
-def _classical_mds(dist, k=4):
-    """Classical MDS of a Euclidean configuration, recovered up to a rotation."""
-    n = len(dist)
-    H = np.eye(n) - 1.0 / n
-    B = -0.5 * H @ (dist ** 2) @ H
-    vals, vecs = np.linalg.eigh(B)
-    order = np.argsort(vals)[::-1][:k]
-    return vecs[:, order] * np.sqrt(np.maximum(vals[order], 0))
-
-
-def test_mds_projection_reproduces_a_point_already_in_the_frame():
-    rng = np.random.default_rng(0)
-    pts = rng.normal(size=(8, 4))
-    dist = np.linalg.norm(pts[:, None, :] - pts[None, :, :], axis=-1)
-    coords = _classical_mds(dist)
-    for i in range(len(pts)):
-        assert project_mds(dist, coords, dist[i]) == pytest.approx(coords[i], abs=1e-8)
