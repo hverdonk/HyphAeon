@@ -21,7 +21,12 @@ from .trajectory import EXACT_UNIT_LIMIT, infer
 def _build_scorer(name, ctx, lattice, genotypes, anchor_name, args, provenance):
     """Assemble the requested scorer from model-derived quantities."""
     from . import scoring as S
-    from .background import extant_embeddings, root_token_embedding
+    from .background import AppendedGenotypeRows, extant_embeddings, root_token_embedding
+
+    if name == "softmax-repaired" and not isinstance(genotypes, AppendedGenotypeRows) and getattr(genotypes, "ends", None) is not None:
+        genotypes = AppendedGenotypeRows(
+            ctx, genotypes.ends, lattice, budget=getattr(genotypes, "budget", None)
+        )
 
     embedding_of = genotypes.embedding
     if anchor_name == "root-token":
@@ -101,7 +106,7 @@ def _discrimination(res) -> Dict[str, object]:
 
 
 def cmd_order(args: argparse.Namespace) -> int:
-    from .background import GenotypeRows, derive_endpoints, load_context, resolve_positions
+    from .background import AppendedGenotypeRows, GenotypeRows, derive_endpoints, load_context, resolve_positions
 
     if args.anchor == "ancestral-sequence" and args.ancestor is None:
         raise SystemExit(
@@ -224,14 +229,23 @@ def cmd_order(args: argparse.Namespace) -> int:
     print(f"[*] inference mode: {mode}")
     provenance["mode"] = mode
 
-    genotypes = GenotypeRows(ctx, ends, lattice, budget=args.max_genotypes)
-    provenance["genotype_placement"] = (
-        f"each genotype replaces the derived taxon's sequence ({ctx.derived_name!r}) "
-        "in the alignment; the distance matrix and its MDS frame are recomputed "
-        "from that modified alignment. No genotype is added as an extra taxon, "
-        "so none is read by the model as further evidence of a realized "
-        "evolutionary process"
-    )
+    if args.scorer == "softmax-repaired":
+        genotypes = AppendedGenotypeRows(ctx, ends, lattice, budget=args.max_genotypes)
+        provenance["genotype_placement"] = (
+            "each intermediate is appended to the alignment as its own row, placed "
+            "by TN93 distance to every taxon, with MDS coordinates projected into "
+            "the existing frame; the endpoints are read from their own rows rather "
+            "than appended as copies of themselves"
+        )
+    else:
+        genotypes = GenotypeRows(ctx, ends, lattice, budget=args.max_genotypes)
+        provenance["genotype_placement"] = (
+            f"each genotype replaces the derived taxon's sequence ({ctx.derived_name!r}) "
+            "in the alignment; the distance matrix and its MDS frame are recomputed "
+            "from that modified alignment. No genotype is added as an extra taxon, "
+            "so none is read by the model as further evidence of a realized "
+            "evolutionary process"
+        )
     if mode == "exact":
         # one TN93 call for the whole lattice beats one per genotype
         print(f"[*] placing {n_genotypes} genotypes by TN93")
@@ -241,22 +255,57 @@ def cmd_order(args: argparse.Namespace) -> int:
         print(f"[*] sampling will embed up to {reachable} genotypes, one forward "
               f"pass each, against a budget of {args.max_genotypes}")
 
-    # how large is a single-substitution signal, against float precision?
-    z_anc = genotypes.embedding(0)
-    z_scale = max(1e-12, float(np.linalg.norm(z_anc)))
-    probed = min(lattice.n_units, 8)
-    deltas = [
-        float(np.linalg.norm(genotypes.embedding(1 << u) - z_anc) / z_scale)
-        for u in range(probed)
-    ]
-    provenance["per_unit_relative_delta"] = {
-        "min": min(deltas), "median": float(np.median(deltas)), "max": max(deltas),
-        "units_probed": probed,
-        "float32_eps": float(np.finfo(np.float32).eps),
-        "_meaning": "||dz|| / ||z|| for one unit applied to the ancestral "
-                    "background: how much of the embedding a single "
-                    "substitution moves, against float32 precision",
-    }
+    if args.scorer == "softmax-repaired":
+        # How large is a single-substitution signal? Both genotypes compared here
+        # must be appended rows: measuring a unit against the ancestral endpoint
+        # instead measures the extra row, which is the larger effect by far.
+        z_scale = max(1e-12, float(np.linalg.norm(genotypes.embedding(0))))
+        probed = min(lattice.n_units, 6) if lattice.n_units > 1 else 0
+        deltas = []
+        for u in range(probed):
+            base = 1 << ((u + 1) % lattice.n_units)
+            deltas.append(float(
+                np.linalg.norm(genotypes.embedding(base | 1 << u) - genotypes.embedding(base))
+                / z_scale
+            ))
+        if deltas:
+            provenance["per_unit_relative_delta"] = {
+                "min": min(deltas), "median": float(np.median(deltas)), "max": max(deltas),
+                "units_probed": probed,
+                "float32_eps": float(np.finfo(np.float32).eps),
+                "_meaning": "||dz|| / ||z|| for one unit applied to a background "
+                            "that already carries another unit, so both genotypes "
+                            "are appended rows: how much of the embedding a single "
+                            "substitution moves, against float32 precision",
+            }
+        endpoint_steps = [
+            float(np.linalg.norm(genotypes.embedding(1 << u) - genotypes.embedding(0)) / z_scale)
+            for u in range(probed or lattice.n_units)
+        ]
+        provenance["first_step_relative_delta"] = {
+            "median": float(np.median(endpoint_steps)),
+            "_meaning": "the same measure for the first step out of the ancestral "
+                        "endpoint, which is read from its own row while the "
+                        "intermediate is appended. The gap against "
+                        "per_unit_relative_delta is the frame shift, not biology.",
+        }
+    else:
+        # how large is a single-substitution signal, against float precision?
+        z_anc = genotypes.embedding(0)
+        z_scale = max(1e-12, float(np.linalg.norm(z_anc)))
+        probed = min(lattice.n_units, 8)
+        deltas = [
+            float(np.linalg.norm(genotypes.embedding(1 << u) - z_anc) / z_scale)
+            for u in range(probed)
+        ]
+        provenance["per_unit_relative_delta"] = {
+            "min": min(deltas), "median": float(np.median(deltas)), "max": max(deltas),
+            "units_probed": probed,
+            "float32_eps": float(np.finfo(np.float32).eps),
+            "_meaning": "||dz|| / ||z|| for one unit applied to the ancestral "
+                        "background: how much of the embedding a single "
+                        "substitution moves, against float32 precision",
+        }
 
     scorer, phi = _build_scorer(
         args.scorer, ctx, lattice, genotypes, anchor_name, args, provenance
@@ -278,21 +327,31 @@ def cmd_order(args: argparse.Namespace) -> int:
     provenance["forward_passes"] = genotypes.forward_passes
     provenance["tn93_calls"] = genotypes.tn93_calls
     provenance["genotypes_read_from_a_real_row"] = genotypes.real_row_hits
-    provenance["background_frame_shift"] = {
-        "value": genotypes.background_frame_shift(),
-        "_meaning": "changing the host row changes the matrix and so the MDS "
-                    "frame, which moves every taxon a little. This is how far "
-                    "a bystander taxon's embedding moves between two "
-                    "genotypes. Compare it with per_unit_relative_delta: if it "
-                    "is the same size, the ordering signal is competing with "
-                    "the frame.",
-    }
-    provenance["matrix_patch_max_error"] = {
-        "value": genotypes.check_matrix_patch_equals_full_recompute(0),
-        "_meaning": "the patched matrix rewrites only the host's row and "
-                    "column; this is the worst disagreement against a full "
-                    "TN93 recompute of the modified alignment.",
-    }
+    if args.scorer == "softmax-repaired":
+        provenance["endpoint_frame_shift"] = {
+            "value": genotypes.endpoint_frame_shift(),
+            "_meaning": "an endpoint is embedded among N taxa and an intermediate "
+                        "among N + 1; this is how far that extra row moves a "
+                        "taxon's embedding, relative to its norm. Compare it with "
+                        "per_unit_relative_delta before trusting a step that "
+                        "crosses between the two.",
+        }
+    else:
+        provenance["background_frame_shift"] = {
+            "value": genotypes.background_frame_shift(),
+            "_meaning": "changing the host row changes the matrix and so the MDS "
+                        "frame, which moves every taxon a little. This is how far "
+                        "a bystander taxon's embedding moves between two "
+                        "genotypes. Compare it with per_unit_relative_delta: if it "
+                        "is the same size, the ordering signal is competing with "
+                        "the frame.",
+        }
+        provenance["matrix_patch_max_error"] = {
+            "value": genotypes.check_matrix_patch_equals_full_recompute(0),
+            "_meaning": "the patched matrix rewrites only the host's row and "
+                        "column; this is the worst disagreement against a full "
+                        "TN93 recompute of the modified alignment.",
+        }
 
     payload: Dict[str, object] = {
         "provenance": provenance,

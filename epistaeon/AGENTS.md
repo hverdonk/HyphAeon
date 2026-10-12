@@ -234,13 +234,108 @@ The file is JSON mapping a group name to positions, numbered exactly as
 
 | Mode | When | Notes |
 | --- | --- | --- |
+| `auto` | the default | picks `exact` if it fits both limits below, else `sample` |
 | `exact` | n ≤ 22 units **and** 2^n ≤ `--max-genotypes` (default 4096) | exact MAP, Z(M) and all marginals; 2^n forward passes, one TN93 call |
-| `blocks` | large n, grouped | `--blocks` groups substitutions; the receptor's X/Y/Z is n=3 |
 | `sample` | n beyond either limit | importance-sampled marginals with an ESS diagnostic; one TN93 call per genotype, still capped by `--max-genotypes` |
 
-**Scorers** (`--scorer`): `potts-metropolis` (default), `typicality-gate`,
-`softmax-repaired`, `dphi-product` (documented baseline only — its temperature
-is inert and it rewards evenly sized steps).
+There is no `blocks` mode — grouping is the `--blocks` flag above, and it works
+with any mode by reducing `n`.
+
+### Scorers
+
+A scorer answers one question: in log space, how favoured is applying unit `u`
+to genotype `S`? That is the **edge weight** on the lattice. Weights need not
+be normalised per step — the DP normalises over whole paths via `Z(M)` — so a
+scorer may return any non-`+inf` log weight, and `-inf` blocks the step
+outright. `--t-sel` sets `T` (default 0.5).
+
+Two model-derived quantities feed them:
+
+- **`z(S)`** — the genotype's embedding: the mean over all codon sites of the
+  host row's hidden state, one vector per genotype, one forward pass each.
+- **`φ(S) = α‖z(S) − anchor‖`** — scalar divergence from a fixed anchor, which
+  is `z(ancestor)` with `--ancestor` and the `[ROOT]` token without it.
+  **`α` is 1.0 unless you pass `--alpha`**: `isometric_scale` exists in
+  `background.py` to calibrate it against substitutions/site but nothing calls
+  it, so φ is in raw latent units by default.
+
+Everything turns on the §2 telescoping constraint: `Σ Δf` of any state
+function is the same for every ordering, so a scorer earns its discrimination
+only by combining non-linearly or by varying its normalisation.
+
+| Scorer | Edge weight | What breaks telescoping | Uses φ |
+| --- | --- | --- | --- |
+| `potts-metropolis` (default) | `min(0, ΔE/T)` | the `min()`, plus `J` making `ΔE` background-dependent | no |
+| `typicality-gate` | `ΔV/T + V(S′)/T` | the absolute level of the state entered | no |
+| `softmax-repaired` | per-step log-softmax of `Δφ/T` | per-step normalisation | yes |
+| `dphi-product` | `log(Δφ/T)` | nothing — baseline only | yes |
+
+#### `potts-metropolis` — the default
+
+`E(S) = Σ_u f_u + Σ_{u<v} J_uv` over applied units, accepted Metropolis-style
+as `min(0, ΔE/T)`, so a deleterious step costs something wherever it falls.
+
+- **`f_u`, site terms** — the model's own output: predicted selection evidence
+  (LRT, clamped at 0 and summed over the unit's columns) with the unit's codons
+  derived, minus the same with them ancestral. Two forward passes per unit.
+- **`J_uv`, couplings** — CESI from hyphaeon's attribution co-selection
+  network, taking the strongest site pair that maps to each unit pair.
+
+**The failure mode to check first.** With no couplings, `E` is additive, so
+`ΔE = f_u` whatever the background, every ordering ties, and the run reports
+`degenerate_uniform`. It warns on stderr and records
+`unit_pairs_with_coupling`; if that is 0, this scorer has told you nothing.
+That is the state of the receptor case today (§4).
+
+**Honest limit:** CESI is a correlation statistic over attribution patterns,
+not a fitted coupling constant. It supplies the background dependence the
+site-independent encoder cannot, but it is not learned site–site coupling.
+
+#### `typicality-gate`
+
+Viability `V(S)` is the negative Mahalanobis distance from `z(S)` to the cloud
+of **extant** embeddings — all analysed taxa under the unmodified alignment,
+the host's own real row included — with the covariance shrunk toward its
+diagonal because the cloud is usually smaller than the latent dimension.
+
+`log w = ΔV/T + V(S′)/T`. The first term telescopes; **the second is the whole
+point**: it charges for the absolute typicality of the state being entered, so
+an ordering forced through an atypical intermediate is penalised directly
+rather than only through a difference. `--viability-floor` turns that into a
+hard wall — `V(S′)` below it returns `-inf` and the step is blocked, which is
+how "selection does not traverse dead proteins" is expressed mechanically.
+
+#### `softmax-repaired`
+
+Each step's weight is the chosen move's share of a log-softmax over `Δφ/T`
+against the moves competing with it, so the normalisation varies by step.
+
+**As wired by the CLI, the paper's defect is still present.** `alternatives`
+is passed only the *other units not yet applied*, so at the final step nothing
+competes and `log w` is exactly `0` — probability 1 regardless of score
+(verified for every possible final step). The class docstring describes
+normalising over all single-residue moves, and accepts a `gate` for the
+absolute term, but `cli.py` supplies neither. Treat this scorer as the paper's
+rule with varying normalisation only, not as repaired, until that is wired.
+
+**Genotype placement:** Unlike the other scoring methods which replace the derived
+taxon's sequence in the alignment, `softmax-repaired` uses the appended-row
+placement (`AppendedGenotypeRows`): each intermediate genotype is appended to
+the alignment as an extra row and placed via projected MDS coordinates
+(`project_mds`), keeping background taxa identical across steps.
+`provenance.endpoint_frame_shift` reports this frame effect.
+
+#### `dphi-product` — baseline only, do not report it
+
+`log w = log(Δφ/T)`, with `Δφ ≤ 0` blocked outright (no logarithm), so it can
+make whole orderings inaccessible. Documented so its two pathologies are
+visible rather than rediscovered:
+
+1. **`T` is inert.** Every ordering has exactly `n` edges, so dividing each by
+   `T` scales every path by `T⁻ⁿ` and cannot change the ranking.
+2. **It rewards evenly sized steps, not plausibility.** The sum of `Δφ` is
+   path-independent, and for a fixed sum a product is maximised when the terms
+   are equal.
 
 ### Reading the output
 
@@ -256,8 +351,8 @@ Check these before believing anything:
 - **`provenance.ancestral_states`** and **`plurality_support`** — whether the
   ancestral background is a real row or a per-column consensus, and how thin
   that consensus is. A support near 0.5 is a coin toss, not an ancestor.
-- **`provenance.endpoints_in_background`** — false means that endpoint supplied
-  codons without being one of the analysed taxa.
+- **`provenance.host_row`** and **`ancestor_in_background`** — which row every
+  genotype replaces, and whether the ancestor is also one of the analysed taxa.
 - **`provenance.forward_passes`** — one per distinct genotype; the run's cost.
   `genotypes_read_from_a_real_row` counts the genotypes that turned out to be
   the host's own sequence and needed no pass.
@@ -273,7 +368,7 @@ Check these before believing anything:
 ### Tests
 
 ```bash
-cd epistaeon && python3 -m pytest tests/ -q      # 30 tests
+cd epistaeon && python3 -m pytest tests/ -q      # 33 tests
 ```
 
 The suite includes exact-DP-versus-brute-force for n = 3–6 and an
@@ -307,6 +402,11 @@ never be folded into a performance score.
   `potts-metropolis` degenerates to uniform because the co-selection network
   found no coupling among those units. The scorer comparison has not been
   re-run since endpoints became alignment rows.
+- **`softmax-repaired` is not actually repaired in the CLI path.** The class
+  takes an `alternatives` callable and a `gate`; `cli.py` passes only the
+  remaining units and no gate, so the final step's log weight is exactly 0 —
+  the white paper's original defect. Wire `alternatives` to all single-residue
+  moves, and the gate to the typicality viability, before reporting it.
 - **The ancestral reconstructions are not in the TOGA2 alignment.** AncGR1 and
   AncGR2 live in `epistaeon/data/sequences/ancestral/` as protein sequences,
   while endpoints must now be alignment rows, so the receptor analysis needs

@@ -240,6 +240,23 @@ def resolve_positions(tokens: Iterable, endpoints: Endpoints) -> List[int]:
     return out
 
 
+# -- MDS placement ---------------------------------------------------------------
+
+def project_mds(base_dist: np.ndarray, base_coords: np.ndarray, new_dist: np.ndarray) -> np.ndarray:
+    """Place one new point in an existing classical-MDS frame (Gower 1968).
+
+    The new point's inner products with the centred configuration are recovered
+    from its squared distances, then regressed onto the existing coordinates.
+    Re-projecting a point already in the configuration returns its coordinates.
+    """
+    D2 = np.asarray(base_dist, dtype=np.float64) ** 2
+    d2 = np.asarray(new_dist, dtype=np.float64) ** 2
+    b = -0.5 * (d2 - d2.mean() - D2.mean(axis=1) + D2.mean())
+    X = np.asarray(base_coords, dtype=np.float64)
+    coords, *_ = np.linalg.lstsq(X, b, rcond=None)
+    return coords
+
+
 # -- the loaded alignment -----------------------------------------------------------
 
 @dataclass
@@ -628,6 +645,204 @@ class GenotypeRows:
         return float(torch.clamp(y, min=0.0).sum().item())
 
 
+# -- genotypes appended as an extra row (for softmax-repaired) -------------------------
+
+class AppendedGenotypeRows:
+    """Intermediates get their own row; the endpoints use the rows they already have.
+
+    An intermediate genotype is a sequence the alignment does not contain, so
+    it is appended as an extra row and placed by TN93 distance to every taxon,
+    with its MDS coordinates projected into the alignment's own frame so the
+    real taxa and the [ROOT] origin never move between genotypes.
+
+    The two endpoints are different: they *are* taxa. The ancestral and derived
+    sequences already sit in the alignment, so they are read from there rather
+    than appended a second time -- no genotype duplicates a real row.
+
+    The cost of that is a frame difference the caller must report: an endpoint
+    is embedded among N taxa and an intermediate among N + 1, and an extra row
+    shifts every embedding slightly. `endpoint_frame_shift` measures it.
+    """
+
+    def __init__(
+        self,
+        ctx: Context,
+        endpoints: Endpoints,
+        lattice: Lattice,
+        budget: Optional[int] = None,
+        use_real_row: bool = True,
+    ):
+        self.ctx = ctx
+        self.ends = endpoints
+        self.lattice = lattice
+        self.budget = budget
+        self.use_real_row = use_real_row
+        self._anc_c = torch.tensor([get_codon_token(x) for x in endpoints.ancestral_codons])
+        self._anc_a = torch.tensor([get_aa_token(x) for x in endpoints.ancestral_codons])
+        self._der = {
+            col: (get_codon_token(x), get_aa_token(x))
+            for col, x in endpoints.derived_codons.items()
+        }
+        self._dist_rows: Dict[int, np.ndarray] = {}
+        self._embeddings: Dict[int, np.ndarray] = {}
+        self.forward_passes = 0
+        self.tn93_calls = 0
+        self.real_row_hits = 0
+
+    def real_row(self, mask: int) -> Optional[int]:
+        """Index of the taxon this genotype *is*, if it is one of the endpoints.
+
+        Only the endpoint taxa count. An intermediate that happens to match
+        some other taxon is still a hypothetical genotype on this branch, and
+        collapsing it onto that taxon would change what is being scored.
+        """
+        if not self.use_real_row:
+            return None
+        seq = self.nucleotides(mask)
+        for name in (self.ctx.ancestor_name, self.ctx.derived_name):
+            if name is not None and name in self.ctx.taxa and self.ctx.seqs[name] == seq:
+                return self.ctx.taxa.index(name)
+        return None
+
+    # sequence ------------------------------------------------------------------
+    def codons(self, mask: int) -> List[str]:
+        out = list(self.ends.ancestral_codons)
+        for sub in self.lattice.applied(mask):
+            out[sub.index] = self.ends.derived_codons[sub.index]
+        return out
+
+    def nucleotides(self, mask: int) -> str:
+        return "".join(self.codons(mask))
+
+    # placement -----------------------------------------------------------------
+    def prefetch(self, masks: Iterable[int]) -> None:
+        """TN93 distances for every listed intermediate that lacks them, in one call."""
+        todo = [
+            m for m in dict.fromkeys(masks)
+            if m not in self._dist_rows and self.real_row(m) is None
+        ]
+        if not todo:
+            return
+        ids = [f"__epistaeon_genotype_{m}" for m in todo]
+        pool = {t: self.ctx.seqs[t] for t in self.ctx.taxa}
+        pool.update({gid: self.nucleotides(m) for gid, m in zip(ids, todo)})
+        dist = compute_tn93_cross_distance_matrix(pool, ids, self.ctx.taxa)
+        self.tn93_calls += 1
+        for m, row in zip(todo, dist):
+            self._dist_rows[m] = np.asarray(row, dtype=np.float64)
+
+    def distances(self, mask: int) -> np.ndarray:
+        """TN93 distance from this genotype to every taxon."""
+        self.prefetch([mask])
+        return self._dist_rows[mask]
+
+    def _assemble(self, mask: int, sites: Optional[Sequence[int]] = None):
+        """Alignment tensors with this genotype appended as row N, plus its cache."""
+        ctx = self.ctx
+        row = self.distances(mask)
+        n = ctx.n_taxa
+        dist = np.zeros((n + 1, n + 1), dtype=np.float32)
+        dist[:n, :n] = ctx.dist
+        dist[n, :n] = dist[:n, n] = row
+        coords = np.vstack([ctx.mds, project_mds(ctx.dist, ctx.mds, row)]).astype(np.float32)
+        tree_cache = ctx.model.precompute_tree_cache(
+            torch.from_numpy(dist).unsqueeze(0).to(ctx.device),
+            torch.from_numpy(coords).unsqueeze(0).to(ctx.device),
+        )
+
+        g_c, g_a = self._anc_c.clone(), self._anc_a.clone()
+        for sub in self.lattice.applied(mask):
+            g_c[sub.index], g_a[sub.index] = self._der[sub.index]
+        cols = list(range(ctx.n_codons)) if sites is None else list(sites)
+        c = torch.cat([ctx.c_tensor[cols], g_c[cols].view(-1, 1, 1)], dim=1)
+        a = torch.cat([ctx.a_tensor[cols], g_a[cols].view(-1, 1, 1)], dim=1)
+        return c, a, tree_cache
+
+    def endpoint_frame_shift(self) -> float:
+        """How far an extra row moves an embedding, relative to its own norm.
+
+        Measured on a taxon that is not an endpoint, with and without one
+        intermediate appended, so it isolates the N vs N + 1 difference between
+        how an endpoint and an intermediate are embedded.
+        """
+        ctx = self.ctx
+        probe = next(
+            (i for i in range(ctx.n_taxa)
+             if ctx.taxa[i] not in (ctx.ancestor_name, ctx.derived_name)),
+            0,
+        )
+        mask = next(
+            (m for m in (1, self.lattice.full_mask ^ 1, self.lattice.full_mask)
+             if self.real_row(m) is None),
+            None,
+        )
+        if mask is None:
+            return 0.0
+        base = extant_embeddings(ctx)[probe]
+        c, a, tree_cache = self._assemble(mask)
+        _attn, reprs = extract_cross_taxa_attentions_and_embeddings(
+            ctx.model, c, a, tree_cache, device=ctx.device
+        )
+        self.forward_passes += 1
+        return float(np.linalg.norm(np.asarray(reprs[probe]) - base) / np.linalg.norm(base))
+
+    # model outputs --------------------------------------------------------------
+    def _check_budget(self, mask: int) -> None:
+        """Refuse to start an unbounded run.
+
+        Sampling can ask for up to one genotype per step per path, so without
+        this a large lattice silently commits to days of forward passes.
+        """
+        if self.budget is None or mask in self._embeddings:
+            return
+        if len(self._embeddings) >= self.budget:
+            raise SystemExit(
+                f"this run has embedded {len(self._embeddings)} genotypes, its "
+                f"--max-genotypes budget, and the scorer is asking for another. "
+                "Each genotype costs one forward pass, so lower --n-samples, "
+                "group units with --blocks, or raise --max-genotypes."
+            )
+
+    def embedding(self, mask: int) -> np.ndarray:
+        """Mean-over-sites embedding of this genotype."""
+        if mask not in self._embeddings:
+            self._check_budget(mask)
+            row = self.real_row(mask)
+            if row is not None:
+                # this genotype is an endpoint taxon: read it from the
+                # alignment rather than appending a copy of it
+                self.real_row_hits += 1
+                self._embeddings[mask] = extant_embeddings(self.ctx)[row]
+            else:
+                c, a, tree_cache = self._assemble(mask)
+                _attn, reprs = extract_cross_taxa_attentions_and_embeddings(
+                    self.ctx.model, c, a, tree_cache, device=self.ctx.device
+                )
+                self.forward_passes += 1
+                self._embeddings[mask] = np.asarray(reprs[self.ctx.n_taxa], dtype=np.float64)
+        return self._embeddings[mask]
+
+    def lrt(self, mask: int, sites: Sequence[int]) -> float:
+        """Summed, floored predicted LRT at these columns with this genotype present.
+
+        An endpoint is scored on the unmodified alignment, for the same reason
+        its embedding is: it is already a row there.
+        """
+        if self.real_row(mask) is not None:
+            cols = list(sites)
+            c, a = self.ctx.c_tensor[cols], self.ctx.a_tensor[cols]
+            tree_cache = self.ctx.tree_cache
+        else:
+            c, a, tree_cache = self._assemble(mask, sites=sites)
+        self.ctx.model.eval()
+        with torch.no_grad():
+            y, *_ = self.ctx.model.forward_cached(
+                c.to(self.ctx.device), a.to(self.ctx.device), tree_cache
+            )
+        self.forward_passes += 1
+        return float(torch.clamp(y, min=0.0).sum().item())
+
+
 def extant_embeddings(ctx: Context) -> np.ndarray:
     """Embeddings of every taxon under the unmodified alignment.
 
@@ -636,7 +851,7 @@ def extant_embeddings(ctx: Context) -> np.ndarray:
     Computed once per context and cached, since it does not depend on any
     genotype.
     """
-    if ctx._extant is None:
+    if getattr(ctx, "_extant", None) is None:
         _attn, reprs = extract_cross_taxa_attentions_and_embeddings(
             ctx.model, ctx.c_tensor, ctx.a_tensor, ctx.tree_cache, device=ctx.device
         )

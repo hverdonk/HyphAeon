@@ -1,9 +1,24 @@
 # epistaeon
 
-Benchmark data and structure validation for the mutational-order / epistasis
-white paper. No analysis engine is implemented here yet; this directory holds
-the empirical ground truth, the coordinate set, and the scripts that validate
-both. See [`data/README.md`](data/README.md) for the full audit.
+Infers **the order in which substitutions arrived** along one phylogenetic
+branch, and whether some had to come before others. Given an ancestral and a
+derived row of a codon alignment, it enumerates the orderings of the codon
+substitutions between them, scores each intermediate genotype with the
+hyphaeon model, and reports which orderings pass only through plausible
+intermediates.
+
+This directory also holds the empirical ground truth the engine is tested
+against: the benchmark coordinate set, the published studies, and the scripts
+that validate both. See [`data/README.md`](data/README.md) for the full audit
+and [`AGENTS.md`](AGENTS.md) for how to run the engine.
+
+```bash
+export PYTHONPATH=../aeon-core/src:../hyphaeon/src:src
+python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
+  --focal-taxon <derived row> --ancestor <ancestral row> \
+  --sites sites.txt --scorer typicality-gate \
+  --weights data/model/model.safetensors --cpu -o out/
+```
 
 ---
 
@@ -55,6 +70,88 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 
 ---
 
+## Scoring methods
+
+Orderings are ranked by a product of **edge weights**: one weight per step,
+`w(u | S)` for applying substitution unit `u` to genotype `S`. The inference
+layer normalises over whole paths, so a weight need not be a per-step
+probability; `-inf` blocks a step entirely. `--t-sel` sets the temperature `T`
+(default 0.5), and `--scorer` picks the rule.
+
+Each genotype is embedded by replacing the derived taxon's sequence in the
+alignment, recomputing the TN93 distance matrix from that modified alignment,
+and taking the host row's mean-over-sites hidden state, `z(S)`. Two scorers
+also use `φ(S) = α‖z(S) − anchor‖`, the scalar divergence from a fixed anchor
+(the ancestral genotype, or the model's `[ROOT]` token when no `--ancestor` is
+given). **`α` defaults to 1, uncalibrated**, so φ is in raw latent units.
+
+One constraint shapes all four. For any state function `f`, the increments
+`Σ Δf` along a path telescope to `f(derived) − f(ancestor)` — the same for
+every ordering. A scorer that is a plain exponential of such a difference
+therefore ranks every ordering equally, and the engine will correctly report a
+uniform distribution. Discrimination has to come from somewhere else:
+
+| Scorer | Edge weight | Where discrimination comes from |
+| --- | --- | --- |
+| **`potts-metropolis`** (default) | `min(0, ΔE/T)` | the `min()`, and couplings making `ΔE` depend on the background |
+| **`typicality-gate`** | `ΔV/T + V(S′)/T` | the absolute plausibility of the state entered |
+| **`softmax-repaired`** | per-step log-softmax of `Δφ/T` | the normalisation changing from step to step |
+| **`dphi-product`** | `log(Δφ/T)` | nowhere — a documented baseline |
+
+### `potts-metropolis` (default)
+
+A Potts energy over applied units, `E(S) = Σ_u f_u + Σ_{u<v} J_uv`, accepted
+Metropolis-style. The site terms `f_u` are the model's own output: the change
+in predicted selection evidence (LRT) at the unit's columns when its codons
+switch from ancestral to derived. The couplings `J_uv` come from hyphaeon's
+attribution co-selection network (CESI).
+
+The `min(0, ·)` makes a deleterious step cost something wherever it falls in
+the order, and `J` is what makes the cost depend on which substitutions are
+already present — the epistasis.
+
+Two things to know before trusting it:
+
+- **CESI is a correlation statistic** over attribution patterns, not a fitted
+  coupling constant. It is not learned site–site coupling.
+- **If the network finds no coupling among your units**, `E` is additive, `ΔE`
+  stops depending on the background, and every ordering ties. The run says so
+  (`discrimination.degenerate_uniform`, `unit_pairs_with_coupling`). Check it
+  every time.
+
+### `typicality-gate`
+
+Scores how much like a real protein each intermediate looks. Viability `V(S)`
+is the negative Mahalanobis distance from `z(S)` to the cloud of extant taxon
+embeddings, with a diagonally shrunk covariance.
+
+The weight adds the change in viability to **the absolute viability of the
+state being entered**, which is what breaks the telescoping: an ordering forced
+through an atypical intermediate is penalised directly, not merely through a
+difference. `--viability-floor` makes that a hard wall — intermediates below it
+are blocked outright, expressing "selection does not traverse dead proteins".
+
+### `softmax-repaired`
+
+The white paper's rule: at each step, the chosen move's share of a softmax over
+`Δφ/T` against the moves it competes with. Because the competing set shrinks as
+the trajectory proceeds, the normalisation varies by step, which is what lets
+it rank orderings at all.
+
+**Caveat, as currently wired:** the competing set is only the units not yet
+applied, so at the final step nothing competes and that step contributes
+weight 1 regardless of its score — the defect the rule is supposed to fix. See
+the open issue in [`AGENTS.md`](AGENTS.md).
+
+### `dphi-product`
+
+`log(Δφ/T)` per step, with non-positive increments blocked. **A baseline for
+comparison, not a method to report.** Its temperature is inert — every ordering
+has the same number of edges, so `T` scales every path identically — and what
+it actually rewards is evenly sized steps, since the sum of `Δφ` is
+path-independent and a product under a fixed sum is maximised when the terms
+are equal.
+
 ## Layout
 
 | Path | Contents |
@@ -67,6 +164,10 @@ both. See [`data/README.md`](data/README.md) for the full audit.
 | `data/alignments/toga2/` | TOGA2 codon alignments + species tree — the model inputs |
 | `data/numbering_offsets.json` | **Verified numbering crosswalk — load this, don't hardcode** |
 | `data/README.md` | Full structure audit and contact-mapping fitness report |
+| `data/model/` | Model checkpoint (gitignored; see `AGENTS.md` for the fetch) |
+| `src/epistaeon/` | The engine: `lattice`, `scoring`, `trajectory`, `background`, `timing`, `cli` |
+| `tests/` | 33 tests, incl. exact-DP-vs-brute-force and the inert-scorer regression |
+| `validation/` | Replication harness: replicator, adversary, summarizer |
 | `scripts/` | Reproduces every number in `data/README.md` |
 
 ## Scripts

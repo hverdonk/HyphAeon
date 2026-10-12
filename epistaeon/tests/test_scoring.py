@@ -90,3 +90,34 @@ def test_softmax_repaired_last_step_is_informative():
     last = sc.log_weight(0b01, 1)          # only one historical move remains
     assert last < -1e-6, "final step should still cost something"
     assert math.exp(last) < 0.99
+
+
+def test_build_scorer_selects_appended_genotypes_for_softmax_repaired_only():
+    import torch
+    from argparse import Namespace
+    from epistaeon.cli import _build_scorer
+    from epistaeon.background import AppendedGenotypeRows, GenotypeRows, derive_endpoints, codons_of
+
+    lat = _lat(2)
+    rows = {"anc": codons_of("AAAAAA", 2), "der": codons_of("CCCCCC", 2)}
+    ends = derive_endpoints(rows, "der", "anc")
+
+    ctx = Namespace(
+        model=None, taxa=["anc", "der"], n_codons=2, derived_name="der", ancestor_name="anc",
+        c_tensor=torch.zeros((2, 2, 1), dtype=torch.long), a_tensor=torch.zeros((2, 2, 1), dtype=torch.long),
+        dist=np.zeros((2, 2)), mds=np.zeros((2, 4)), tree_cache={}, seqs={"anc": "AAAAAA", "der": "CCCCCC"},
+        derived_index=1, _extant=np.zeros((2, 384)),
+    )
+    args = Namespace(t_sel=0.5, alpha=1.0, viability_floor=None)
+
+    g_normal = GenotypeRows.__new__(GenotypeRows)
+    g_normal.ends = ends
+    g_normal.budget = 10
+    g_normal.embedding = lambda mask: np.array([0.1, 0.2])
+    prov = {}
+
+    sc_sr, _ = _build_scorer("softmax-repaired", ctx, lat, g_normal, "ancestral-sequence", args, prov)
+    assert sc_sr.name == "softmax-repaired"
+
+    sc_dp, _ = _build_scorer("dphi-product", ctx, lat, g_normal, "ancestral-sequence", args, prov)
+    assert sc_dp.name == "dphi-product"
