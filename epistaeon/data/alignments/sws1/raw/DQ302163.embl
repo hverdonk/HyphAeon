@@ -1,0 +1,81 @@
+ID   DQ302163; SV 1; linear; mRNA; STD; ROD; 1055 BP.
+XX
+AC   DQ302163;
+XX
+DT   10-FEB-2006 (Rel. 86, Created)
+DT   10-FEB-2006 (Rel. 86, Last updated, Version 1)
+XX
+DE   Sciurus carolinensis shortwave-sensitive 1 violet opsin mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Sciurus carolinensis (gray squirrel)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Glires; Rodentia; Sciuromorpha; Sciuridae;
+OC   Sciurinae; Sciurini; Sciurus.
+XX
+RN   [1]
+RP   1-1055
+RX   DOI; 10.1016/j.cub.2006.01.045.
+RX   PUBMED; 16461266.
+RA   Carvalho L.S., Cowing J.A., Wilkie S.E., Bowmaker J.K., Hunt D.M.;
+RT   "Shortwave visual sensitivity in tree and flying squirrels reflects changes
+RT   in lifestyle";
+RL   Curr Biol 16(3):R81-R83(2006).
+XX
+RN   [2]
+RP   1-1055
+RA   Carvalho L.S., Cowing J.A., Wilkie S.E., Hunt D.M.;
+RT   ;
+RL   Submitted (22-NOV-2005) to the INSDC.
+RL   Institute of Ophthalmology, UCL, Bath Street, London EC1V 9EL, UK
+XX
+DR   MD5; 7a6190802d88b0b7159438e7147e5577.
+DR   EuropePMC; PMC3829927; 24260509.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1055
+FT                   /organism="Sciurus carolinensis"
+FT                   /mol_type="mRNA"
+FT                   /db_xref="taxon:30640"
+FT   CDS             15..1055
+FT                   /codon_start=1
+FT                   /product="shortwave-sensitive 1 violet opsin"
+FT                   /note="G-coupled receptor; violet-sensitive pigment"
+FT                   /db_xref="GOA:Q2F6J0"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q2F6J0"
+FT                   /protein_id="ABC26408.1"
+FT                   /translation="MSEEEEFFLFKNISSVGPLDGPQYHIAPVWAFRLQAAFLGFVFFA
+FT                   GTPLNAIVLVATLRYKKLRQPLNYILVNVSLGGFIYCMFSVFVVFVNSCHGYFVFGRHV
+FT                   CALEAFLGSAAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHAVVVVLATWIIGVGVS
+FT                   IPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIIPLGLICFSYAQLL
+FT                   RTLRTVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAALAMYMVNNRNHGLDLR
+FT                   LVTIPAFFSKSSCVYNPIIYSFMNKQFRACIMEMVCRKPMTDESEVSSSQKTEVSTVSS
+FT                   SKVGPH"
+XX
+SQ   Sequence 1055 BP; 200 A; 294 C; 261 G; 300 T; 0 other;
+     atcccatgaa cacaatgtca gaagaagaag agttttttct gttcaagaac atctcatcgg        60
+     tggggcccct ggatgggcct cagtaccaca ttgcccctgt ctgggccttc cgcctccagg       120
+     cagctttctt gggctttgtc ttctttgccg ggacaccact caatgccata gtgctggtgg       180
+     ccacgctgcg ctacaaaaag ttgcggcagc cactcaacta cattctggtc aatgtgtccc       240
+     tagggggctt catctactgc atgttctctg tctttgttgt ctttgtcaac agctgtcatg       300
+     gatacttcgt ctttggccgc catgtttgtg ctctggaggc cttcctgggc tctgcagcag       360
+     gtctggtgac aggttggtca ctggccttcc tggcctttga acgctacatt gtcatctgta       420
+     agcccttcgg caacttccgc ttcagttcca agcatgcagt ggtggtggtt ctggctacct       480
+     ggatcattgg tgttggtgtc tccatcccac ccttctttgg ctggagccgg ttcatccctg       540
+     agggccttca gtgctcctgt ggtccagact ggtacactgt gggcaccaaa taccgcagtg       600
+     agtactacac ctggttcctc ttcatcttct gcttcatcat acctctcggc ctcatctgct       660
+     tctcctatgc tcagctgctg aggaccctca gaactgtggc agctcagcag caggagtcag       720
+     ctacaactca gaaggccgaa cgggaggtga gccgcatggt ggtggtgatg gtgggatcct       780
+     tctgtgtctg ctatgtgccc tatgctgccc tggctatgta catggtcaac aaccgcaacc       840
+     atgggcttga cttacggctt gtcaccattc ctgccttctt ctcgaagagc tcttgtgtct       900
+     acaatcccat tatctacagc ttcatgaata agcagttccg agcttgtatc atggagatgg       960
+     tgtgtaggaa gcccatgaca gatgaatctg aggtatccag ctcccagaaa acagaagttt      1020
+     ccactgtctc ttctagcaaa gttggccctc actaa                                 1055
+//

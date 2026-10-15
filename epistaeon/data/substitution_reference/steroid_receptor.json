@@ -1,0 +1,1407 @@
+{
+  "case_number": 3,
+  "study_id": "steroid_receptor",
+  "sources": [
+    {
+      "id": "ortlund2007",
+      "doi": "10.1126/science.1142819",
+      "url": "https://doi.org/10.1126/science.1142819",
+      "local_file": "epistaeon/data/experimental/steroid_receptor_2007_ortlund.pdf",
+      "verified_locators": [
+        "p1546 Fig2A-B and main text (PDF p4)",
+        "p1547 Fig3A-C, Fig4A-B and main text (PDF p5)",
+        "p1548 footnote21 (PDF p6)"
+      ],
+      "verification": "Local PDF text and rendered figures inspected.",
+      "local_sha256": "72a9f0c10e2c1ac5449efbfff5716906a86b05afbb1c7442e0ff69ef40568dc6"
+    },
+    {
+      "id": "bridgham2009",
+      "doi": "10.1038/nature08249",
+      "url": "https://doi.org/10.1038/nature08249",
+      "local_file": "epistaeon/data/experimental/steroid_receptor_2009_bridgham.pdf",
+      "verified_locators": [
+        "pp515-516 Fig1 and main text (PDF pp1-2)",
+        "p516 description of group W; p517 Fig2A-C, Fig3A-B and main text (PDF pp2-3)",
+        "p518 Fig4A-B and caption (PDF p4)"
+      ],
+      "verification": "Local PDF text and rendered figures inspected; author-hosted primary manuscript and publisher supplement listing checked online.",
+      "local_sha256": "bfb135419b20428895c691d13654f5b43dc94761824c963cb73092e8ba97c16a"
+    },
+    {
+      "id": "carroll2011",
+      "doi": "10.1371/journal.pgen.1002117",
+      "url": "https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1002117",
+      "local_file": "epistaeon/data/experimental/steroid_receptor_2011_plos.pdf",
+      "verified_locators": [
+        "p4 Fig3 and Genetic Basis of Reduced AncGR1.1 Sensitivity",
+        "p5 Table1 and C71S Buffers against Desensitizing Mutations",
+        "p6 Fig4; p7 Fig5, Fig6 and Discussion"
+      ],
+      "verification": "Local PDF text and rendered figures inspected; open primary full text checked online.",
+      "local_sha256": "30692754b5d4374976b924453fa1cce33a26ee7e595a557bc1a2972e26cfcd1f"
+    }
+  ],
+  "events": [
+    {
+      "id": "Y27R",
+      "label": "Y27R",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 27,
+      "from": "Y",
+      "to": "R",
+      "interval": "AncCR -> AncGR1.0 (Ortlund2007 reconstruction backgrounds)",
+      "group": "early_permissive",
+      "structural_region": "H3; cation-pi interaction with Tyr17 stabilizes H3 and ligand pocket",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 558,
+          "uniprot_position": 558,
+          "uniprot": "P04150",
+          "observed_residue": "R",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P2",
+              "author_start": 555,
+              "author_end": 581
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            50.248,
+            15.614,
+            54.216
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 647
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007"
+      ],
+      "locator": "p1547 Fig4A-B and text",
+      "role": "permissive; earlier phylogenetic interval",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "S106P",
+      "label": "S106P",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 106,
+      "from": "S",
+      "to": "P",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "X",
+      "structural_region": "Loop immediately preceding H7; proline creates kink and repositions/partly unwinds H7",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 637,
+          "uniprot_position": 637,
+          "uniprot": "P04150",
+          "observed_residue": "P",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            58.004,
+            6.921,
+            50.929
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 726
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund p1546 Fig2A-B",
+      "role": "function-switching; deleterious first step relative to L111Q-first path",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "L111Q",
+      "label": "L111Q",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 111,
+      "from": "L",
+      "to": "Q",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "X",
+      "structural_region": "H7; repositioned glutamine hydrogen-bonds cortisol C17 hydroxyl",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 642,
+          "uniprot_position": 642,
+          "uniprot": "P04150",
+          "observed_residue": "Q",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P6",
+              "author_start": 638,
+              "author_end": 656
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            48.999,
+            0.951,
+            49.147
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 731
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund p1546 Fig2A-B",
+      "role": "function-switching in combination with S106P",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "L29M",
+      "label": "L29M",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 29,
+      "from": "L",
+      "to": "M",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "Y",
+      "structural_region": "H3 facing ligand D-ring; affects AF-H stability network",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 560,
+          "uniprot_position": 560,
+          "uniprot": "P04150",
+          "observed_residue": "M",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P2",
+              "author_start": 555,
+              "author_end": 581
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            47.99,
+            10.374,
+            53.654
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 649
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund pp1546-1547 Fig3A-B",
+      "role": "completes specificity with X/Z; group Y incompatible without permissive background",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "F98I",
+      "label": "F98I",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 98,
+      "from": "F",
+      "to": "I",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "Y",
+      "structural_region": "Ligand-pocket region between H3/H7 and ligand; modern equivalent629 lies in beta strand AA1 627-629",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 629,
+          "uniprot_position": 629,
+          "uniprot": "P04150",
+          "observed_residue": "I",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [],
+          "sheet_annotations": [
+            {
+              "id": "AA1",
+              "author_start": 627,
+              "author_end": 629
+            }
+          ],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            48.48,
+            10.629,
+            42.767
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 718
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund pp1546-1547 Fig3A-B",
+      "role": "completes specificity with X/Z",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "S212del",
+      "label": "S212del",
+      "kind": "deletion",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 212,
+      "from": "S",
+      "to": null,
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "Y",
+      "structural_region": "H10/AF-H loop stability network; deletion removes hydrogen bond stabilizing AF-H loop",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": null,
+          "uniprot_position": null,
+          "observed_residue": null,
+          "mapping_status": "deleted_ancestral_site_has_no_modern_homolog",
+          "flanks": {
+            "source_ancestral_positions": [
+              211,
+              213
+            ],
+            "source_anchored_candidate_modern_positions": [
+              742,
+              743
+            ],
+            "status": "curation_required_at_211_212_boundary"
+          },
+          "note": "Ortlund2007 footnote21 identifies deletion of Ser212. An unconstrained alignment instead gaps Q211 and pairs S212 with modern Asp742. Source-numbering exceptions in numbering_offsets.json now prevent that invalid homology; exact flanks require source-anchored curation.",
+          "coordinate_present": false
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund pp1546-1547 Fig3A-B; p1548 footnote21",
+      "role": "single-codon deletion; not Ser-to-Asp",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "N26T",
+      "label": "N26T",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 26,
+      "from": "N",
+      "to": "T",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "Z",
+      "structural_region": "H3; hydrogen bond to AF-H loop",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 557,
+          "uniprot_position": 557,
+          "uniprot": "P04150",
+          "observed_residue": "W",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P2",
+              "author_start": 555,
+              "author_end": 581
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            52.223,
+            12.779,
+            55.847
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 646
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund pp1546-1547 Fig3A-B",
+      "role": "permissive; both Z substitutions needed for tested rescue",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "Q105L",
+      "label": "Q105L",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 105,
+      "from": "Q",
+      "to": "L",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "Z",
+      "structural_region": "H6-H7 loop; improves H7 packing against H3",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 636,
+          "uniprot_position": 636,
+          "uniprot": "P04150",
+          "observed_residue": "L",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            57.052,
+            9.12,
+            47.943
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 725
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ],
+      "locator": "Ortlund pp1546-1547 Fig3A-B",
+      "role": "permissive; both Z substitutions needed for tested rescue",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "H84Q",
+      "label": "H84Q",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 84,
+      "from": "H",
+      "to": "Q",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "W",
+      "structural_region": "H5; His84/Tyr91 aromatic stack supports beta strand adjacent to ligand/H7",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 615,
+          "uniprot_position": 615,
+          "uniprot": "P04150",
+          "observed_residue": "Q",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P4",
+              "author_start": 588,
+              "author_end": 617
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            39.988,
+            9.799,
+            33.848
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 704
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "pp516-517 Fig2A-C; Fig3A-B; p518 Fig4A-B",
+      "role": "restrictive ratchet group; order resolved for group completion only",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "Y91C",
+      "label": "Y91C",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 91,
+      "from": "Y",
+      "to": "C",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "W",
+      "structural_region": "Beta strand adjacent to ligand/H7; aromatic stack with His84",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 622,
+          "uniprot_position": 622,
+          "uniprot": "P04150",
+          "observed_residue": "C",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [],
+          "sheet_annotations": [
+            {
+              "id": "AA1",
+              "author_start": 621,
+              "author_end": 624
+            }
+          ],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            42.373,
+            10.038,
+            40.854
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 711
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "pp516-517 Fig2A-C; Fig3A-B; p518 Fig4A-B",
+      "role": "restrictive ratchet group; order resolved for group completion only",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "A107Y",
+      "label": "A107Y",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 107,
+      "from": "A",
+      "to": "Y",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "W",
+      "structural_region": "Base of H7 at mouth of ligand pocket where H3/H7/H10 pack",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 638,
+          "uniprot_position": 638,
+          "uniprot": "P04150",
+          "observed_residue": "C",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P6",
+              "author_start": 638,
+              "author_end": 656
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            55.301,
+            4.452,
+            52.166
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 727
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "pp516-517 Fig2A-C; Fig3A-B; p518 Fig4A-B",
+      "role": "restrictive ratchet group; order resolved for group completion only",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "G114Q",
+      "label": "G114Q",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 114,
+      "from": "G",
+      "to": "Q",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "W",
+      "structural_region": "H7; packing against H10 and position197",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 645,
+          "uniprot_position": 645,
+          "uniprot": "P04150",
+          "observed_residue": "H",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P6",
+              "author_start": 638,
+              "author_end": 656
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            46.645,
+            -2.356,
+            45.105
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 734
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "pp516-517 Fig2A-C; Fig3A-B; p518 Fig4A-B",
+      "role": "restrictive ratchet group; order resolved for group completion only",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "L197M",
+      "label": "L197M",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 197,
+      "from": "L",
+      "to": "M",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "W",
+      "structural_region": "H10; packing interface with H7 and position114",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 728,
+          "uniprot_position": 728,
+          "uniprot": "P04150",
+          "observed_residue": "V",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P9",
+              "author_start": 707,
+              "author_end": 742
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            42.923,
+            -6.341,
+            47.289
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 817
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "pp516-517 Fig2A-C; Fig3A-B; p518 Fig4A-B",
+      "role": "restrictive ratchet group; order resolved for group completion only",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "V234F",
+      "label": "V234F",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 234,
+      "from": "V",
+      "to": "F",
+      "interval": "AncGR1.0 -> AncGR2 (Ortlund2007/Bridgham2009 reconstruction backgrounds)",
+      "group": "excluded_W_candidate",
+      "structural_region": "Far from repositioned H7; modern location in AF-H/H12",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 764,
+          "uniprot_position": 764,
+          "uniprot": "P04150",
+          "observed_residue": "Y",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P10",
+              "author_start": 750,
+              "author_end": 765
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            40.17,
+            -10.128,
+            61.447
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 853
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "p516 candidate selection; p517 Fig2B",
+      "role": "phylogenetic candidate excluded from W on structural grounds; no order target",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "V43A",
+      "label": "V43A",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 43,
+      "from": "V",
+      "to": "A",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "2011_desensitizing",
+      "structural_region": "Middle of H3; hydrophobic core packing against H5/Leu72",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 574,
+          "uniprot_position": 574,
+          "uniprot": "P04150",
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P2",
+              "author_start": 555,
+              "author_end": 581
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            28.661,
+            5.482,
+            51.228
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 663
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; key functional target",
+      "epistasis_scoring": true,
+      "order_scoring": false,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "R116H",
+      "label": "R116H",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 116,
+      "from": "R",
+      "to": "H",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "2011_desensitizing",
+      "structural_region": "H7; hub of hydrogen bonds to H5/H6",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 647,
+          "uniprot_position": 647,
+          "uniprot": "P04150",
+          "observed_residue": "L",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P6",
+              "author_start": 638,
+              "author_end": 656
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            46.03,
+            0.669,
+            40.559
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 736
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; key functional target",
+      "epistasis_scoring": true,
+      "order_scoring": false,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "C71S",
+      "label": "C71S",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 71,
+      "from": "C",
+      "to": "S",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "buffering",
+      "structural_region": "H5 central core, beside solvated channel and H5 kink, above ligand pocket",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 602,
+          "uniprot_position": 602,
+          "uniprot": "P04150",
+          "observed_residue": "F",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P4",
+              "author_start": 588,
+              "author_end": 617
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            35.794,
+            -2.381,
+            48.983
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 691
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; key functional target",
+      "epistasis_scoring": true,
+      "order_scoring": false,
+      "order_evidence": "only_as_qualified_by_constraints"
+    },
+    {
+      "id": "Q113K",
+      "label": "Q113K",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 113,
+      "from": "Q",
+      "to": "K",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "small_effect",
+      "structural_region": "H7 hydrogen-bond network shared with R116",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 644,
+          "uniprot_position": 644,
+          "uniprot": "P04150",
+          "observed_residue": "K",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P6",
+              "author_start": 638,
+              "author_end": 656
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            49.801,
+            -0.619,
+            43.63
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 733
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; weaker single mutant; no established temporal constraint",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "L1M",
+      "label": "L1M",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 1,
+      "from": "L",
+      "to": "M",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "small_effect",
+      "structural_region": "N-terminal H1 of LBD (modern equivalent532 within annotated helix531-540)",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 532,
+          "uniprot_position": 532,
+          "uniprot": "P04150",
+          "observed_residue": "L",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P1",
+              "author_start": 531,
+              "author_end": 540
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            17.113,
+            -0.664,
+            39.635
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 621
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; weaker single mutant; no established temporal constraint",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "K83Q",
+      "label": "K83Q",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 83,
+      "from": "K",
+      "to": "Q",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "small_effect",
+      "structural_region": "Modern equivalent614 in H5 (helix588-617)",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 614,
+          "uniprot_position": 614,
+          "uniprot": "P04150",
+          "observed_residue": "R",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P4",
+              "author_start": 588,
+              "author_end": 617
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            37.75,
+            6.762,
+            33.172
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 703
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; weaker single mutant; no established temporal constraint",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "A107S",
+      "label": "A107S",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 107,
+      "from": "A",
+      "to": "S",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "small_effect",
+      "structural_region": "Base/start of H7 (modern equivalent638)",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 638,
+          "uniprot_position": 638,
+          "uniprot": "P04150",
+          "observed_residue": "C",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P6",
+              "author_start": 638,
+              "author_end": 656
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            55.301,
+            4.452,
+            52.166
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 727
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; weaker single mutant; no established temporal constraint",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "Q211E",
+      "label": "Q211E",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 211,
+      "from": "Q",
+      "to": "E",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "small_effect",
+      "structural_region": "H10 terminus/AF-H-loop neighborhood; exact modern homology needs deletion-aware crosswalk",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": null,
+          "uniprot_position": null,
+          "observed_residue": null,
+          "mapping_status": "alignment_ambiguous_near_source_deletion; generic_alignment_location_only",
+          "candidate_author_position": 742,
+          "note": "Source211 is explicitly alignment-ambiguous in numbering_offsets.json. Candidate742 is not a verified homolog; resolve the original deletion boundary before use.",
+          "coordinate_present": false
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Fig3; p5 Table1; pp5-7 Fig4-5 and Discussion",
+      "role": "assayed in AncCR; weaker single mutant; no established temporal constraint",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "A36G",
+      "label": "A36G",
+      "kind": "substitution",
+      "source_numbering": "AncCR local LBD numbering in the original study; distinct from human NR3C1 and alignment columns",
+      "position": 36,
+      "from": "A",
+      "to": "G",
+      "interval": "AncCR -> AncGR1.1 (Carroll2011 updated reconstruction background)",
+      "group": "no_detectable_effect",
+      "structural_region": "Ligand-contacting position on H3",
+      "structure_mapping": [
+        {
+          "pdb": "7PRX",
+          "chain": "A",
+          "author_position": 567,
+          "uniprot_position": 567,
+          "uniprot": "P04150",
+          "observed_residue": "G",
+          "coordinate_present": true,
+          "mapping_source": "data/numbering_offsets.json; ancestral_backup.2Q1H.chains.A.offset_to_human_GR_NR3C1; structures.7PRX.chains.A",
+          "helix_annotations": [
+            {
+              "id": "HELX_P2",
+              "author_start": 555,
+              "author_end": 581
+            }
+          ],
+          "sheet_annotations": [],
+          "interpretation": "modern scaffold location; modern amino acid and local conformation may differ from studied ancestral genotype",
+          "ca_xyz_angstrom": [
+            38.173,
+            8.948,
+            53.219
+          ],
+          "toga2_hg38_alignment_columns_1based": {
+            "NR3C1": 656
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "carroll2011"
+      ],
+      "locator": "p4 Genetic Basis; p4 Crystal Structure; p9 Analyses of Protein Stability",
+      "role": "reported previously tested with no significant sensitivity effect; no order target",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    }
+  ],
+  "groups": [
+    {
+      "id": "X",
+      "members": [
+        "S106P",
+        "L111Q"
+      ],
+      "meaning": "Function-switching pair. Assayed as block in X/Y/Z/W cubes; Fig2 individually assays its two members.",
+      "within_group_order": "L111Q-first is the probable functional path in Fig2A; no unique historical chronology."
+    },
+    {
+      "id": "Y",
+      "members": [
+        "L29M",
+        "F98I",
+        "S212del"
+      ],
+      "meaning": "Specificity-completing and strongly background-dependent set.",
+      "within_group_order": "unresolved; group-level assays do not impose order on individual members"
+    },
+    {
+      "id": "Z",
+      "members": [
+        "N26T",
+        "Q105L"
+      ],
+      "meaning": "Both required to rescue tested XY background; little effect without Y.",
+      "within_group_order": "unresolved"
+    },
+    {
+      "id": "W",
+      "members": [
+        "H84Q",
+        "Y91C",
+        "A107Y",
+        "G114Q",
+        "L197M"
+      ],
+      "meaning": "Restrictive ratchet group; reverse assays partially rescue with Y107A or paired reversals Q84H/C91Y and Q114G/M197L.",
+      "within_group_order": "unresolved; no individual total order established"
+    },
+    {
+      "id": "2011_desensitizing",
+      "members": [
+        "V43A",
+        "R116H"
+      ],
+      "meaning": "Large-effect mutations reducing hormone sensitivity in updated early interval.",
+      "within_group_order": "unresolved"
+    },
+    {
+      "id": "early_permissive",
+      "members": [
+        "Y27R"
+      ],
+      "within_group_order": "unresolved; consult event roles and explicit constraints"
+    },
+    {
+      "id": "excluded_W_candidate",
+      "members": [
+        "V234F"
+      ],
+      "within_group_order": "unresolved; consult event roles and explicit constraints"
+    },
+    {
+      "id": "buffering",
+      "members": [
+        "C71S"
+      ],
+      "within_group_order": "unresolved; consult event roles and explicit constraints"
+    },
+    {
+      "id": "small_effect",
+      "members": [
+        "Q113K",
+        "L1M",
+        "K83Q",
+        "A107S",
+        "Q211E"
+      ],
+      "within_group_order": "unresolved; consult event roles and explicit constraints"
+    },
+    {
+      "id": "no_detectable_effect",
+      "members": [
+        "A36G"
+      ],
+      "within_group_order": "unresolved; consult event roles and explicit constraints"
+    }
+  ],
+  "order_constraints": [
+    {
+      "id": "X_internal_preferred",
+      "type": "preferred_pair_order_from_functional_intermediates",
+      "prerequisites": [
+        "L111Q"
+      ],
+      "dependent": [
+        "S106P"
+      ],
+      "scope": "AncGR1.0 background; p1546 Fig2A mutational paths",
+      "evidence": "Fig2A green probable path introduces L111Q before S106P. S106P-first markedly reduces response to all ligands. This is a relative plausibility constraint, not observed historical timing or an absolute prohibition.",
+      "locator": "Ortlund2007 p1546 Fig2A and caption",
+      "source_ids": [
+        "ortlund2007"
+      ]
+    },
+    {
+      "id": "XZ_before_Y_complete",
+      "type": "prerequisite_groups_before_group_completion",
+      "prerequisites": [
+        "X",
+        "Z"
+      ],
+      "dependent": [
+        "completion(Y)"
+      ],
+      "scope": "Functional paths on AncGR1.0 background; atomic groups as assayed",
+      "evidence": "Fig3A assays all eight group combinations. Full Y abolishes function unless X and Z are present. Paper infers X and Z preceded completion of Y. No order between X and Z; no claim that every X/Z member precedes every Y member.",
+      "locator": "Ortlund2007 p1547 Fig3A-C and text",
+      "source_ids": [
+        "ortlund2007"
+      ]
+    },
+    {
+      "id": "early_Y27R",
+      "type": "phylogenetic_interval_precedence",
+      "prerequisites": [
+        "Y27R"
+      ],
+      "dependent": [
+        "X",
+        "Y",
+        "Z",
+        "W"
+      ],
+      "scope": "AncCR->AncGR1.0 precedes AncGR1.0->AncGR2; branch-level precedence only",
+      "evidence": "Y27R maps to the earlier reconstructed branch and reversal abolishes activity in the XYZ background. It is not necessary to infer a residue-level order inside the later branch.",
+      "locator": "Ortlund2007 p1547 Fig4A-B; Bridgham2009 p515 Fig1 and pp516-517 group W",
+      "source_ids": [
+        "ortlund2007",
+        "bridgham2009"
+      ]
+    },
+    {
+      "id": "X_before_W_complete",
+      "type": "preferred_group_prerequisite_before_completion",
+      "prerequisites": [
+        "X"
+      ],
+      "dependent": [
+        "completion(W)"
+      ],
+      "scope": "Forward mutagenesis on AncGR1.0 backgrounds",
+      "evidence": "W strongly reduces sensitivity in x backgrounds and has weak/moderate benefit in X backgrounds. Authors infer W probably was not complete before X remodeling. This does not order every W member after both X members.",
+      "locator": "Bridgham2009 p517 main text and p518 Fig4B",
+      "source_ids": [
+        "bridgham2009"
+      ]
+    },
+    {
+      "id": "reverse_W_Y_before_reverse_X",
+      "type": "reverse_group_prerequisite",
+      "prerequisites": [
+        "reverse(W)",
+        "reverse(Y)"
+      ],
+      "dependent": [
+        "reverse(X)"
+      ],
+      "scope": "Whole-block paths in assayed AncGR2 reversal cube; not all W residues individually necessary",
+      "evidence": "Restoring x is strongly impaired without w; fully ancestral conformation restoration also requires reversal of Y. Reversing W alone does not restore ancestral phenotype. No forward chronology is automatically derived from this reversal result. Single Y107A or paired W reversions partially rescue the impaired receptor; do not require all five W reversions before every X member.",
+      "locator": "Bridgham2009 pp517-518 Fig4A-B and text",
+      "source_ids": [
+        "bridgham2009"
+      ]
+    },
+    {
+      "id": "2011_buffer_first_conjecture",
+      "type": "author_conjecture_supported_by_buffering_assay",
+      "prerequisites": [
+        "C71S"
+      ],
+      "dependent": [
+        "V43A",
+        "R116H"
+      ],
+      "scope": "AncCR->AncGR1.1, updated 2011 reconstruction only",
+      "evidence": "C71S alone has negligible sensitivity effect but buffers the double desensitizing mutant. Authors explicitly conjecture it occurred before V43A and R116H. Individual desensitizing substitutions remain active; this is not directly measured historical order.",
+      "locator": "Carroll2011 p5 Table1/Fig3; p7 Discussion",
+      "source_ids": [
+        "carroll2011"
+      ]
+    },
+    {
+      "id": "reverse_Y_before_reverse_W",
+      "type": "reverse_group_prerequisite",
+      "prerequisites": [
+        "reverse(Y)"
+      ],
+      "dependent": [
+        "reverse(W)"
+      ],
+      "scope": "Assayed whole-block paths starting at AncGR2 XYZW only",
+      "evidence": "Reverting W alone is nonfunctional; reversing Y first allows viable later W reversal. Z is not assigned a unique position. This is not an individual-residue or observed historical order.",
+      "source_ids": [
+        "bridgham2009"
+      ],
+      "locator": "Bridgham2009 p518 Fig4A"
+    }
+  ],
+  "order_status": {
+    "status": "experimentally_supported_partial_orders_and_author_inferences; no_complete_historical_order",
+    "backgrounds": "2007/2009 AncGR1.0 and 2011 AncGR1.1 are different reconstructions of the same node. They must remain separate benchmarks. Example: later W event A107Y assumes AncGR1.0 Ala107, whereas 2011 early event A107S yields Ser107.",
+    "scoring": "Score only explicit applicable constraints with matching reconstruction background. Do not score an arbitrary total order, expand group completion into all pairwise edges, or treat author conjecture as direct chronological observation."
+  },
+  "missing_for_validation": [
+    "Codon-aligned exact reconstructed endpoints for each version, with reconstruction uncertainty/protein provenance, are not currently model-alignment rows. Synonymous historical codons are not established by these protein-level reconstructions.",
+    "A curated deletion-aware crosswalk is required at Anc211/212; deleted Ser212 must have modern coordinate null and be represented by ancestral/alignment column or indel unit.",
+    "Archive and inspect Ortlund2007 supplement (especially TableS4, FigsS5-S6, full ancestral sequences/assays) and Bridgham2009 Supplementary Figs1-5; these are not present under data/experimental. Main paper supports listed groups but not exhaustive site-level genotype viability.",
+    "Specify phenotype, ligand/dose, activation cutoff and matching experimental background when converting sensitivity into viable-path labels; low sensitivity is not categorically nonfunctional.",
+    "No original study establishes a unique complete order across every substituted site. Most intra-group orderings and the remaining later-branch sites have no temporal ground truth.",
+    "A scoring adapter must compare group-completion and conditional/reverse constraints, keep 2011 conjectural precedence separate, and support not_testable for unassayed site pairs.",
+    "Modern7PRX is a useful residue-location scaffold but carries a nonsteroidal ligand and additional divergence; it cannot reproduce historical genotype-dependent conformational causality alone."
+  ],
+  "corrections_to_existing": [
+    "SR3 omits restrictive W membership and actual reversal prerequisite; reversal of W with XYZ restored to ancestral states substantially rescues ancestral response.",
+    "SR4 and known_limitations incorrectly cap order evidence at seven/eight changes; Bridgham2009 adds five W sites and 2011 adds a separate early interval with three key sites.",
+    "S212del currently listed as modern742 is invalid homology; modern742 is an extant Asp beside the deleted region, not a replacement state for deleted Ser212.",
+    "S106P/L111Q Fig2A includes a preferred internal path (L111Q first); current registry only records epistasis.",
+    "Carroll2011 is cited but substantive key targets V43A, R116H, C71S and conjectured buffering-first order are missing.",
+    "Do not describe the 2011 AncGR1.1 reconstruction/3RY9 as the 2007 AncGR1.0 endpoint. The early branch differs: 2007 reports25 substitutions; 2011 updated reconstruction reports36.",
+    "All-combination Fig3A includes AncGR1+XZ and AncGR1+YZ; current assayed_genotypes list omits these.",
+    "Claim that all later interval substitutions other than X/Y/Z were never assayed is wrong: 2009 W was assayed.",
+    "A36G is not Thr36; Table1 lists effects by magnitude, which is not temporal substitution order."
+  ],
+  "verified_date": "2026-10-15",
+  "schema_version": "1.0",
+  "local_endpoint_note": "AA FASTAs and posterior_probabilities.json already exist under data/sequences/ancestral. AncGR1.fa is labeled Carroll2011 ML; verify reconstruction version against each 2007/2009/2011 source before use. They are not codon-aligned ancestral model rows."
+}

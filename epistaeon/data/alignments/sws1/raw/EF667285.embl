@@ -1,0 +1,136 @@
+ID   EF667285; SV 1; linear; genomic DNA; STD; MAM; 3113 BP.
+XX
+AC   EF667285;
+XX
+DT   03-JUL-2007 (Rel. 92, Created)
+DT   03-JUL-2007 (Rel. 92, Last updated, Version 1)
+XX
+DE   Daubentonia madagascariensis isolate Ozma-6453f opsin 1 short-wavelength
+DE   senstive protein (OPN1SW) gene, complete cds.
+XX
+KW   .
+XX
+OS   Daubentonia madagascariensis (aye-aye)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Strepsirrhini; Chiromyiformes;
+OC   Daubentoniidae; Daubentonia.
+XX
+RN   [1]
+RP   1-3113
+RX   DOI; 10.1093/molbev/msm124.
+RX   PUBMED; 17575304.
+RA   Perry G.H., Martin R.D., Verrelli B.C.;
+RT   "Signatures of functional constraint at aye-aye opsin genes: the potential
+RT   of adaptive color vision in a nocturnal primate";
+RL   Mol. Biol. Evol. 24(9):1963-1970(2007).
+XX
+RN   [2]
+RP   1-3113
+RA   Perry G.H., Martin R.D., Verrelli B.C.;
+RT   ;
+RL   Submitted (10-JUN-2007) to the INSDC.
+RL   The Biodesign Institute, Arizona State University, Tempe, AZ 85287, USA
+XX
+DR   MD5; bf126fc078ca3c226cb528a3a456847a.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..3113
+FT                   /organism="Daubentonia madagascariensis"
+FT                   /isolate="Ozma-6453f"
+FT                   /mol_type="genomic DNA"
+FT                   /db_xref="taxon:31869"
+FT   gene            <1..>3113
+FT                   /gene="OPN1SW"
+FT   mRNA            join(<101..452,739..907,1257..1422,1726..1965,2883..>3002)
+FT                   /gene="OPN1SW"
+FT                   /product="opsin 1 short-wavelength senstive protein"
+FT   CDS             join(101..452,739..907,1257..1422,1726..1965,2883..3002)
+FT                   /codon_start=1
+FT                   /gene="OPN1SW"
+FT                   /product="opsin 1 short-wavelength senstive protein"
+FT                   /db_xref="GOA:A6ZI84"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:A6ZI84"
+FT                   /protein_id="ABR53751.1"
+FT                   /translation="MRKMSGEEFYLFKNLSSVGPWDGPQYHIAPVWAFYLQAAFMGFVF
+FT                   FAGTPLNVMVLVATLRYKKLRQPLNYVLVNVSFGGFLFCIFSVFPVFIASCRGYFVFGR
+FT                   HVCALEGFLGSVAGLVIGWSLAFLAFERYIVICKPFGNFHFSSKHALMVVLATWTIGIG
+FT                   VSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYHSEYYTWFLFIFCFIVPLSLICFSYSQ
+FT                   LLGALRAVAAQQQESATTQKAEREVSRMVVVMVGSFCLCYVPYATLAMYMVNNRNHGLD
+FT                   LRLVTIPAFFSKSACVYNPIIYCFMNKQFQACILGMVCGKAVTDESDTSSSWKMQVSTV
+FT                   SSSQVGPN"
+FT   exon            <101..452
+FT                   /gene="OPN1SW"
+FT                   /number=1
+FT   exon            739..907
+FT                   /gene="OPN1SW"
+FT                   /number=2
+FT   exon            1257..1422
+FT                   /gene="OPN1SW"
+FT                   /number=3
+FT   exon            1726..1965
+FT                   /gene="OPN1SW"
+FT                   /number=4
+FT   exon            2883..>3002
+FT                   /gene="OPN1SW"
+FT                   /number=5
+XX
+SQ   Sequence 3113 BP; 769 A; 736 C; 809 G; 799 T; 0 other;
+     taagtactga tcattcacag aaaccaaata tctttagaag aggggggtgg tggtggaagg        60
+     ataatctata agaggaattc aagggagtgt ggggcatccc atgcgcaaga tgtcagggga       120
+     agagttttat ctgttcaaga acctctcctc tgtggggccg tgggatgggc ctcagtacca       180
+     catcgcccct gtctgggcct tctacctcca ggcagccttc atgggctttg tcttctttgc       240
+     agggacacca ctcaatgtca tggtgctggt ggccacactg cgctacaaaa agttgcggca       300
+     gccactcaac tacgttctgg tcaatgtgtc ctttggaggc ttcctcttct gcatcttctc       360
+     tgtcttccct gtcttcattg ccagctgtcg aggatacttt gtctttggcc gccatgtttg       420
+     tgctctggag gggttcctgg gctctgtagc aggtactgca ggggaagggg ctgggggaag       480
+     caaaggacac tacttaaaag ggacagtctt ttgggttgtg ggggtcccta aaggagtctg       540
+     gggctctttt gaatactggg gtacaaagct gcccagacta aaagttggac caaaatcgga       600
+     tgtttgagtc ttcactacac tccaaagatc agtgcacccc tccccgtctc tgtgcctgct       660
+     ccaccccatc tgaattccac tctgccagcc aggctggcca gattctgtct accccattct       720
+     cctcacattt caccacaggt ctggtgatag gctggtcact ggccttcctg gcctttgagc       780
+     gatacattgt catctgtaag cccttcggca acttccactt cagctccaag cacgcgctga       840
+     tggtggtcct ggctacctgg accatcggta ttggcgtttc catcccacca ttctttggct       900
+     ggagccggtg agtgcagagc agtggtggtg acttagtaag gagctcaggc tggtgtgagt       960
+     ggaaagcaag ctcaagtata acctttcagt ttttgacctc tactttttaa agagttggag      1020
+     ttataggtga ggagaaaggg ctgcgggaga taagtgctaa tgtttgctct gcagttggaa      1080
+     ctgctgtagc ctctgctggt caggacaaaa tctccctgct caaagccttt tggcattctc      1140
+     tgggttctaa gtgaagaaca tgatccagga atctcagctc ccactccact aattcttgtg      1200
+     gagagcccac agcgagcaag tgcttgtccc gtgggtgagt gcctggtcct ttgcaggttc      1260
+     atccccgagg gcctgcagtg ttcctgtggc cccgactggt acacggtggg caccaaatat      1320
+     cacagcgagt actatacctg gttcctcttc atcttctgct tcatcgtgcc tctctccctc      1380
+     atctgcttct cctactctca gctgctgggg gccctaagag ctgtaagtgg cttttgagag      1440
+     tcagggagga gaagtgggtc agggggctcc aggtgaggga agagcgggta agtactctag      1500
+     aacacaagac atctgggaat ggccacagcc agagaggggc atctaaaagc ggtgagggaa      1560
+     gtgggagcag ggagaacgag gaaagagagc cagaggaatt agacctgacc tgggatggaa      1620
+     gatgggcaat cagagtggat tccctccacc aatagacaag catccggaca gctgggagtt      1680
+     gagggccagg aagagggatg tgctgctctc tgtgatctgc cccaggttgc agctcagcag      1740
+     caggagtcag ctacgaccca gaaggccgag cgggaggtga gccgcatggt ggtggtgatg      1800
+     gtgggatcct tctgtctctg ctatgtgccc tatgctaccc tggccatgta catggtcaac      1860
+     aaccgtaacc acgggctgga tttacggctt gtcaccattc ctgccttctt ctccaagagt      1920
+     gcttgtgtct acaaccccat catctactgc tttatgaata agcaggtaaa gctctctatt      1980
+     catattcctg agaccctggt ccagaagacc ttgtttcttt cctcaccagt gacttttaac      2040
+     tcagaacacc tggactgtat tcagaggatt tctaggggtg gacaagggaa gcctttggta      2100
+     agcacaggaa gcaggaggaa gatgtgatca tcaagataat ggaacccatt attccactag      2160
+     gatactaaaa agaaaaaaaa aaaaagataa tggaacccag ggaggatgga actcgagcaa      2220
+     gaaaaatgaa gtcactccaa agagtaggat gagaagtaaa aaggttgctt tattgaaaaa      2280
+     ctcatagatc aacaattctt ctacattttt agtccttgca tttcacaaat tcttaatcct      2340
+     ttcccttcca acttctagcc tgtaggtgca tgtgtgaagt gcagaaatca taacacatgc      2400
+     ataaatctct caaatatctc atcgtctgaa ggtgccaggg ggcctccaat ccctaatccc      2460
+     aaatctgagc taataaacca caaactcaga tgaatctagg agagttcctg tcacaactaa      2520
+     tttggaatct actggatgga aaagaattga cagtcctttc caggtgggag taccttctag      2580
+     taatgttggg gctggtgggc ctgctgtggc aattctctta tgaagaaggc tggtttgtga      2640
+     agtttcccaa cagtgaggcc tcagactcag ccagaatgtc tggggattat tattgtagac      2700
+     ccaggagtat ggagtagttc tagactggaa actacctagt tttcgggatg ggaaagatac      2760
+     atgcaaaacc acctgggaac atccttgggt acgtgtgagc tttggggata caaagaatga      2820
+     gatccttttc tccacacttc cacgtctgcc aaggttatct ccaattctgc ctttccctcc      2880
+     agttccaagc ctgcatcctg gggatggtat gtgggaaggc cgtgacagat gaatccgaca      2940
+     catccagctc ctggaagatg caagtttcca ctgtctcttc tagccaagtt ggccccaact      3000
+     gaggacccca tattgacctg tttgcagcaa ctagaatttt acatttaagt aagtttctac      3060
+     tgtctttttg tcagaaacca aactactaat aacacagaag aaagacggga ggg             3113
+//

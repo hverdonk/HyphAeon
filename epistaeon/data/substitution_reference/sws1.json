@@ -1,0 +1,566 @@
+{
+  "schema_version": "1.0",
+  "case_number": 4,
+  "study_id": "sws1",
+  "verified_date": "2026-10-15",
+  "sources": [
+    {
+      "id": "yokoyama2014",
+      "doi": "10.1371/journal.pgen.1004884",
+      "url": "https://doi.org/10.1371/journal.pgen.1004884",
+      "local_file": "epistaeon/data/experimental/sws1_2014_yokoyama.pdf",
+      "local_sha256": "534a56ab60920742e813d05f00acbb957a0be48b240c8ded39976f1d0027adec",
+      "verified_locators": [
+        "Results: Evolutionary trajectories; The mode of phenotypic adaptation of human S1; Fig2,4,5,6; Materials and Methods"
+      ]
+    },
+    {
+      "id": "yokoyama2014_S1",
+      "doi": "10.1371/journal.pgen.1004884.s005",
+      "url": "https://ndownloader.figshare.com/files/1847638",
+      "local_file": "epistaeon/data/experimental/sws1_2014_S1_Table.pdf",
+      "local_sha256": "87669e2a72108ba278aaa214593a0a1aaf93c565f836cd5ece86918da05ffd60",
+      "verified_locators": [
+        "S1 Table, single PDF page:128 genotypes including ancestor; bold/italic values are inferred for nonfunctional pigments"
+      ]
+    },
+    {
+      "id": "yokoyama2014_S3",
+      "doi": "10.1371/journal.pgen.1004884.s007",
+      "url": "https://ndownloader.figshare.com/files/1847640",
+      "local_file": "epistaeon/data/experimental/sws1_2014_S3_Table.pdf",
+      "local_sha256": "75f6c48b66193769b47c3ed5f0b428bccc8c1b720a06c0b0eddfcf2928c56750",
+      "verified_locators": [
+        "S3 Table: representative gradual path and epistatic contributions"
+      ]
+    },
+    {
+      "id": "yokoyama2014_S4",
+      "doi": "10.1371/journal.pgen.1004884.s004",
+      "url": "https://ndownloader.figshare.com/files/1847637",
+      "local_file": "epistaeon/data/experimental/sws1_2014_S4_Fig.eps",
+      "local_sha256": "8650a3243a7c627685b73828157f9947f99344aafc0d458b085855501f65ef95",
+      "verified_locators": [
+        "S4 Fig: ancestral/human protein comparison and seven marked sites"
+      ]
+    },
+    {
+      "id": "shi2001_numbering",
+      "doi": "10.1073/pnas.201257398",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC58798/",
+      "local_file": "epistaeon/data/experimental/sws1_2001_shi_numbering.html",
+      "local_sha256": "f66856e9473219abeb0951adcfa475027e3915800bbcfc25349631e0d8558729",
+      "verified_locators": [
+        "Fig5 caption: same seven-site set uses bovine rhodopsin numbering; numbering authority only"
+      ]
+    }
+  ],
+  "coverage": "Seven substitutions underlying ancestral UV-sensitive SWS1 -> human blue-sensitive SWS1. Extant boreoeutherian alignment rebuilt separately from cited nucleotide accessions. Whole-genotype assay panel and phylogenetic historical order are separate references.",
+  "events": [
+    {
+      "id": "SWS1_F46T",
+      "label": "F46T",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 46,
+      "from": "F",
+      "to": "T",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_4",
+      "structural_region": "Transmembrane helix I (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 46,
+          "uniprot": "P02699",
+          "uniprot_position": 46,
+          "observed_residue": "L",
+          "ca_xyz_angstrom": [
+            52.277,
+            17.452,
+            5.333
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 45
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 43,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    },
+    {
+      "id": "SWS1_F49L",
+      "label": "F49L",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 49,
+      "from": "F",
+      "to": "L",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_3",
+      "structural_region": "Transmembrane helix I (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 49,
+          "uniprot": "P02699",
+          "uniprot_position": 49,
+          "observed_residue": "M",
+          "ca_xyz_angstrom": [
+            50.048,
+            21.782,
+            4.544
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 48
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 46,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    },
+    {
+      "id": "SWS1_T52F",
+      "label": "T52F",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 52,
+      "from": "T",
+      "to": "F",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_4",
+      "structural_region": "Transmembrane helix I (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 52,
+          "uniprot": "P02699",
+          "uniprot_position": 52,
+          "observed_residue": "F",
+          "ca_xyz_angstrom": [
+            44.713,
+            24.152,
+            5.517
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 51
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 49,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    },
+    {
+      "id": "SWS1_F86L",
+      "label": "F86L",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 86,
+      "from": "F",
+      "to": "L",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_2",
+      "structural_region": "Transmembrane helix II (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 86,
+          "uniprot": "P02699",
+          "uniprot_position": 86,
+          "observed_residue": "M",
+          "ca_xyz_angstrom": [
+            41.331,
+            20.103,
+            13.474
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 85
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 83,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    },
+    {
+      "id": "SWS1_T93P",
+      "label": "T93P",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 93,
+      "from": "T",
+      "to": "P",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_1",
+      "structural_region": "Transmembrane helix II (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 93,
+          "uniprot": "P02699",
+          "uniprot_position": 93,
+          "observed_residue": "T",
+          "ca_xyz_angstrom": [
+            49.926,
+            20.388,
+            18.993
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 92
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 90,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    },
+    {
+      "id": "SWS1_A114G",
+      "label": "A114G",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 114,
+      "from": "A",
+      "to": "G",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_1",
+      "structural_region": "Transmembrane helix III (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 114,
+          "uniprot": "P02699",
+          "uniprot_position": 114,
+          "observed_residue": "G",
+          "ca_xyz_angstrom": [
+            42.184,
+            15.004,
+            21.789
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 113
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 111,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    },
+    {
+      "id": "SWS1_S118T",
+      "label": "S118T",
+      "kind": "reconstructed_substitution_assayed_in_ancestral_background",
+      "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+      "position": 118,
+      "from": "S",
+      "to": "T",
+      "interval": "Boreoeutherian ancestor -> human SWS1 lineage across several branches",
+      "group": "historical_stage_3",
+      "structural_region": "Transmembrane helix III (bovine homolog template; paper FigS4 supports corresponding SWS1 helix)",
+      "structure_mapping": [
+        {
+          "pdb": "1U19",
+          "chain": "A",
+          "author_position": 118,
+          "uniprot": "P02699",
+          "uniprot_position": 118,
+          "observed_residue": "T",
+          "ca_xyz_angstrom": [
+            37.192,
+            14.105,
+            18.457
+          ],
+          "coordinate_present": true,
+          "mapping_kind": "homolog_template",
+          "toga2_hg38_alignment_columns_1based": {},
+          "alignment_reference_columns_1based": {
+            "SWS1": 117
+          },
+          "alignment_reference_row": "Homo_sapiens",
+          "human_cds_position_1based": 115,
+          "alignment_mapping_scope": "Explicit seven-site numbering_offsets.json sws1_benchmark map; historical human M13299.1/CDS join, not current UniProt SWS1. 1U19 coordinates locate a homologous site, not an actual SWS1 conformation."
+        }
+      ],
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1",
+        "yokoyama2014_S4",
+        "shi2001_numbering"
+      ],
+      "locator": "Yokoyama2014 Results/Fig4-6 and S1 Table; Shi2001 Fig5 for numbering",
+      "epistasis_scoring": true,
+      "order_scoring": true,
+      "order_evidence": "Historical branch precedence is phylogenetically inferred; functional accessibility assayed at whole-genotype level."
+    }
+  ],
+  "groups": [
+    {
+      "id": "historical_stage_1",
+      "members": [
+        "SWS1_T93P",
+        "SWS1_A114G"
+      ],
+      "within_group_order": "unresolved; all internal permutations retained",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5"
+    },
+    {
+      "id": "historical_stage_2",
+      "members": [
+        "SWS1_F86L"
+      ],
+      "within_group_order": "unresolved; all internal permutations retained",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5"
+    },
+    {
+      "id": "historical_stage_3",
+      "members": [
+        "SWS1_F49L",
+        "SWS1_S118T"
+      ],
+      "within_group_order": "unresolved; all internal permutations retained",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5"
+    },
+    {
+      "id": "historical_stage_4",
+      "members": [
+        "SWS1_F46T",
+        "SWS1_T52F"
+      ],
+      "within_group_order": "unresolved; all internal permutations retained",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5"
+    }
+  ],
+  "order_constraints": [
+    {
+      "id": "SWS1_historical_1_before_2",
+      "type": "phylogenetic_branch_precedence",
+      "prerequisites": [
+        "historical_stage_1"
+      ],
+      "dependent": [
+        "historical_stage_2"
+      ],
+      "logic": "all_members_before_all_members",
+      "scope": "Historical four-stage partial order inferred by parsimony across the paper mammalian panel; not a biochemical necessity or a unique historical path.",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5",
+      "experimentally_obligatory": false
+    },
+    {
+      "id": "SWS1_historical_2_before_3",
+      "type": "phylogenetic_branch_precedence",
+      "prerequisites": [
+        "historical_stage_2"
+      ],
+      "dependent": [
+        "historical_stage_3"
+      ],
+      "logic": "all_members_before_all_members",
+      "scope": "Historical four-stage partial order inferred by parsimony across the paper mammalian panel; not a biochemical necessity or a unique historical path.",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5",
+      "experimentally_obligatory": false
+    },
+    {
+      "id": "SWS1_historical_3_before_4",
+      "type": "phylogenetic_branch_precedence",
+      "prerequisites": [
+        "historical_stage_3"
+      ],
+      "dependent": [
+        "historical_stage_4"
+      ],
+      "logic": "all_members_before_all_members",
+      "scope": "Historical four-stage partial order inferred by parsimony across the paper mammalian panel; not a biochemical necessity or a unique historical path.",
+      "source_ids": [
+        "yokoyama2014"
+      ],
+      "locator": "Results: The mode of phenotypic adaptation of human S1; Fig4/5",
+      "experimentally_obligatory": false
+    },
+    {
+      "id": "SWS1_T52F_requires_one_of_F46T_T93P",
+      "type": "assay_derived_disjunctive_prerequisite",
+      "prerequisites": [
+        "SWS1_F46T",
+        "SWS1_T93P"
+      ],
+      "dependent": [
+        "SWS1_T52F"
+      ],
+      "logic": "at_least_one",
+      "scope": "In the seven-site ancestral-background assay cube, every functional genotype containing T52F also has F46T or T93P. At least one must precede T52F along a path constrained to functional measured intermediates. Neither is universally sufficient on all larger backgrounds. Derived from normalized S1 Table; source curation caveats apply. Because genotype0111011 is reconstructed from a probable printed-label typo, treat this universal rule as provisional rather than unqualified experimental order truth.",
+      "source_ids": [
+        "yokoyama2014_S1"
+      ],
+      "locator": "S1 Table:0010000 nonfunctional;1010000 and0010100 functional at356nm; all functional T52F-containing rows",
+      "experimentally_obligatory": false,
+      "minimal_rescue_backgrounds": [
+        [
+          "SWS1_F46T"
+        ],
+        [
+          "SWS1_T93P"
+        ]
+      ],
+      "scoring_status": "provisional: depends on normalized S1 Table, including the unconfirmed missing-genotype repair",
+      "would_be_obligatory_if_normalized_panel_is_confirmed": true
+    },
+    {
+      "id": "SWS1_T52F_cannot_be_first",
+      "type": "experimental_single_mutant_exclusion",
+      "prerequisites": [
+        "SWS1_F46T",
+        "SWS1_F49L",
+        "SWS1_F86L",
+        "SWS1_T93P",
+        "SWS1_A114G",
+        "SWS1_S118T"
+      ],
+      "dependent": [
+        "SWS1_T52F"
+      ],
+      "logic": "at_least_one",
+      "scope": "T52F alone on the assayed ancestral background does not form functional pigment. It therefore cannot be the first step on a seven-site path required to retain functional pigment at every intermediate. This does not say which of the other six substitutions is sufficient to permit it.",
+      "source_ids": [
+        "yokoyama2014",
+        "yokoyama2014_S1"
+      ],
+      "locator": "Fig2A and Results Evolutionary trajectories; S1 Table genotype0010000",
+      "experimentally_obligatory": true
+    }
+  ],
+  "assay_data": {
+    "genotypes": "epistaeon/data/experimental/sws1_2014_genotypes.json",
+    "paths": "epistaeon/data/experimental/sws1_2014_paths.json",
+    "published_accessible_paths": 1032,
+    "normalized_table_accessible_paths": 1076,
+    "historically_favored_paths": 8,
+    "scoring_status": "Historical order and explicitly measured genotype contrasts are available. Exact accessible-path-set scoring is provisional pending reconciliation of source table/path discrepancies. Do not treat1076 as a reproduction of1032.",
+    "spectrum_rule": "Use lambda_max_nm only for functional measured pigments. published_inferred_lambda_max_nm is not an experimental spectrum."
+  },
+  "alignment": {
+    "file": "epistaeon/data/alignments/sws1/SWS1.codonified.fa",
+    "reference_row": "Homo_sapiens",
+    "taxon_count": 15,
+    "extant_only": true,
+    "ancestral_rows": 0,
+    "site_selection_human_residues": "epistaeon/data/alignments/sws1/sites_human.txt",
+    "site_selection_alignment_columns": "epistaeon/data/alignments/sws1/sites_columns.txt",
+    "numbering_authority": "epistaeon/data/numbering_offsets.json#/sws1_benchmark",
+    "note": "The seven paper amino-acid directions define the source truth. A model run without an ancestral row uses its own inferred/plurality background and must report it; that is not the experimental ancestral construct."
+  },
+  "missing_before_scoring": [
+    "Reconcile S1 Table probable duplicated genotype label0011011 and missing0111011, bold-only inferred value1010011, and published1032 accessible paths vs1076 from normalized table. Full discrepancy documented per record.",
+    "The seven-site assays used chimeric AncBoreotheria S1 with anole termini. Natural extant sequences are model inputs, not identical assay backgrounds.",
+    "1U19 is a bovine rod-opsin homolog template only. It does not validate SWS1 distances or a dark-noise mechanism."
+  ],
+  "not_established": [
+    "A unique historical permutation within the three two-substitution stages.",
+    "Biochemical necessity of the entire phylogenetically inferred four-stage order.",
+    "Thermal-decay or dark-noise kinetics; these are not this benchmark readouts."
+  ]
+}

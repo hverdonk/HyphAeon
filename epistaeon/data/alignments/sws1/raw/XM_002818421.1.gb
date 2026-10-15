@@ -1,0 +1,78 @@
+LOCUS       XM_002818421            1515 bp    mRNA    linear   PRI 17-JUL-2012
+DEFINITION  PREDICTED: Pongo abelii opsin 1 (cone pigments),
+            short-wave-sensitive (OPN1SW), mRNA.
+ACCESSION   XM_002818421
+VERSION     XM_002818421.1
+KEYWORDS    RefSeq.
+SOURCE      Pongo abelii (Sumatran orangutan)
+  ORGANISM  Pongo abelii
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Pongo.
+COMMENT     MODEL REFSEQ:  This record is predicted by automated computational
+            analysis. This record is derived from a genomic sequence
+            (NW_002881971) annotated using gene prediction method: GNOMON,
+            supported by mRNA and EST evidence.
+            Also see:
+                Documentation of NCBI's Annotation Process
+            
+            [WARNING] On Sep 23, 2014 this sequence was replaced by
+            XM_002818421.2.
+FEATURES             Location/Qualifiers
+     source          1..1515
+                     /organism="Pongo abelii"
+                     /mol_type="mRNA"
+                     /isolate="ISIS 71"
+                     /db_xref="taxon:9601"
+                     /chromosome="7"
+                     /sex="female"
+                     /tissue_type="blood"
+                     /geo_loc_name="USA: Gladys Porter Zoo, Brownsville, TX"
+     gene            1..1515
+                     /gene="OPN1SW"
+                     /note="Derived by automated computational analysis using
+                     gene prediction method: GNOMON. Supporting evidence
+                     includes similarity to: 2 mRNAs, 6 ESTs, 20 Proteins"
+                     /db_xref="GeneID:100446473"
+     CDS             1..1047
+                     /gene="OPN1SW"
+                     /codon_start=1
+                     /product="short-wave-sensitive opsin 1"
+                     /protein_id="XP_002818467.1"
+                     /db_xref="GeneID:100446473"
+                     /translation="MRKMSDEEFYLFKNISSVGPWDGPQYHIAPVWAFYLQAAFMGTV
+                     FLVGLPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVF
+                     GRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTI
+                     GIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICF
+                     SYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNR
+                     NHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKAMTDESDTCSSQK
+                     TEVSTVSSTQVGPN"
+ORIGIN      
+        1 atgagaaaga tgtcagacga agagttttat ctgttcaaaa atatctcttc agtggggccg
+       61 tgggatgggc ctcagtacca cattgcccct gtctgggcct tctacctcca ggcagctttc
+      121 atgggcactg tcttccttgt agggttacca ctcaatgcca tggtgctggt ggccacactg
+      181 cgctacaaaa agttgcggca gccccttaac tacattctgg tcaacgtgtc cttcggaggc
+      241 ttcctcctct gcatcttctc tgtcttccct gtcttcgtcg ccagctgtaa cggatacttc
+      301 gtcttcggtc gccatgtttg tgctttggag ggcttcctgg gcactgtagc aggtctggtt
+      361 acaggctggt cactggcctt cctggccttt gagcgctaca ttgtcatctg taagcccttc
+      421 ggcaacttcc gcttcagctc caagcacgca ctgacggtgg tcctggctac ctggaccatt
+      481 ggtattggcg tctccatccc acccttcttt ggctggagcc ggttcatccc tgagggcctg
+      541 caatgttcct gcggccctga ctggtacacc gtgggcacca aataccgcag cgagtcctat
+      601 acgtggttcc tcttcatctt ctgcttcatc gtgcctctct ccctcatctg cttctcctac
+      661 actcagctgc tgagggccct gaaagctgtt gcagctcagc agcaggagtc agctacgacc
+      721 cagaaggctg aacgggaggt gagccgcatg gtggttgtga tggtaggatc cttctgtgtc
+      781 tgctacgtgc cctacgcagc cttcgccatg tacatggtca acaaccgtaa ccatgggctg
+      841 gacttacgac ttgtcaccat tccttcattc ttctccaaga gtgcttgcat ctacaatccc
+      901 ataatctact gcttcatgaa taagcagttc caagcttgca tcatgaagat ggtgtgtggg
+      961 aaggccatga cagacgaatc cgacacatgc agctcccaga aaacagaagt ttctactgtc
+     1021 tcgtctaccc aagttggccc caactgagga cccaatattg gcctgtttgc aacagctaga
+     1081 attaaatttt acttttaagt aagtttctat tgtctccgtc agaaaccaaa ctactaaaaa
+     1141 cacaaaaaag atggtaagag gagtgatggc agtttgggga gtcaattttt cattttctta
+     1201 ctattgcctt cttgcctaca aagctactgt ttccactggt ctatttcaga ccacccaaag
+     1261 gccatttcaa caatcatcag tttctactcc taagtggcac cattcacagc acttggagaa
+     1321 ctgatttcta catacaaggc aactaaaaac gaatatggct ttaagttctc agtgtatgga
+     1381 tactttcctt ttcagtaact ttttattttt ttttttctgc tggggatcca ttctgcgatg
+     1441 atatatgctg aattagaaca aacttaagaa aacaccttag aaatgggaga gacataaaga
+     1501 aaaaaaagaa aaaaa
+//
+

@@ -13,8 +13,10 @@ coordinate systems. Convert explicitly; a mistake produces a plausible-looking
 wrong answer with no error.
 
 **Model output is alignment columns, not residue numbers.** Drop the columns
-where the human reference has a gap first: HBB 6, RHO 8, MB 32, HBA1 32,
-HBA2 62, NR3C1 88, NR3C2 110.
+where the human reference has a gap first: HBB 6, MB 32, HBA1 32,
+HBA2 62, NR3C1 88, NR3C2 110. These counts apply only to the TOGA2 inputs.
+The rebuilt SWS1 alignment has its own explicit source-site/reference-column
+crosswalk; do not apply TOGA2 gap counts to it.
 
 **Then convert to structure numbering** (`../data/numbering_offsets.json` is
 the machine-readable source):
@@ -24,9 +26,9 @@ the machine-readable source):
 | 2HHB chains A, C | alpha-globin | UniProt = PDB **+1** |
 | 2HHB chains B, D | beta-globin | UniProt = PDB **+1** |
 | 1MBO | myoglobin | UniProt = PDB **+1** |
-| 1U19 | rhodopsin | **0** |
+| 1U19 | bovine rod-opsin homology template for SWS1 | **0** to its own bovine UniProt sequence only; use the SWS1 crosswalk for source sites |
 | 7PRX | glucocorticoid receptor | **0** |
-| ancestral receptors | AncCR / AncGR1 / AncGR2 | local LBD numbering; **+531** to reach human GR |
+| ancestral receptors | source AncCR numbering | **+531** through210, **+530** from213; source211 ambiguous, deleted212 has no modern homolog |
 
 Special cases:
 
@@ -36,8 +38,12 @@ Special cases:
 - **3GN8** numbering runs one lower than AncCR from about position 212, so the
   +531 rule does not hold there.
 - **1U19** carries an `ACE` cap at author position 0; skip it when iterating.
-- **1MBO and 1U19 are not human**, but neither has an indel relative to the
-  human protein: human residue *n* is 1U19 residue *n* and 1MBO residue *n* − 1.
+- **1MBO is not human**, but has no indel relative to the human myoglobin
+  reference: human myoglobin residue *n* is 1MBO residue *n* − 1.
+- **1U19 is not SWS1.** It is the bovine rod-opsin template used for homology
+  modeling in Yokoyama 2014. Its complete coordinates and own-sequence offset
+  do not validate a direct SWS1 mapping. Historical human accession M13295 and
+  current UniProt P03999 differ; use the source-anchored crosswalk.
 
 ## Contact classification
 
@@ -57,24 +63,29 @@ Baseline contact rates, needed to judge whether any enrichment is meaningful:
 
 Minimum detected pairs for an odds ratio of 4.0 at Fisher p < 1e-5: 2HHB alpha
 181, 2HHB beta 173, 1MBO 187, 1U19 317, 7PRX 247. Below these counts the test
-cannot reach significance regardless of accuracy.
+cannot reach significance regardless of accuracy. The 1U19 values describe
+all template residues; they are not a calibrated SWS1 benchmark after homolog
+mapping or restriction to seven focal sites.
 
 ## Species coverage
 
-The alignments are TOGA2, human-referenced, and therefore **mammals only**: all
-3,847 sequences and all 882 species-tree tips. Birds, fish and reptiles are
-absent by construction.
+The TOGA2 alignments are human-referenced and **mammals only**; the shared
+species tree has 882 tips. Birds, fish and reptiles are absent by construction.
+The separate `data/alignments/sws1/` input is rebuilt from the paper-listed
+extant boreoeutherian accessions, including additional primates. It contains
+no outgroup opsins, non-boreoeutherian taxa or ancestral rows, and does not
+claim to recover the authors' exact original alignment.
 
 | Needed species | Status |
 | --- | --- |
-| *Peromyscus maniculatus* (deer mouse) | In TOGA2 (3 assemblies) but **absent from HBA1, HBA2 and HBB** |
-| *Physeter macrocephalus* (sperm whale) | Present in MB and RHO |
+| *Peromyscus maniculatus* (deer mouse) | High-type representative now merged into HBA1, HBA2 and HBB as `HLperManSon3`; not the complete experimental allele panel |
+| *Physeter macrocephalus* (sperm whale) | Present in MB |
 | *Mirounga leonina*, *Leptonychotes weddellii* | Present in MB |
-| Naked mole-rat, star-nosed mole, *Myotis nattereri* | Present in RHO |
-| *Rhinolophus unihastatus* | No TOGA2 assembly |
+| Human, macaque, squirrel monkey, marmoset, cow, mouse, rat, gray squirrel, guinea pig | SWS1 accessions from the paper's original 33-sequence set |
+| Chimpanzee, gorilla, orangutan, gibbon, tarsier, aye-aye | Additional SWS1 primate accessions from the paper's Methods |
 
 Data quality: share of codons that are gaps or masked — HBA1 34.5%, HBA2 44.0%,
-MB 19.5%, NR3C2 13.9%, NR3C1 13.5%, HBB 7.8%, RHO 5.0%. Grey seal NR3C1 has two
+MB 19.5%, NR3C2 13.9%, NR3C1 13.5%, HBB 7.8%. Grey seal NR3C1 has two
 internal stop codons. The loader collapses identical sequences before inference.
 
 ## Structures
@@ -91,6 +102,27 @@ Two structural constraints that affect interpretation:
 - **Haem and retinal are large.** Residues coupled through a cofactor without
   touching each other count as "not in direct contact" under the 5 A rule. That
   is correct under the rule, but worth noting when interpreting a negative.
+- **SWS1 has a homology template, not a deposited focal structure.** Map each
+  source site explicitly to 1U19 before reporting its location. Template
+  residue identity need not match any SWS1 experimental background.
+
+## SWS1 ordering evidence
+
+Yokoyama et al. (2014), doi:10.1371/journal.pgen.1004884, assayed all 127 mutant
+combinations of F46T, F49L, T52F, F86L, T93P, A114G and S118T. Sixty mutants
+did not form functional pigments; the paper reports 1,032 accessible orders out
+of 5,040. T52F alone fails on AncBoreotheria S1, so it cannot initiate a path
+under that assay criterion. This does not measure organismal fitness.
+
+The narrower historical inference is
+`{T93P, A114G} -> F86L -> {F49L, S118T} -> {F46T, T52F}`: eight paths because
+each of three pairs is internally unordered. This order comes from
+phylogeny/parsimony, not a demonstration that all other functional paths are
+impossible. No dark-noise or thermal-decay prerequisite is part of this case.
+The local S1-table transcription has genotype/formatting anomalies and its
+enumeration differs from the reported path count. Exact accessibility-set
+scoring must wait for reconciliation; retain published and enumerated counts
+separately.
 
 ## Model constraint
 
@@ -103,3 +135,15 @@ the released weights.
 This matters when judging an ordering or contingency result: if such a result
 appears, establish where the background dependence came from, because the
 site-level scores alone cannot supply it.
+
+## SWS1 input checks
+
+The rebuilt input has 15 distinct nucleotide rows and 350 codon columns;
+all seven focal sites are present and unambiguous in every row. Human and
+chimp proteins are identical but their nucleotide sequences differ, so this
+panel does not lose a taxon to nucleotide duplicate pruning. Marmoset has a
+short missing C terminus and rat has one retained ambiguous codon near the
+N terminus; neither affects the focal sites. The human-reference site list is
+`data/alignments/sws1/sites_human.txt`; explicit codon columns are in
+`sites_columns.txt`. Consult the dataset README before running without an
+ancestral row: the model's plurality states are not the published ancestor.

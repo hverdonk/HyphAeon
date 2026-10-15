@@ -71,17 +71,19 @@ print(f"  pocket(106) <-> remote 29: CB-CB {cbd(s106,l29):.1f}A")
 print(f"  pocket(111) <-> remote 29: CB-CB {cbd(l111,l29):.1f}A")
 print(f"  pocket(106) <-> pos 36   : CB-CB {cbd(s106,p36):.1f}A")
 
-print("\n-- Rhodopsin 1U19 --")
-e113=res('1U19','A',113); a292=res('1U19','A',292); d83=res('1U19','A',83)
-g121=res('1U19','A',121); e122=res('1U19','A',122)
-ret=hetres('1U19','A','RET')
-dry=[res('1U19','A',i) for i in (134,135,136)]
-print(f"  retinal ligand present: {ret.resname if ret else 'NONE'}")
-for lbl,r in [('Glu113',e113),('Asp83',d83),('Ala292',a292),('Gly121',g121),('Glu122',e122)]:
-    print(f"    {lbl} -> retinal: min-heavy {mind(r,ret):.1f}A")
-print(f"  Glu113 <-> DRY Arg135: CB-CB {cbd(e113,dry[1]):.1f}A, min-heavy {mind(e113,dry[1]):.1f}A  [paper claims 22.1A cytoplasmic face]")
-print(f"  retinal <-> DRY Arg135: min-heavy {mind(ret,dry[1]):.1f}A")
-print(f"  Gly121 <-> Ala292 (permissive<->adaptive): CB-CB {cbd(g121,a292):.1f}A, min-heavy {mind(g121,a292):.1f}A")
+# The SWS1 sites use the original paper's conventional bovine numbering.
+# These coordinates are homolog-template geometry, not measured SWS1 contacts.
+import json
+sws1 = json.loads(open(os.path.join(_HERE, '..', 'data', 'numbering_offsets.json')).read())["sws1_benchmark"]
+print("\n-- SWS1 sites on the bovine 1U19 homolog template --")
+ret = hetres('1U19', 'A', 'RET')
+for site in sws1['site_map']:
+    r = res(site['template_pdb'], site['template_chain'], site['template_author_position'])
+    print(f"  {site['substitution']}: human CDS {site['human_cds_position_1based']}, "
+          f"codon column {site['alignment_codon_column_1based']}, "
+          f"template {r.resname}{site['template_author_position']}; "
+          f"template retinal distance {mind(r, ret):.1f}A")
+print("  Template distances do not establish SWS1 functional coupling or dark-noise kinetics.")
 
 print("\n-- Myoglobin 1MBO --")
 mb=[r for r in S['1MBO']['A'] if r.id[0]==' ']

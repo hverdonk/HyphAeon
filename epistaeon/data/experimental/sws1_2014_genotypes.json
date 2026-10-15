@@ -1,0 +1,3171 @@
+{
+  "schema_version": "1.0",
+  "study_id": "sws1",
+  "source": {
+    "doi": "10.1371/journal.pgen.1004884",
+    "url": "https://ndownloader.figshare.com/files/1847638",
+    "local_file": "epistaeon/data/experimental/sws1_2014_S1_Table.pdf",
+    "sha256": "87669e2a72108ba278aaa214593a0a1aaf93c565f836cd5ece86918da05ffd60"
+  },
+  "mutation_bit_order": [
+    "F46T",
+    "F49L",
+    "T52F",
+    "F86L",
+    "T93P",
+    "A114G",
+    "S118T"
+  ],
+  "bit_convention": "Genotype strings run in mutation_bit_order; integer mask uses the first mutation as bit0. 0=ancestral,1=derived.",
+  "assay_scope": "Chimeric AncBoreotheria S1 background with anole terminal segments; purified pigment absorption, not organismal fitness or dark-noise kinetics.",
+  "published_mutant_counts": {
+    "assayed": 127,
+    "nonfunctional": 60
+  },
+  "curation_warning": "One probable duplicated genotype-label correction and one bold-only inferred value are explicit in individual records. Published versus table-recomputed path counts disagree; preserve the distinction.",
+  "records_including_ancestral_control": [
+    {
+      "genotype": "0000000",
+      "mask": 0,
+      "mutations": [],
+      "functional_pigment": true,
+      "lambda_max_nm": 357,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": null,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 1,
+        "pdf_y0": 92.2,
+        "printed_genotype": "0000000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000000",
+      "mask": 1,
+      "mutations": [
+        "F46T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 355,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 2,
+        "pdf_y0": 101.6,
+        "printed_genotype": "1000000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100000",
+      "mask": 2,
+      "mutations": [
+        "F49L"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 354,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -3,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 3,
+        "pdf_y0": 110.7,
+        "printed_genotype": "0100000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100000",
+      "mask": 3,
+      "mutations": [
+        "F46T",
+        "F49L"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 355,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 9,
+        "pdf_y0": 165.9,
+        "printed_genotype": "1100000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010000",
+      "mask": 4,
+      "mutations": [
+        "T52F"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 4,
+        "pdf_y0": 119.8,
+        "printed_genotype": "0010000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010000",
+      "mask": 5,
+      "mutations": [
+        "F46T",
+        "T52F"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 356,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 10,
+        "pdf_y0": 175.0,
+        "printed_genotype": "1010000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110000",
+      "mask": 6,
+      "mutations": [
+        "F49L",
+        "T52F"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 354,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 15,
+        "pdf_y0": 221.1,
+        "printed_genotype": "0110000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110000",
+      "mask": 7,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 30,
+        "pdf_y0": 359.1,
+        "printed_genotype": "1110000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001000",
+      "mask": 8,
+      "mutations": [
+        "F86L"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 357,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 5,
+        "pdf_y0": 129.2,
+        "printed_genotype": "0001000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001000",
+      "mask": 9,
+      "mutations": [
+        "F46T",
+        "F86L"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 11,
+        "pdf_y0": 184.4,
+        "printed_genotype": "1001000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101000",
+      "mask": 10,
+      "mutations": [
+        "F49L",
+        "F86L"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 353,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -4,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 16,
+        "pdf_y0": 230.2,
+        "printed_genotype": "0101000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101000",
+      "mask": 11,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 356,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 31,
+        "pdf_y0": 368.2,
+        "printed_genotype": "1101000",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011000",
+      "mask": 12,
+      "mutations": [
+        "T52F",
+        "F86L"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 20,
+        "pdf_y0": 267.2,
+        "printed_genotype": "0011000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011000",
+      "mask": 13,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 359,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 35,
+        "pdf_y0": 405.2,
+        "printed_genotype": "1011000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111000",
+      "mask": 14,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 353,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 45,
+        "pdf_y0": 497.1,
+        "printed_genotype": "0111000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111000",
+      "mask": 15,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 1,
+        "pdf_y0": 92.2,
+        "printed_genotype": "1111000",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000100",
+      "mask": 16,
+      "mutations": [
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 359,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 6,
+        "pdf_y0": 138.3,
+        "printed_genotype": "0000100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000100",
+      "mask": 17,
+      "mutations": [
+        "F46T",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 12,
+        "pdf_y0": 193.5,
+        "printed_genotype": "1000100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100100",
+      "mask": 18,
+      "mutations": [
+        "F49L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 356,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 17,
+        "pdf_y0": 239.6,
+        "printed_genotype": "0100100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100100",
+      "mask": 19,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 32,
+        "pdf_y0": 377.6,
+        "printed_genotype": "1100100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010100",
+      "mask": 20,
+      "mutations": [
+        "T52F",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 356,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 21,
+        "pdf_y0": 276.3,
+        "printed_genotype": "0010100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010100",
+      "mask": 21,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 355,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 36,
+        "pdf_y0": 414.3,
+        "printed_genotype": "1010100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110100",
+      "mask": 22,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "T93P"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 353,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 46,
+        "pdf_y0": 506.2,
+        "printed_genotype": "0110100",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110100",
+      "mask": 23,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "T93P"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 355,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 2,
+        "pdf_y0": 101.6,
+        "printed_genotype": "1110100",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001100",
+      "mask": 24,
+      "mutations": [
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 377,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 20,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 24,
+        "pdf_y0": 303.9,
+        "printed_genotype": "0001100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001100",
+      "mask": 25,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 386,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 29,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 39,
+        "pdf_y0": 441.9,
+        "printed_genotype": "1001100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101100",
+      "mask": 26,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 388,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 31,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 49,
+        "pdf_y0": 533.8,
+        "printed_genotype": "0101100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101100",
+      "mask": 27,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 389,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 32,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 5,
+        "pdf_y0": 129.2,
+        "printed_genotype": "1101100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011100",
+      "mask": 28,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 388,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 31,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 55,
+        "pdf_y0": 589.0,
+        "printed_genotype": "0011100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011100",
+      "mask": 29,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 390,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 33,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 11,
+        "pdf_y0": 184.4,
+        "printed_genotype": "1011100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111100",
+      "mask": 30,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 396,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 39,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 21,
+        "pdf_y0": 276.3,
+        "printed_genotype": "0111100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111100",
+      "mask": 31,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 394,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 37,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 36,
+        "pdf_y0": 414.3,
+        "printed_genotype": "1111100",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000010",
+      "mask": 32,
+      "mutations": [
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 7,
+        "pdf_y0": 147.4,
+        "printed_genotype": "0000010",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000010",
+      "mask": 33,
+      "mutations": [
+        "F46T",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 13,
+        "pdf_y0": 202.6,
+        "printed_genotype": "1000010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100010",
+      "mask": 34,
+      "mutations": [
+        "F49L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 355,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 18,
+        "pdf_y0": 248.7,
+        "printed_genotype": "0100010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100010",
+      "mask": 35,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 33,
+        "pdf_y0": 386.7,
+        "printed_genotype": "1100010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010010",
+      "mask": 36,
+      "mutations": [
+        "T52F",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 22,
+        "pdf_y0": 285.4,
+        "printed_genotype": "0010010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010010",
+      "mask": 37,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 37,
+        "pdf_y0": 423.4,
+        "printed_genotype": "1010010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110010",
+      "mask": 38,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 355,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 47,
+        "pdf_y0": 515.6,
+        "printed_genotype": "0110010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110010",
+      "mask": 39,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 3,
+        "pdf_y0": 110.7,
+        "printed_genotype": "1110010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001010",
+      "mask": 40,
+      "mutations": [
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 357,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 25,
+        "pdf_y0": 313.0,
+        "printed_genotype": "0001010",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001010",
+      "mask": 41,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 359,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 40,
+        "pdf_y0": 451.0,
+        "printed_genotype": "1001010",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101010",
+      "mask": 42,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 353,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 50,
+        "pdf_y0": 543.2,
+        "printed_genotype": "0101010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101010",
+      "mask": 43,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 6,
+        "pdf_y0": 138.3,
+        "printed_genotype": "1101010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011010",
+      "mask": 44,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 56,
+        "pdf_y0": 598.4,
+        "printed_genotype": "0011010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011010",
+      "mask": 45,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 360,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 12,
+        "pdf_y0": 193.5,
+        "printed_genotype": "1011010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111010",
+      "mask": 46,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 353,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 22,
+        "pdf_y0": 285.4,
+        "printed_genotype": "0111010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111010",
+      "mask": 47,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 37,
+        "pdf_y0": 423.4,
+        "printed_genotype": "1111010",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000110",
+      "mask": 48,
+      "mutations": [
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 361,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 4,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 27,
+        "pdf_y0": 331.5,
+        "printed_genotype": "0000110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000110",
+      "mask": 49,
+      "mutations": [
+        "F46T",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 360,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 3,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 42,
+        "pdf_y0": 469.5,
+        "printed_genotype": "1000110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100110",
+      "mask": 50,
+      "mutations": [
+        "F49L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 359,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 52,
+        "pdf_y0": 561.4,
+        "printed_genotype": "0100110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100110",
+      "mask": 51,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 361,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 8,
+        "pdf_y0": 156.8,
+        "printed_genotype": "1100110",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010110",
+      "mask": 52,
+      "mutations": [
+        "T52F",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 58,
+        "pdf_y0": 616.6,
+        "printed_genotype": "0010110",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010110",
+      "mask": 53,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 14,
+        "pdf_y0": 212.0,
+        "printed_genotype": "1010110",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110110",
+      "mask": 54,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 24,
+        "pdf_y0": 303.9,
+        "printed_genotype": "0110110",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110110",
+      "mask": 55,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 39,
+        "pdf_y0": 441.9,
+        "printed_genotype": "1110110",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001110",
+      "mask": 56,
+      "mutations": [
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 381,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 24,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 61,
+        "pdf_y0": 644.2,
+        "printed_genotype": "0001110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001110",
+      "mask": 57,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 391,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 34,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 17,
+        "pdf_y0": 239.6,
+        "printed_genotype": "1001110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101110",
+      "mask": 58,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 385,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 28,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 27,
+        "pdf_y0": 331.5,
+        "printed_genotype": "0101110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101110",
+      "mask": 59,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 394,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 37,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 42,
+        "pdf_y0": 469.5,
+        "printed_genotype": "1101110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011110",
+      "mask": 60,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 394,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 37,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 31,
+        "pdf_y0": 368.2,
+        "printed_genotype": "0011110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011110",
+      "mask": 61,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 395,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 38,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 46,
+        "pdf_y0": 506.2,
+        "printed_genotype": "1011110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111110",
+      "mask": 62,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 394,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 37,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 51,
+        "pdf_y0": 552.3,
+        "printed_genotype": "0111110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111110",
+      "mask": 63,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 393,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 36,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 57,
+        "pdf_y0": 607.5,
+        "printed_genotype": "1111110",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000001",
+      "mask": 64,
+      "mutations": [
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 8,
+        "pdf_y0": 156.8,
+        "printed_genotype": "0000001",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000001",
+      "mask": 65,
+      "mutations": [
+        "F46T",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 14,
+        "pdf_y0": 212.0,
+        "printed_genotype": "1000001",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100001",
+      "mask": 66,
+      "mutations": [
+        "F49L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 355,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 19,
+        "pdf_y0": 257.8,
+        "printed_genotype": "0100001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100001",
+      "mask": 67,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 34,
+        "pdf_y0": 395.8,
+        "printed_genotype": "1100001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010001",
+      "mask": 68,
+      "mutations": [
+        "T52F",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 23,
+        "pdf_y0": 294.8,
+        "printed_genotype": "0010001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010001",
+      "mask": 69,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 359,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 38,
+        "pdf_y0": 432.8,
+        "printed_genotype": "1010001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110001",
+      "mask": 70,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 355,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 48,
+        "pdf_y0": 524.7,
+        "printed_genotype": "0110001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110001",
+      "mask": 71,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 359,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 4,
+        "pdf_y0": 119.8,
+        "printed_genotype": "1110001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001001",
+      "mask": 72,
+      "mutations": [
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 360,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 26,
+        "pdf_y0": 322.4,
+        "printed_genotype": "0001001",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": [
+        "Published delta-lambda differs from lambda-minus357; both printed numbers are preserved and derived paths use lambda."
+      ]
+    },
+    {
+      "genotype": "1001001",
+      "mask": 73,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 360,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 3,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 41,
+        "pdf_y0": 460.4,
+        "printed_genotype": "1001001",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101001",
+      "mask": 74,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 51,
+        "pdf_y0": 552.3,
+        "printed_genotype": "0101001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101001",
+      "mask": 75,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 7,
+        "pdf_y0": 147.4,
+        "printed_genotype": "1101001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011001",
+      "mask": 76,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 360,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 57,
+        "pdf_y0": 607.5,
+        "printed_genotype": "0011001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011001",
+      "mask": 77,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 361,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 13,
+        "pdf_y0": 202.6,
+        "printed_genotype": "1011001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111001",
+      "mask": 78,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 23,
+        "pdf_y0": 294.8,
+        "printed_genotype": "0111001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111001",
+      "mask": 79,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 359,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 38,
+        "pdf_y0": 432.8,
+        "printed_genotype": "1111001",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000101",
+      "mask": 80,
+      "mutations": [
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 359,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 2,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 28,
+        "pdf_y0": 340.6,
+        "printed_genotype": "0000101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000101",
+      "mask": 81,
+      "mutations": [
+        "F46T",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 360,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 3,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 43,
+        "pdf_y0": 478.6,
+        "printed_genotype": "1000101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100101",
+      "mask": 82,
+      "mutations": [
+        "F49L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 356,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": -1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 53,
+        "pdf_y0": 570.8,
+        "printed_genotype": "0100101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100101",
+      "mask": 83,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 358,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 1,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 9,
+        "pdf_y0": 165.9,
+        "printed_genotype": "1100101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010101",
+      "mask": 84,
+      "mutations": [
+        "T52F",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 356,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 59,
+        "pdf_y0": 626.0,
+        "printed_genotype": "0010101",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010101",
+      "mask": 85,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 15,
+        "pdf_y0": 221.1,
+        "printed_genotype": "1010101",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110101",
+      "mask": 86,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 353,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 25,
+        "pdf_y0": 313.0,
+        "printed_genotype": "0110101",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110101",
+      "mask": 87,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 355,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 40,
+        "pdf_y0": 451.0,
+        "printed_genotype": "1110101",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001101",
+      "mask": 88,
+      "mutations": [
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 399,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 42,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 62,
+        "pdf_y0": 653.6,
+        "printed_genotype": "0001101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001101",
+      "mask": 89,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 397,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 40,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 18,
+        "pdf_y0": 248.7,
+        "printed_genotype": "1001101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101101",
+      "mask": 90,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 403,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 46,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 28,
+        "pdf_y0": 340.6,
+        "printed_genotype": "0101101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101101",
+      "mask": 91,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 401,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 44,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 43,
+        "pdf_y0": 478.6,
+        "printed_genotype": "1101101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011101",
+      "mask": 92,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 408,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 61,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 32,
+        "pdf_y0": 377.6,
+        "printed_genotype": "0011101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": [
+        "Published delta-lambda differs from lambda-minus357; both printed numbers are preserved and derived paths use lambda."
+      ]
+    },
+    {
+      "genotype": "1011101",
+      "mask": 93,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 394,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 37,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 47,
+        "pdf_y0": 515.6,
+        "printed_genotype": "1011101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111101",
+      "mask": 94,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 406,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 49,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 52,
+        "pdf_y0": 561.4,
+        "printed_genotype": "0111101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111101",
+      "mask": 95,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 407,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 50,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 58,
+        "pdf_y0": 616.6,
+        "printed_genotype": "1111101",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000011",
+      "mask": 96,
+      "mutations": [
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 357,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 29,
+        "pdf_y0": 350.0,
+        "printed_genotype": "0000011",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000011",
+      "mask": 97,
+      "mutations": [
+        "F46T",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 44,
+        "pdf_y0": 488.0,
+        "printed_genotype": "1000011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100011",
+      "mask": 98,
+      "mutations": [
+        "F49L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 354,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 54,
+        "pdf_y0": 579.9,
+        "printed_genotype": "0100011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100011",
+      "mask": 99,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 10,
+        "pdf_y0": 175.0,
+        "printed_genotype": "1100011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010011",
+      "mask": 100,
+      "mutations": [
+        "T52F",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 60,
+        "pdf_y0": 635.1,
+        "printed_genotype": "0010011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010011",
+      "mask": 101,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 16,
+        "pdf_y0": 230.2,
+        "printed_genotype": "1010011",
+        "lambda_font": "Arial-BoldMT"
+      },
+      "curation_notes": [
+        "Lambda is bold but not italic in the PDF; classified with the source's inferred/nonfunctional values. This yields its reported60 nonfunctional mutants. It is not a measured spectrum."
+      ]
+    },
+    {
+      "genotype": "0110011",
+      "mask": 102,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 354,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 26,
+        "pdf_y0": 322.4,
+        "printed_genotype": "0110011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110011",
+      "mask": 103,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 358,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 41,
+        "pdf_y0": 460.4,
+        "printed_genotype": "1110011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001011",
+      "mask": 104,
+      "mutations": [
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 361,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 4,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 63,
+        "pdf_y0": 662.7,
+        "printed_genotype": "0001011",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001011",
+      "mask": 105,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 362,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 19,
+        "pdf_y0": 257.8,
+        "printed_genotype": "1001011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101011",
+      "mask": 106,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 29,
+        "pdf_y0": 350.0,
+        "printed_genotype": "0101011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101011",
+      "mask": 107,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 369,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 12,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 44,
+        "pdf_y0": 488.0,
+        "printed_genotype": "1101011",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011011",
+      "mask": 108,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 361,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 33,
+        "pdf_y0": 386.7,
+        "printed_genotype": "0011011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011011",
+      "mask": 109,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 363,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 6,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 48,
+        "pdf_y0": 524.7,
+        "printed_genotype": "1011011",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111011",
+      "mask": 110,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 357,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 53,
+        "pdf_y0": 570.8,
+        "printed_genotype": "0011011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": [
+        "Probable genotype-label typo: printed0011011 is duplicated; normalized to the sole missing genotype0111011 by exhaustive combination enumeration and its position in the five-mutant block. Not independently confirmed by an author correction."
+      ]
+    },
+    {
+      "genotype": "1111011",
+      "mask": 111,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 370,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 59,
+        "pdf_y0": 626.0,
+        "printed_genotype": "1111011",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0000111",
+      "mask": 112,
+      "mutations": [
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 363,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 6,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "left",
+        "row_1based": 64,
+        "pdf_y0": 671.8,
+        "printed_genotype": "0000111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1000111",
+      "mask": 113,
+      "mutations": [
+        "F46T",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 362,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 5,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 20,
+        "pdf_y0": 267.2,
+        "printed_genotype": "1000111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0100111",
+      "mask": 114,
+      "mutations": [
+        "F49L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 363,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 6,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 30,
+        "pdf_y0": 359.1,
+        "printed_genotype": "0100111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1100111",
+      "mask": 115,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 363,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 45,
+        "pdf_y0": 497.1,
+        "printed_genotype": "1100111",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0010111",
+      "mask": 116,
+      "mutations": [
+        "T52F",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 360,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 34,
+        "pdf_y0": 395.8,
+        "printed_genotype": "0010111",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1010111",
+      "mask": 117,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 359,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 49,
+        "pdf_y0": 533.8,
+        "printed_genotype": "1010111",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0110111",
+      "mask": 118,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 360,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 54,
+        "pdf_y0": 579.9,
+        "printed_genotype": "0110111",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1110111",
+      "mask": 119,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": false,
+      "lambda_max_nm": null,
+      "published_inferred_lambda_max_nm": 360,
+      "lambda_status": "inferred_nonfunctional",
+      "published_table_delta_lambda_nm": 0,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 60,
+        "pdf_y0": 635.1,
+        "printed_genotype": "1110111",
+        "lambda_font": "Arial-BoldItalicMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0001111",
+      "mask": 120,
+      "mutations": [
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 402,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 45,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 35,
+        "pdf_y0": 405.2,
+        "printed_genotype": "0001111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1001111",
+      "mask": 121,
+      "mutations": [
+        "F46T",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 402,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 45,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 50,
+        "pdf_y0": 543.2,
+        "printed_genotype": "1001111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0101111",
+      "mask": 122,
+      "mutations": [
+        "F49L",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 399,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 42,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 55,
+        "pdf_y0": 589.0,
+        "printed_genotype": "0101111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1101111",
+      "mask": 123,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 404,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 47,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 61,
+        "pdf_y0": 644.2,
+        "printed_genotype": "1101111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0011111",
+      "mask": 124,
+      "mutations": [
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 410,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 53,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 56,
+        "pdf_y0": 598.4,
+        "printed_genotype": "0011111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1011111",
+      "mask": 125,
+      "mutations": [
+        "F46T",
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 407,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 50,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 62,
+        "pdf_y0": 653.6,
+        "printed_genotype": "1011111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "0111111",
+      "mask": 126,
+      "mutations": [
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 408,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 51,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 63,
+        "pdf_y0": 662.7,
+        "printed_genotype": "0111111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    },
+    {
+      "genotype": "1111111",
+      "mask": 127,
+      "mutations": [
+        "F46T",
+        "F49L",
+        "T52F",
+        "F86L",
+        "T93P",
+        "A114G",
+        "S118T"
+      ],
+      "functional_pigment": true,
+      "lambda_max_nm": 411,
+      "published_inferred_lambda_max_nm": null,
+      "lambda_status": "measured",
+      "published_table_delta_lambda_nm": 54,
+      "source": {
+        "table": "S1 Table",
+        "pdf_page": 1,
+        "column": "right",
+        "row_1based": 64,
+        "pdf_y0": 671.8,
+        "printed_genotype": "1111111",
+        "lambda_font": "ArialMT"
+      },
+      "curation_notes": []
+    }
+  ]
+}

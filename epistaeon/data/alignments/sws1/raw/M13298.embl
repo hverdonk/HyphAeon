@@ -1,0 +1,61 @@
+ID   M13298; SV 1; linear; genomic DNA; STD; HUM; 260 BP.
+XX
+AC   M13298;
+XX
+DT   07-JUN-1987 (Rel. 12, Created)
+DT   14-NOV-2006 (Rel. 89, Last updated, Version 8)
+XX
+DE   Human blue cone photoreceptor pigment gene, exon 4.
+XX
+KW   apoprotein; blue cone protein; blue pigment protein; membrane protein;
+KW   opsin.
+XX
+OS   Homo sapiens (human)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae;
+OC   Homo.
+XX
+RN   [1]
+RP   1-260
+RX   DOI; 10.1126/science.2937147.
+RX   PUBMED; 2937147.
+RA   Nathans J., Thomas D., Hogness D.S.;
+RT   "Molecular genetics of human color vision: the genes encoding blue, green,
+RT   and red pigments";
+RL   Science, e1252229 232(4747):193-202(1986).
+XX
+DR   MD5; 1c6f4de7606db9b09db06b487803d867.
+DR   Ensembl-Gn; ENSG00000128617; homo_sapiens.
+DR   Ensembl-Tr; ENST00000249389; homo_sapiens.
+DR   H-InvDB; HIT000397413.6.
+XX
+CC   On Jul 31, 1996 this sequence version replaced gi:180682.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..260
+FT                   /organism="Homo sapiens"
+FT                   /chromosome="7"
+FT                   /map="7q31-q35"
+FT                   /mol_type="genomic DNA"
+FT                   /sex="male"
+FT                   /clone="gJHN[11,12,14,23]"
+FT                   /db_xref="taxon:9606"
+FT   intron          <1..10
+FT                   /gene="BCP"
+FT                   /note="BCP intron C"
+FT   exon            11..250
+FT                   /gene="BCP"
+FT                   /number=4
+FT                   /note="G00-119-032"
+FT   intron          251..>260
+FT                   /gene="BCP"
+FT                   /note="BCP intron D"
+XX
+SQ   Sequence 260 BP; 57 A; 74 C; 64 G; 65 T; 0 other;
+     tccaccccag gttgcagctc agcagcagga gtcagctacg acccagaagg ctgaacggga        60
+     ggtgagccgc atggtggttg tgatggtagg atccttctgt gtctgctacg tgccctacgc       120
+     ggccttcgcc atgtacatgg tcaacaaccg taaccatggg ctggacttac ggcttgtcac       180
+     cattccttca ttcttctcca agagtgcttg catctacaat cccatcatct actgcttcat       240
+     gaataagcag gtaaagctct                                                   260
+//

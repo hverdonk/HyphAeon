@@ -39,5 +39,7 @@ for pdb,ch,lab in [('2Q1H','A','AncCR (2Q1H)'),('3RY9','A','AncGR1(3RY9)'),('3GN
 print("  -- same positions in human-GR numbering (verified offset +531, see align_ladder.py):")
 probe(cif('4P6X'),'A',[27+531,36+531,106+531,111+531],'humGR+531')
 
-print("\nCASE 4 RHODOPSIN 1U19 -- white paper names Glu113, Gly121, Glu122, Asp83, Ala292, DRY motif 134-136")
-probe(base+'1U19.cif','A',[83,113,121,122,134,135,136,292],'Rho  ')
+import json
+sws1 = json.loads(open(os.path.join(_HERE, '..', 'data', 'numbering_offsets.json')).read())["sws1_benchmark"]
+print("\nCASE 4 SWS1 -- explicitly mapped bovine 1U19 homolog-template sites")
+probe(base+'1U19.cif', 'A', [site['template_author_position'] for site in sws1['site_map']], 'SWS1 homolog template')

@@ -1,0 +1,81 @@
+LOCUS       XM_003261297            1177 bp    mRNA    linear   PRI 14-JAN-2013
+DEFINITION  PREDICTED: Nomascus leucogenys opsin 1 (cone pigments),
+            short-wave-sensitive (OPN1SW), mRNA.
+ACCESSION   XM_003261297
+VERSION     XM_003261297.1
+DBLINK      BioProject: PRJNA62133
+KEYWORDS    RefSeq.
+SOURCE      Nomascus leucogenys (northern white-cheeked gibbon)
+  ORGANISM  Nomascus leucogenys
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hylobatidae; Nomascus.
+COMMENT     MODEL REFSEQ:  This record is predicted by automated computational
+            analysis. This record is derived from a genomic sequence
+            (NW_004087899.1) annotated using gene prediction method: Gnomon,
+            supported by mRNA and EST evidence.
+            Also see:
+                Documentation of NCBI's Annotation Process
+            
+            [WARNING] On May 13, 2015 this sequence was replaced by
+            XM_003261297.2.
+            
+            ##Genome-Annotation-Data-START##
+            Annotation Provider :: NCBI
+            Annotation Status   :: Full annotation
+            Annotation Version  :: Nomascus leucogenys Annotation Release 101
+            Annotation Pipeline :: NCBI eukaryotic genome annotation pipeline
+            Annotation Method   :: Best-placed RefSeq; Gnomon
+            Features Annotated  :: Gene; mRNA; CDS; ncRNA
+            ##Genome-Annotation-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1177
+                     /organism="Nomascus leucogenys"
+                     /mol_type="mRNA"
+                     /isolate="Asia; international studbook 0098"
+                     /db_xref="taxon:61853"
+                     /chromosome="13"
+                     /sex="female"
+                     /tissue_type="blood"
+     gene            1..1177
+                     /gene="OPN1SW"
+                     /note="Derived by automated computational analysis using
+                     gene prediction method: Gnomon. Supporting evidence
+                     includes similarity to: 2 mRNAs, 7 ESTs, 5 Proteins"
+                     /db_xref="GeneID:100593188"
+     CDS             1..1047
+                     /gene="OPN1SW"
+                     /codon_start=1
+                     /product="short-wave-sensitive opsin 1"
+                     /protein_id="XP_003261345.1"
+                     /db_xref="GeneID:100593188"
+                     /translation="MRKMSDEEFYLFKNISSVGPWDGPQYHIAPVWAFYLQAAFMGTV
+                     FLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVF
+                     GRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTI
+                     GIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICF
+                     SYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNR
+                     NHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKTMTDESDTCSSQK
+                     TEVSTVSSSQVGPN"
+ORIGIN      
+        1 atgagaaaga tgtcagacga agagttttat ctgttcaaaa atatctcttc agtggggccg
+       61 tgggatgggc ctcagtacca cattgcccct gtctgggcct tctacctcca ggcagctttc
+      121 atgggcactg tcttcctcat agggttccca ctcaatgcca tggtgctggt ggccacactg
+      181 cgctacaaaa agttgcggca gcccctcaac tacattctgg tcaacgtgtc cttcggaggc
+      241 ttcctcctct gcatcttctc tgtcttccct gtcttcgtcg ccagctgtaa cggatacttc
+      301 gtcttcggtc gccatgtttg tgctttggag ggcttcctgg gcactgtagc aggtctggtt
+      361 acaggctggt cactggcctt cctggccttt gagcgctaca ttgtcatctg taagcccttc
+      421 ggcaacttcc gcttcagctc caagcatgca ctgacggtgg tcctggctac ctggaccatt
+      481 ggtattggcg tctccatccc acccttcttt ggctggagcc ggttcatccc tgagggcctg
+      541 cagtgttcct gtggccctga ctggtacacc gtgggcacca aataccgcag cgagtcctat
+      601 acgtggttcc tcttcatctt ctgcttcatt gtgcctctct ccctcatctg cttctcctac
+      661 actcagctgc tgagggccct gaaagctgtt gcagctcagc agcaggagtc agctacgacc
+      721 cagaaggctg aacgggaggt gagccgcatg gtggttgtga tggtaggatc cttctgtgtc
+      781 tgctacgtgc cctatgcggc ctttgccatg tacatggtca acaaccgtaa ccatgggctg
+      841 gacttacggc ttgtcaccat tccttcattc ttctccaaga gtgcttgcat ctacaatccc
+      901 atcatctact gcttcatgaa taagcagttc caagcttgca tcatgaagat ggtgtgtggg
+      961 aagaccatga cagacgaatc cgacacatgc agctcccaga aaacagaggt ttctactgtc
+     1021 tcgtctagcc aagttggccc caactgagga cccaatattg gcctgtttgc aacagctaga
+     1081 attaaatttt acttttaagt aagtttctat tgtctctgtc agaaaccaaa ctactaaaaa
+     1141 cacaaaaaag atggtaagag gagtgacggc agtttgg
+//
+

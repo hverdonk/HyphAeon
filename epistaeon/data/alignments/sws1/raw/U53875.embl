@@ -1,0 +1,141 @@
+ID   U53875; SV 1; linear; genomic DNA; STD; MAM; 3287 BP.
+XX
+AC   U53875;
+XX
+DT   02-JUN-1997 (Rel. 52, Created)
+DT   14-NOV-2006 (Rel. 89, Last updated, Version 5)
+XX
+DE   Saimiri boliviensis blue cone pigment gene, partial cds.
+XX
+KW   .
+XX
+OS   Saimiri boliviensis (Bolivian squirrel monkey)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Platyrrhini; Cebidae;
+OC   Saimiriinae; Saimiri.
+XX
+RN   [1]
+RP   1-3287
+RX   DOI; 10.1007/PL00006157.
+RX   PUBMED; 9089077.
+RA   Shimmin L.C., Mai P., Li W.H.;
+RT   "Sequences and evolution of human and squirrel monkey blue opsin genes";
+RL   J. Mol. Evol. 44(4):378-382(1997).
+XX
+RN   [2]
+RP   1-3287
+RA   Shimmin L.C.;
+RT   ;
+RL   Submitted (09-APR-1996) to the INSDC.
+RL   L.C. Shimmin, Human Genetics Center, School of Public Health, University of
+RL   Texas Houston Health Science Center, 6901 Bertner, Room S250, Houston, TX
+RL   77030, USA
+XX
+DR   MD5; 9f02b2de19bcdc673384f8ef2d6d389d.
+DR   Ensembl-Gn; ENSSBOG00000022139; saimiri_boliviensis_boliviensis.
+DR   Ensembl-Tr; ENSSBOT00000027379; saimiri_boliviensis_boliviensis.
+DR   EuropePMC; PMC1253590; 16192351.
+DR   EuropePMC; PMC16551; 10861005.
+DR   EuropePMC; PMC1664589; 17107620.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..3287
+FT                   /organism="Saimiri boliviensis"
+FT                   /mol_type="genomic DNA"
+FT                   /db_xref="taxon:27679"
+FT   mRNA            join(<48..402,686..854,1184..1349,1947..2186,3156..>3275)
+FT   CDS             join(48..402,686..854,1184..1349,1947..2186,3156..3275)
+FT                   /codon_start=1
+FT                   /product="blue cone pigment"
+FT                   /note="G-coupled-protein receptor family; photovisual
+FT                   pigment"
+FT                   /db_xref="GOA:O13092"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/Swiss-Prot:O13092"
+FT                   /protein_id="AAC51335.1"
+FT                   /translation="MSKMPEEEEFYLFKNISSVGPWDGPQYHIAPVWAFQLQAAFMGIV
+FT                   FLAGLPLNSMVLVATVRYKKLRHPLNYVLVNVSVGGFLLCIFSVLPVFVNSCNGYFVFG
+FT                   RHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALMVVLTTWTIGI
+FT                   GVSIPPFFGWSRYIAEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIVPLSLICFSYA
+FT                   QLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAALAMYMVNNRNHGL
+FT                   DLRLVSIPAFFSKSSCIYNPIIYCFMNKQFRACIMEMVCGKAMTDESDISSSQKTEVST
+FT                   VSSSQVGPN"
+FT   exon            <48..402
+FT                   /number=1
+FT   exon            686..854
+FT                   /number=2
+FT   exon            1184..1349
+FT                   /number=3
+FT   repeat_region   1582..1855
+FT                   /rpt_family="Alu"
+FT                   /rpt_type=DISPERSED
+FT   exon            1947..2186
+FT                   /number=4
+FT   repeat_region   2362..2529
+FT                   /rpt_family="MER13"
+FT                   /rpt_type=DISPERSED
+FT   exon            3156..>3275
+FT                   /number=5
+XX
+SQ   Sequence 3287 BP; 842 A; 791 C; 844 G; 810 T; 0 other;
+     gtggggtgga tcatctataa gagaactcag aggggtgtgg ggtacccatg agcaagatgc        60
+     cagaggaaga ggagttttat ctgttcaaga acatctcctc ggtggggccg tgggatgggc       120
+     ctcagtacca cattgcccct gtctgggcct tccaactcca ggcagctttc atgggcattg       180
+     tcttccttgc agggttaccc ctgaattcca tggtgctggt ggccacagtg cgctacaaaa       240
+     agttgcggca tcccctcaac tacgttctgg tcaacgtgtc cgtgggaggc ttccttcttt       300
+     gcatcttctc tgtcctccct gtgttcgtca acagctgtaa tggatacttt gtctttggcc       360
+     gccatgtttg tgctctggag ggcttcctgg gcaccgtagc aggtaccgcc ggggaaaggg       420
+     attaggggaa ggcaaaggtt gctactccac tagagggggt ccctaaagag gagtcttggc       480
+     aaaataagtt tggtgctttt taaaatactg gggtacaaag caacccagac tagaagtttg       540
+     gccaaaacag gatgttttga gtcttcactc caatgtcagt ccatccctct gtctccctgt       600
+     gcttgctcta cccaatctgt atgccacact gcccccaggc tgggtggggc tctgtctatc       660
+     ccattatcct cacatttcgc cacaggtctg gtgacaggct ggtcactggc cttcctggcc       720
+     tttgagcgct acattgtcat ctgtaagccc ttcggcaact tccgcttcag ctccaagcac       780
+     gcactgatgg tggtcctgac tacctggacc attggtattg gcgtctccat cccacccttc       840
+     tttggctgga gccggtgaga gtgcagggca gtggtgctga cttaactagg agctcaggtt       900
+     gatgtgggtg gaaagagagc ttgggtatga ccacttagtc tttgacctct actttttaaa       960
+     gagctgcaat acgtgaggcg aaagggcagt gggagaccaa tgctagtgtt tactctgcag      1020
+     ttggaattgc tgtagcttct cccagtcagg acagaaaacc cccctgcttg aagcctttgg      1080
+     gccttctctg ggttctaagt ggagaacaca gtccaggcct ctcagctccc actgcactaa      1140
+     ctcttgtgga gagcccagtg agcaagtgtt tggtcctttg caggtacatt gctgagggtc      1200
+     tgcagtgttc atgtggccct gactggtaca ccgtgggcac caaatatcgc agcgagtact      1260
+     atacgtggtt cctcttcatc ttctgcttca tcgtgcctct ctccctcatc tgcttctcct      1320
+     atgctcagct gctgagggcc ctgaaagctg tgagtggcgt ttgagtcagg gagaaatggg      1380
+     tcggggctcc acatgagaaa agagtgctcg gaacgtaaga tgactggaaa cgtccatagc      1440
+     cagagagggt atctaaaagc agcaaagcag tgggagggag aatgatggag atagaaagga      1500
+     actaagccag gagatgcaac agaaaagagg caatcagagt ggatggcccc tcccccattc      1560
+     cacagaaaat cgtccagagg ctgtgggatg cagtggttca cgcctgtaac ccagcacttt      1620
+     aggaggccga ggcgggcgga tcacctgagg tcagtagttc gagacctacc tggcctatat      1680
+     ggtgaagccc cgtctctact aaaaatgcaa attagctggg catggtggtg gacaattgta      1740
+     atcccagcta ctcagaaggc tgaggcagga gaatcacttg aacctgggaa gcggaggtcc      1800
+     agtgagccaa gatcgcacca ctgcactcca gcctgggcaa cagagagaga ctgtcaaaaa      1860
+     aaaaaaaaaa aaaaaaaaaa aaatctagag atctgggagt tgaggggcag gaagagggat      1920
+     gtgatgctct ccgtgctcca ccccaggttg cagctcagca gcaggagtca gctacaaccc      1980
+     agaaggctga acgggaggtg agccgcatgg tggttgtgat ggtaggatcc ttctgtgtct      2040
+     gctacgtgcc ctatgcggcc ctggccatgt acatggtcaa taaccgtaac catgggctag      2100
+     acttacggct tgtcagcatt cctgcgttct tctccaagag ttcttgcatc tacaatccca      2160
+     tcatctactg cttcatgaat aagcaggtaa agctttctat tcacattcct atggtccaga      2220
+     agacctgggt tcttttctca ccattgactt ttaaatcgga gcaccctcaa cccaattcag      2280
+     gtttctggga gtagacaagg gaagccacaa aaacctcagg taggttggga agcccctggt      2340
+     aaacacaggg aggaaggcac agttatcaag accagaaaat agaaccctgg gaggaaagaa      2400
+     cttgagtcag gaaaatgaag ttgctccaga gaacaggatg agtgaaaaca ttttattgaa      2460
+     aaactcgtgc agcaaaccac catggcacat gtttacctat gtaacaaacc tgcacatgta      2520
+     tcccggaact taaataaaac taaaactcaa attcctctga atttccagtc cttgcattta      2580
+     atgagttctt catcatttcc ctgccaactt ttagcttgca cgagcatgtg tgaagcacag      2640
+     aaatcacacc acatgcatta atctctaaaa tgtcttatca tctgaaggta caggggattt      2700
+     cctatcccct atctgaaatc tgagctaata aaccccaaac cctaaatggc aagaacccta      2760
+     ctttcagatg gtggtgtttt ggcaattcca gagggagacg aaactacttt tgaaacctcc      2820
+     caggatagaa cagaattggc agtcctttcc agctggaagc acctgctagt aatgcagggg      2880
+     ctctgatgac agtgctttta tgaatcagga tggtttgtga agtttaccaa gtgaggtctc      2940
+     agacctgacc ggaatgttta ggattattgt agacccagga gtcgttctag accggaatct      3000
+     agctagtttt caggatgggg aaagtatatt caaaaccacc taaggacatt ctgggtacaa      3060
+     agcatcctgt aaggctttga tgatacagag aatgagggtt ttttccccca tactttgtct      3120
+     gccaaggtta tctccaaatg tgcctctctc tccagttccg agcttgcatc atggagatgg      3180
+     tgtgtgggaa ggccatgaca gacgaatccg acataagcag ctcccagaaa acagaagttt      3240
+     ctactgtctc atccagccaa gttggcccca actgaggacc caatatc                    3287
+//

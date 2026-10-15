@@ -1,0 +1,94 @@
+ID   U63972; SV 1; linear; mRNA; STD; ROD; 1690 BP.
+XX
+AC   U63972;
+XX
+DT   13-AUG-1996 (Rel. 48, Created)
+DT   18-APR-2005 (Rel. 83, Last updated, Version 3)
+XX
+DE   Rattus norvegicus blue cone opsin-like pigment mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Rattus norvegicus (Norway rat)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Glires; Rodentia; Myomorpha; Muroidea; Muridae;
+OC   Murinae; Rattus.
+XX
+RN   [1]
+RP   1-1690
+RA   Zhao X., Haeseleer F., Fariss R.N., Huang J., Baehr W., Milam A.H.,
+RA   Palczewski K.;
+RT   "Molecular cloning and localization of rhodopsin kinase in mammalian
+RT   pineal";
+RL   Vis. Neurosci. 0:0(1996).
+XX
+RN   [2]
+RP   1-1690
+RA   Zhao X., Haeseleer F.J., Fariss R.N., Huang J., Baehr W., Milam A.H.,
+RA   Palczewski K.;
+RT   ;
+RL   Submitted (16-JUL-1996) to the INSDC.
+RL   Opthalmology, University of Washington, RR810 HSB, Seattle, WA 98195, USA
+XX
+DR   MD5; 9e04dbb4f6d1398aa35b1bc857df405e.
+DR   EuropePMC; PMC16551; 10861005.
+DR   EuropePMC; PMC26872; 10339578.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1690
+FT                   /organism="Rattus norvegicus"
+FT                   /strain="Sprague-Dawley"
+FT                   /mol_type="mRNA"
+FT                   /tissue_type="pineal gland"
+FT                   /db_xref="taxon:10116"
+FT   CDS             49..1089
+FT                   /codon_start=1
+FT                   /product="blue cone opsin-like pigment"
+FT                   /db_xref="GOA:Q63652"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/Swiss-Prot:Q63652"
+FT                   /protein_id="AAB05931.1"
+FT                   /translation="MSGEXEFYLFQNISSVGPWDGPQYHIAPVWAFHLQAAFMGFVFFA
+FT                   GTPLNATVLVATLHYKKLRQPLNYILVNVSLGGFLFCIFSVFTVFIASCHGYFLFGRHV
+FT                   CALEAFLGSVAGLVTGWSLAFLAFERYLVICKPFGNIRFNSKHALTVVLITWTIGIGVS
+FT                   IPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEHYTWFLFIFCFIIPLSLICFSYFQLL
+FT                   RTLRAVAAQQQESATTQKAEREVSHMVVVMVGSFCLCYVPYAALAMYMVNNRNHGLYLR
+FT                   LVTIPAFFSKSSCVYNPIIYCFMNKQFRACILEMVCRKPMTDESDMSGSQKTEVSTVSS
+FT                   SKVGPH"
+XX
+SQ   Sequence 1690 BP; 357 A; 466 C; 404 G; 461 T; 2 other;
+     gaattcggca cgagaccaga ggtggtggtg aggcatccca agcgcaagat gtcgggagag        60
+     gwcgagtttt acctgtttca gaatatctcc tcagtggggc cctgggatgg gcctcagtac       120
+     cacattgctc ccgtctgggc cttccacctc caggcagcct tcatgggatt tgtcttcttt       180
+     gcagggaccc cactcaatgc cacagtgttg gtggccacac tgcactacaa aaagttgcgg       240
+     cagcccctca actacattct ggtcaatgta tccctcggag gcttcctctt ctgcatcttc       300
+     tctgtcttca cagtcttcat cgccagctgt catggatact tcctctttgg tcgccacgtt       360
+     tgtgctctgg aggccttctt gggctctgta gcaggtctag tgacaggatg gtccttggct       420
+     ttcctggcct ttgagcgcta ccttgtcatc tgtaaaccct ttggcaacat ccgcttcaac       480
+     tccaagcacg cactgacggt ggttctgatt acttggacca ttggcatcgg ggtgtccatc       540
+     ccgcccttct ttggctggag caggttcatc cctgagggcc tgcagtgctc ctgtggcccg       600
+     gactggtaca ccgtgggcac caagtatcga agcgagcact atacctggtt tctgttcatc       660
+     ttctgtttca tcattcctct ttccctcatc tgtttctcct acttccagtt gctgaggact       720
+     ctcagagctg tggcggccca gcagcaagag tcagctacaa ctcaaaaggc tgaacgggag       780
+     gtgagccata tggtggtggt gatggtggga tccttctgtc tctgctacgt gccctatgct       840
+     gccctggcca tgtacatggt caacaatcgt aaccacgggc tgtacttacg gcttgtcacc       900
+     atccccgcct tcttttccaa gagttcatgt gtctacaacc ccatcatcta ctgcttcatg       960
+     aataagcagt tccgggcctg catcctggag atggtgtgca ggaagcccat gacagacgaa      1020
+     tctgacatgt ctggctctca gaaaacagaa gtttctactg tttcttccag caaagttggc      1080
+     cctcactaag gaccctcagt tggcctgctg gcagcaacca tggggccaca ttgaattatc      1140
+     tacatctcca ttagaattca aaccattaac aatgtaggga acagacagga gcagtggcat      1200
+     ctggccggtc agtttcattt tcctgttact ctctccctgt cagcagggcc acacgggcca      1260
+     tttcaacagt cacagtttct aagtgatacc ttcatctctg gagaactgtg agagaagggc      1320
+     cgtgcctctg gtgtatgggt aacacctggt tgttctttta ttccgtgctg ggatctgagt      1380
+     tgatatatcc tgttagaata agcttggcat ggggcagtgt gaagaaaaag cagcagacac      1440
+     caaacacctg cagtgagctg aagctttcct atgcggcctc tcccagttgc tgccgtctgg      1500
+     gctatggctg ccctgcccag aactgccccw cctcactcat ctgacagtta ttctaagtct      1560
+     tctcccctcc atttggctaa atgtatccat ttaaagctgt gtgttgatta aagttagtgt      1620
+     cttaatctct tgacgacctc aaaaaaaaaa aaaaaaaact cagagtactt ctagagcgcc      1680
+     gcggcccatc                                                             1690
+//

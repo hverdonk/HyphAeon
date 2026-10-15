@@ -1,0 +1,85 @@
+ID   U92557; SV 1; linear; mRNA; STD; MAM; 1050 BP.
+XX
+AC   U92557;
+XX
+DT   24-MAR-1997 (Rel. 51, Created)
+DT   18-APR-2005 (Rel. 83, Last updated, Version 3)
+XX
+DE   Bos taurus blue cone pigment protein mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Bos taurus (cattle)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Laurasiatheria; Artiodactyla; Ruminantia; Pecora; Bovidae;
+OC   Bovinae; Bos.
+XX
+RN   [1]
+RP   1-1050
+RX   DOI; 10.1006/geno.1994.1292.
+RX   PUBMED; 8088841.
+RA   Chiu M.I., Zack D.J., Wang Y., Nathans J.;
+RT   "Murine and bovine blue cone pigment genes: cloning and characterization of
+RT   two new members of the S family of visual pigments";
+RL   Genomics 21(2):440-443(1994).
+XX
+RN   [2]
+RP   1-1050
+RA   Chiu M.I., Zack D.J., Wang Y., Nathans J.;
+RT   ;
+RL   Submitted (05-MAR-1997) to the INSDC.
+RL   MBG, HHMI/JHU, 725 North Wolfe Street, Baltimore, MD 21205, USA
+XX
+DR   MD5; e4f4bee13497e39cc9261d4e5f5687cd.
+DR   Ensembl-Gn; ENSBTAG00000016485; bos_taurus.
+DR   Ensembl-Tr; ENSBTAT00000021912; bos_taurus.
+DR   EuropePMC; PMC1253590; 16192351.
+DR   EuropePMC; PMC166225; 12824471.
+DR   EuropePMC; PMC1664589; 17107620.
+DR   EuropePMC; PMC2765098; 19805066.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1050
+FT                   /organism="Bos taurus"
+FT                   /mol_type="mRNA"
+FT                   /db_xref="taxon:9913"
+FT   CDS             1..1050
+FT                   /codon_start=1
+FT                   /product="blue cone pigment protein"
+FT                   /db_xref="GOA:P51490"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/Swiss-Prot:P51490"
+FT                   /protein_id="AAB50158.1"
+FT                   /translation="MSKMSEEEEFLLFKNISLVGPWDGPQYHLAPVWAFHLQAVFMGFV
+FT                   FFVGTPLNATVLVATLRYRKLRQPLNYILVNVSLGGFIYCIFSVFIVFITSCYGYFVFG
+FT                   RHVCALEAFLGCTAGLVTGWSLAFLAFERYIIICKPFGNFRFSSKHALMVVVATWTIGI
+FT                   GVSIPPFFGWSRFVPEGLQCSCGPDWYTVGTKYYSEYYTWFLFIFCYIVPLSLICFSYS
+FT                   QLLGALRAVAAQQQESASTQKAEREVSHMVVVMVGSFCLCYTPYAALAMYIVNNRNHGV
+FT                   DLRLVTIPAFFSKSACVYNPIIYCFMNKQFRACIMEMVCGKPMTDESELSSSQKTEVST
+FT                   VSSSQVGPN"
+XX
+SQ   Sequence 1050 BP; 190 A; 304 C; 266 G; 290 T; 0 other;
+     atgagcaaga tgtcagagga ggaggagttt cttctgttca agaacatctc cttggtgggg        60
+     ccgtgggatg gacctcagta ccacctcgcg cctgtctggg ccttccacct ccaggcagtc       120
+     ttcatgggtt ttgtcttctt tgtagggacg ccactcaatg ccacggtgct ggtggccaca       180
+     ctgcgctaca gaaagttgcg gcagccactc aactatattc tggtcaacgt gtctctgggg       240
+     ggcttcatct actgcatctt ctctgtcttc atcgtcttca tcaccagttg ttatgggtac       300
+     ttcgtcttcg gccgccatgt ctgtgccctg gaggccttcc tgggctgtac agcaggtctg       360
+     gtgacaggct ggtcactggc cttcttggcc ttcgagcgct acatcatcat ctgtaaaccc       420
+     ttcggcaact tccgcttcag ctccaagcat gccctgatgg tggtcgtggc cacctggacc       480
+     atcggtattg gtgtctccat cccacccttc tttggctgga gccgattcgt ccctgagggc       540
+     ctgcagtgtt cctgtggtcc cgactggtac accgtgggca ccaagtatta cagcgagtac       600
+     tatacctggt tcctcttcat cttctgctac attgtgcctc tctccctcat ctgcttctcc       660
+     tactctcagc tgctgggggc cctcagagct gttgcggctc aacagcagga gtcagcttcg       720
+     acccagaagg ctgagcggga ggtgagccac atggtggtgg tcatggtggg atccttttgt       780
+     ctctgttaca caccctacgc tgccctggcc atgtatatag tcaacaaccg taaccatggg       840
+     gtggacttac ggcttgtcac cattcctgcc ttcttctcca agagtgcttg tgtctacaat       900
+     cccatcatct actgcttcat gaataagcag ttccgagctt gcatcatgga gatggtgtgt       960
+     ggaaaaccca tgacagatga gtctgagctg tctagctccc agaaaaccga agtgtctact      1020
+     gtctcttcta gccaagttgg ccccaactaa                                       1050
+//

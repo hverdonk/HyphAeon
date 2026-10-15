@@ -1,0 +1,134 @@
+ID   AB111463; SV 1; linear; genomic DNA; STD; MAM; 3841 BP.
+XX
+AC   AB111463;
+XX
+DT   01-APR-2004 (Rel. 79, Created)
+DT   23-DEC-2010 (Rel. 107, Last updated, Version 4)
+XX
+DE   Tarsius bancanus SWS gene for blue sensitive cone opsin, complete cds.
+XX
+KW   .
+XX
+OS   Cephalopachus bancanus (Horsfield's tarsier)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Tarsiiformes; Tarsiidae;
+OC   Cephalopachus.
+XX
+RN   [1]
+RP   1-3841
+RA   Kawamura S.;
+RT   ;
+RL   Submitted (03-JUN-2003) to the INSDC.
+RL   Contact:Shoji Kawamura University of Tokyo, Graduate School of Frontier
+RL   Sciences, Department of Integrated Biosciences; Kashiwanoha, Kashiwa, Chiba
+RL   277-8562, Japan
+XX
+RN   [2]
+RX   DOI; 10.1007/s00239-003-2553-z.
+RX   PUBMED; 15045486.
+RA   Kawamura S., Kubotera N.;
+RT   "Ancestral loss of short wave-sensitive cone visual pigment in lorisiform
+RT   prosimians, contrasting with its strict conservation in other prosimians";
+RL   J. Mol. Evol. 58(3):314-321(2004).
+XX
+DR   MD5; eab64e044af41dd17f98e56765ef4ddf.
+DR   EuropePMC; PMC1664589; 17107620.
+DR   EuropePMC; PMC5312025; 28193820.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..3841
+FT                   /organism="Cephalopachus bancanus"
+FT                   /mol_type="genomic DNA"
+FT                   /clone_lib="lambda EMBL3 genomic library"
+FT                   /db_xref="taxon:9477"
+FT   CDS             join(350..695,969..1137,1439..1604,1884..2123,3338..3457)
+FT                   /codon_start=1
+FT                   /transl_table=1
+FT                   /gene="SWS"
+FT                   /product="blue sensitive cone opsin"
+FT                   /db_xref="GOA:Q76B95"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q76B95"
+FT                   /protein_id="BAD14290.1"
+FT                   /translation="MSEEEEFYLFKNISSVGPWDGPQHHLAPVWVFHLQAAFMGVVFSV
+FT                   GIPLNTMVLVATLRYRKLRQPLNYILVNVSLGGFLLCIFSVLPVFIASCRGYFVFGRHV
+FT                   CALEGFLGSVAGLVTGWSLAFLAFERYMVICKPFGNFRFSPKHALMVVLATWTIGIGVS
+FT                   VPPFFGWSRFIPEGLQCSCGPDWYTVDTKYHSEYYTWFLFIFCFIVPLSLICFSYAQLL
+FT                   RALRAVAAQQQESATTQKAEREVSRMVVVMVGSFCLCYVPYAALAMYMVNNQNHGLDLR
+FT                   LVTIPSFFSKSACVYNPIIYCFMNKQFQACIMEMVCRKAMADESDTSSSQKTEVSALSS
+FT                   SQVSPN"
+FT   mobile_element  complement(2408..2707)
+FT                   /mobile_element_type="SINE: Alu Jo"
+XX
+SQ   Sequence 3841 BP; 885 A; 982 C; 1004 G; 967 T; 3 other;
+     gagctccaaa gatcaacagc agaaaggtgg gggtatcttc gctgcatgtg ggtcagcacc        60
+     cccaagcccc ggaagcccac ttctgctcat cccagcacca gcacggcata cctttgaggc       120
+     caatctttta tcctctgaag aaacaatcgg ctttgggacc acaaaaggtt taggtaggag       180
+     tttagggagc cctaatccca aactcatcct tgggaggatt aggattggca ctgctcactc       240
+     agggagccca agcgtcttta gaggagggga tctggatggg gaggagggag tggtggaagg       300
+     atcatctata agaggaatca gagggggtgt ggggcatccc acaagcaata tgtcagagga       360
+     agaggagttt tacctgttca agaacatctc ctcggtaggg ccgtgggatg ggcctcagca       420
+     ccaccttgct cccgtctggg tcttccacct ccaggcagcc ttcatgggcg tggtcttctc       480
+     tgtggggata ccactcaaca ccatggtgct ggtggccacg ctgcgctaca ggaagttgcg       540
+     gcagcccctc aactacattc tcgtcaacgt gtccttggga ggcttcctcc tctgtatctt       600
+     ctccgtccta cctgtcttca tcgccagctg tcgagggtac ttcgtctttg gccgccatgt       660
+     ttgtgctttg gagggcttcc tgggctctgt agcaggtact gcagggaagg gggctgggga       720
+     aggcaaagga cactcctcca ggattggagc cagggaacag gcttttgggt tggaggagat       780
+     ccccaaagag aagcctggtg ctcttgggga tactggggta caaagcatcc tagtttggcc       840
+     aaaataggat gcttgggttt tcactccatc ttcagcccga ccccatctct ctgctcgctc       900
+     cccctcatct gtcccccagc caggctgggt ggggctgtct ccctcatttt cctcccatct       960
+     tgtcacaggt ctggtgacag gctggtcact ggccttcctg gcctttgagc gctacatggt      1020
+     catctgtaag ccctttggca atttccgctt cagccccaag cacgcactga tggtggtcct      1080
+     ggctacctgg accattggca ttggcgtctc tgtcccaccc ttctttggct ggagccggtg      1140
+     agagcaggga gctcaggttg acatgggtgg agggaggggt tgggtgtcct ctacttctca      1200
+     tagagctggt ggaggtgagg gaggcggact gcggtatacg agagcagacc ttggccctgc      1260
+     agttggaacg gccatgacca ctactgctca ggacaggacc cccccacccc gccgaagcca      1320
+     ttttggcatt ctctgggctc taagtgggga gcgcaggcca ggaatctcag cttctgcgcc      1380
+     acgcatcccc gtggggcctg cagcgagcaa gtgtgggtga gttcttggtc ctccgcaggt      1440
+     tcatccctga gggcctgcag tgctcctgcg gtcccgactg gtacaccgtg gacaccaagt      1500
+     accacagcga gtactacacc tggtttctct tcatcttctg cttcatcgtg cctctctccc      1560
+     tcatctgctt ctcctacgca cagctgctga gggccctgag agctgtgagt ggctttcgag      1620
+     agtcagggag gaatggtcag ggggctccag ttggaaggga aaggtgggag cactctagaa      1680
+     cataagacat ggaaaagtcc acagccaaag aggggggaac tagaaactgg gaagtgggag      1740
+     cagggaggat agagtcagag ggactaggcc aggtgctggg acagagaggc agagtgagta      1800
+     catcctctgt cccatggaga ggtgtccaga gagctgggcc ttgagggtca ggaaggggga      1860
+     ccaaccgctc tgtgcccccc caggtggctg cccagcagca ggagtcagca acgacccaga      1920
+     aagctgagcg ggaggtgagc cgcatggtgg tggtgatggt gggatccttc tgtctctgct      1980
+     acgtgcccta cgcagccctg gccatgtaca tggtcaacaa ccagaaccat gggctggacc      2040
+     tgcgacttgt caccattcct tccttcttct ccaagagtgc ttgtgtctac aatcctatca      2100
+     tctactgctt catgaacaag caggtaaaac tctgtccaca tttctgtgag accttggtcc      2160
+     agaagaccct ggttctttcc tcaccaatga cttttaactt gagggtttct aggggtggac      2220
+     aaaagaaacc ctctgtaagc ccagggagga ggtgcagtca tcaaaacaat acaacccagg      2280
+     aaggataaac tgagttaaaa aaattaagtt gctccaaaga acaggataag tgaaaaggtt      2340
+     ttctattctg tcaaaaaact cagagatcaa tagttcttaa tttccagacc tccttgcctt      2400
+     tcatgagttt ttttttattt tttatttttt tgagttggag tctcaccctg tcgtctaggc      2460
+     tggagtgcag tggcatgctc atggccactg ctgcctcgac ctactgggct caggtgatcc      2520
+     ttctgcctca gcctcccgag tggctggaat cataggcacg taccaccacg cctggctgat      2580
+     tttttgattt attgtagaga cgaggtcttg ccatgttact gaggttggtc tcgaacccct      2640
+     gagctcaggc aatcctcttg cctcagtctc ccaagttgct gggattacag gtgtaccacg      2700
+     cctggctctt catgaattct taatcccttc caacttccag tctgtaggaa cgtgtgtgag      2760
+     gcacacatca caacacatgc ataaatttct aaaacatctt atctgaaggt gtcggggcct      2820
+     cctatcccta atcccaaacc agagctaatc tatcccaaac cagagctaat ctatcccaaa      2880
+     ctcagatgaa tctaggagag tgtctgtctt gtagggcaaa acccctactt tcagagtagt      2940
+     tactttgttt cctcaatctc agagatagat tcaaaactaa cttgaaatgt ggatggaaca      3000
+     ggactggcag ttctttccag ctgggggcac tttctagtga cagtggggca ggcgggccca      3060
+     ctgctgacag cacttttcca aagcaggctg gtttgtgaag ctgaccaata gcaaggcctc      3120
+     agatttagct ggaaggctta gggattattg ctgtagactc aggagctcta gactggaatc      3180
+     tagctatttt tcaggatggg gaagatatgt attcaaaatc aacccgagaa catctgggta      3240
+     taaggcattg ggcaaggttt ggggatagag aacagggtct tcttccccac aatgccttgt      3300
+     ctgtcaaggt cctctccaat tctgcttttt cttccagttc caggcttgca tcatggagat      3360
+     ggtgtgtagg aaggccatgg cagatgaatc tgacacatcc agctcccaga aaacagaggt      3420
+     ttctgctctt tcttctagcc aagtcagccc caactgaaga ccccccatac tgacctgttt      3480
+     gcaacaacta gaattttaca cttgaatgtc tactatctgc atcagaaacc aaactactaa      3540
+     caacacagca aaatgttggc aaggggagtg atggcagttt ggggagtcaa ccctcctttt      3600
+     cttcctactc ccctcctgcc tacagagcta ctattcccac atggtttatt tcagaccacc      3660
+     caaagaacat ttcaacaatc atgagttttt actcctaagt gtcttcatgc atagcactcg      3720
+     gagaaccgag ttctacattt gaggcaacta taaaggatta gggttgactt ttcagtgtac      3780
+     aaataacaaa tacttttctt bktaatatdt tatatatata tgtatttctc ctactgggat      3840
+     c                                                                      3841
+//

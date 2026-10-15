@@ -1,0 +1,97 @@
+ID   AF158977; SV 1; linear; mRNA; STD; MAM; 1050 BP.
+XX
+AC   AF158977;
+XX
+DT   29-JUN-1999 (Rel. 60, Created)
+DT   15-APR-2005 (Rel. 83, Last updated, Version 3)
+XX
+DE   Macaca fascicularis SW opsin mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Macaca fascicularis (crab-eating macaque)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini;
+OC   Cercopithecidae; Cercopithecinae; Macaca.
+XX
+RN   [1]
+RP   1-1050
+RX   DOI; 10.1016/S0042-6989(01)00293-0.
+RX   PUBMED; 11809481.
+RA   Onishi A., Koike S., Ida-Hosonuma M., Imai H., Shichida Y., Takenaka O.,
+RA   Hanazawa A., Komatsu H., Mikami A., Goto S., Suryobroto B., Farajallah A.,
+RA   Varavudhi P., Eakavhibata C., Kitahara K., Yamamori T.;
+RT   "Variations in long- and middle-wavelength-sensitive opsin gene loci in
+RT   crab-eating monkeys";
+RL   Vision Res. 42(3):281-292(2002).
+XX
+RN   [2]
+RP   1-1050
+RA   Onishi A., Koike S., Ida M., Imai H., Shichida Y., Takenaka O.,
+RA   Hanazawa A., Komatsu H., Mikami A., Goto S., Suryobroto B., Kitahara K.,
+RA   Yamamori T.;
+RT   "Finding of dichromatic macaque monkeys with lower frequency than those in
+RT   humans: a new avenue for research in color vision study";
+RL   Unpublished.
+XX
+RN   [3]
+RP   1-1050
+RA   Onishi A., Koike S., Ida M., Imai H., Shichida Y., Takenaka O.,
+RA   Hanazawa A., Komatsu H., Mikami A., Goto S., Suryobroto B., Kitahara K.,
+RA   Yamamori T.;
+RT   ;
+RL   Submitted (14-JUN-1999) to the INSDC.
+RL   Laboratory for Speciation Mechanisms I, National Institute for Basic
+RL   Biology, 38, Nishigonaka, Myodaijicho, Okazaki, Aichi 444-8585, Japan
+XX
+DR   MD5; f1e2a4f9acc9df82b671156caba20b66.
+DR   EuropePMC; PMC16551; 10861005.
+DR   EuropePMC; PMC1664589; 17107620.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1050
+FT                   /organism="Macaca fascicularis"
+FT                   /mol_type="mRNA"
+FT                   /db_xref="taxon:9541"
+FT   CDS             1..1050
+FT                   /codon_start=1
+FT                   /product="SW opsin"
+FT                   /note="G protein-coupled receptor; short wave visual
+FT                   pigment"
+FT                   /db_xref="GOA:Q9XS34"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q9XS34"
+FT                   /protein_id="AAD40690.1"
+FT                   /translation="MRKMSEEEEFYLFKNLSSVKPWDGPQYHIAPVWAFYLQAAFMGTV
+FT                   FLAGFPLNAMVLVATVRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVNSCKGYFVFG
+FT                   RHVCAFEAFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGI
+FT                   GVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYT
+FT                   QLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGL
+FT                   DLRLVTIPAFFSKSACIYNPIIYCFMNKQFQAHIMKMVCGKAMTDESDISSSQKTEVST
+FT                   VSSSQVGPN"
+XX
+SQ   Sequence 1050 BP; 205 A; 300 C; 256 G; 289 T; 0 other;
+     atgagaaaaa tgtcagagga agaggagttt tatctgttca aaaatctctc ttcagtgaag        60
+     ccgtgggatg ggcctcagta ccacattgcc cctgtctggg ccttctacct ccaggcagct       120
+     ttcatgggca ctgtcttcct tgcagggttt ccactcaatg ccatggtgct ggtggccaca       180
+     gtgcgctaca aaaagttgcg gcagcccctc aattacattc tggtcaacgt gtcctttgga       240
+     ggcttcctcc tctgcatctt ctctgtcttc cctgtctttg tcaacagctg taaaggatac       300
+     ttcgtctttg gtcgccatgt ttgtgctttc gaggccttcc tgggcactgt agcaggtctg       360
+     gtgacaggct ggtcactggc cttcctggcc tttgagcgct acattgtcat ctgtaagccc       420
+     ttcggcaact tccgcttcag ctccaagcat gcactgacgg tggtcctggc tacctggacc       480
+     attggtattg gcgtctccat cccacccttc tttggctgga gccggttcat ccctgagggc       540
+     ttgcagtgtt cctgtggccc tgactggtac accgtgggca ccaaataccg cagcgagtcc       600
+     tatacgtggt tcctcttcat cttctgcttc attgtgcctc tctccctcat ctgcttctcc       660
+     tacacccagc tgctgagggc cctgaaagct gttgcagctc agcagcagga gtcagctacg       720
+     acccagaagg ctgaacggga ggtgagccgc atggtggttg tgatggtagg atccttctgt       780
+     gtctgctacg tgccctatgc agcctttgcc atgtacatgg tcaacaaccg taaccatggg       840
+     ctggacttac ggcttgtcac cattcctgca ttcttctcca agagtgcttg catctacaat       900
+     cccatcatct actgcttcat gaataagcag ttccaagctc acatcatgaa gatggtgtgt       960
+     gggaaggcca tgacagacga atccgacata agcagctccc agaaaacaga agtttctact      1020
+     gtctcgtcta gccaagttgg ccccaactga                                       1050
+//

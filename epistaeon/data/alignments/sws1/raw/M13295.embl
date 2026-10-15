@@ -1,0 +1,72 @@
+ID   M13295; SV 1; linear; genomic DNA; STD; HUM; 771 BP.
+XX
+AC   M13295;
+XX
+DT   07-JUN-1987 (Rel. 12, Created)
+DT   14-NOV-2006 (Rel. 89, Last updated, Version 6)
+XX
+DE   Human blue cone photoreceptor pigment gene, exon 1.
+XX
+KW   apoprotein; blue cone protein; blue pigment protein; membrane protein;
+KW   opsin.
+XX
+OS   Homo sapiens (human)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae;
+OC   Homo.
+XX
+RN   [1]
+RP   1-771
+RX   DOI; 10.1126/science.2937147.
+RX   PUBMED; 2937147.
+RA   Nathans J., Thomas D., Hogness D.S.;
+RT   "Molecular genetics of human color vision: the genes encoding blue, green,
+RT   and red pigments";
+RL   Science, e1252229 232(4747):193-202(1986).
+XX
+DR   MD5; e043b18bda839442ab77dbb138613146.
+DR   EPD; EP25084; HS_OPN1SW.
+DR   Ensembl-Gn; ENSG00000128617; homo_sapiens.
+DR   Ensembl-Tr; ENST00000249389; homo_sapiens.
+DR   EuropePMC; PMC1449733; 15781694.
+DR   EuropePMC; PMC16551; 10861005.
+DR   EuropePMC; PMC26872; 10339578.
+DR   EuropePMC; PMC2765098; 19805066.
+DR   EuropePMC; PMC4643761; 26601250.
+DR   H-InvDB; HIT000397410.7.
+XX
+CC   On Jul 31, 1996 this sequence version replaced gi:180679.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..771
+FT                   /organism="Homo sapiens"
+FT                   /chromosome="7"
+FT                   /map="7q31-q35"
+FT                   /mol_type="genomic DNA"
+FT                   /sex="male"
+FT                   /clone="gJHN[11,12,14,23]"
+FT                   /db_xref="taxon:9606"
+FT   exon            403..761
+FT                   /gene="BCP"
+FT                   /number=1
+FT                   /note="blue pigment protein; G00-119-032"
+FT   intron          762..>771
+FT                   /gene="BCP"
+FT                   /note="BCP intron A"
+XX
+SQ   Sequence 771 BP; 177 A; 184 C; 200 G; 210 T; 0 other;
+     gggcagatga gttgaggaaa acttaactga tacagttgtg ccagaagcca aaataagagg        60
+     cgtgcccttt ctatagcccc attaaaagaa caaaaaagtg gaagcatctt cagtgaatat       120
+     gggtcagcac ctcccagacc tcagggagtc cacttctgtt catcccagca cccagcattg       180
+     catatccaga ttatttgagc ccaatctctt atcctctgaa gaacacaatc ggctttgggg       240
+     ccacagaagg tttaggtagt ggtttaggga tttctaatcc caaactttgt ccttgggagg       300
+     tttaggatta gtattgatca ttcacagagc ccaagtgttt ttagaggagg ggttttgtgg       360
+     ggtgggagga tcacctataa gaggactcag aggagggtgt ggggcatcca tgagaaaaat       420
+     gtcggaggaa gagttttatc tgttcaaaaa tatctcttca gtggggccgt gggatgggcc       480
+     tcagtaccac attgcccctg tctgggcctt ctacctccag gcagctttca tgggcactgt       540
+     cttccttata gggttcccac tcaatgccat ggtgctggtg gccacactgc gctacaaaaa       600
+     gttgcggcag cccctcaact acattctggt caacgtgtcc ttcggaggct tcctcctctg       660
+     catcttctct gtcttccctg tcttcgtcgc cagctgtaac ggatacttcg tcttcggtcg       720
+     ccatgtttgt gctttggagg gcttcctggg cactgtagca ggtactgcag g                771
+//

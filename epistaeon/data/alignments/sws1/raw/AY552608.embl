@@ -1,0 +1,85 @@
+ID   AY552608; SV 1; linear; mRNA; STD; ROD; 1050 BP.
+XX
+AC   AY552608;
+XX
+DT   24-JUL-2004 (Rel. 80, Created)
+DT   24-JUL-2004 (Rel. 80, Last updated, Version 1)
+XX
+DE   Cavia porcellus violet-sensitive visual pigment (SWS1) mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Cavia porcellus (domestic guinea pig)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Glires; Rodentia; Hystricomorpha; Caviidae;
+OC   Cavia.
+XX
+RN   [1]
+RP   1-1050
+RX   DOI; 10.1021/bi049478w.
+RX   PUBMED; 15209496.
+RA   Parry J.W., Poopalasundaram S., Bowmaker J.K., Hunt D.M.;
+RT   "A novel amino acid substitution is responsible for spectral tuning in a
+RT   rodent violet-sensitive visual pigment";
+RL   Biochemistry 43(25):8014-8020(2004).
+XX
+RN   [2]
+RP   1-1050
+RA   Parry J.W.L., Poopalasundaram S., Bowmaker J.K., Hunt D.M.;
+RT   ;
+RL   Submitted (19-FEB-2004) to the INSDC.
+RL   Visual Science, Institute of Ophthalmology, UCL, 11-43 Bath Street, London
+RL   EC1V 9EL, UK
+XX
+DR   MD5; 921d42f3e38d14903aebbcdc5bbd926c.
+DR   EuropePMC; PMC1664589; 17107620.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1050
+FT                   /organism="Cavia porcellus"
+FT                   /mol_type="mRNA"
+FT                   /db_xref="taxon:10141"
+FT   gene            1..1050
+FT                   /gene="SWS1"
+FT   CDS             10..1050
+FT                   /codon_start=1
+FT                   /gene="SWS1"
+FT                   /product="violet-sensitive visual pigment"
+FT                   /note="opsin"
+FT                   /db_xref="GOA:Q698K7"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q698K7"
+FT                   /protein_id="AAT36312.1"
+FT                   /translation="MSEEEEFYLFKNASSVGPWDGPQYHVAPVWAFRLQAAFMGIVFCI
+FT                   GTPLNGIVLVATLLYKKLRQPLNYILVNVSLGGFLVCIFSVLAVFIASCYGYFIFGRHV
+FT                   CALEGFLGSVAGMVTGWSLAFLAFERYLVICKPFGNFRFSSKHALIVVLATWVIGIGVS
+FT                   IPPFFGWSRYMPEGLQCSCGPDWYTVGTKYRSEYFAWFLFIFCFIVPLSLICFSYCQLL
+FT                   RTLRTVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAALAMYIVNNRNHGLDLR
+FT                   LVTIPAFFSKSSCIYNPIIYCFMNKQFRACIMELVCRKPMADESDMSTSQKTEVSAVSS
+FT                   SKVGPH"
+XX
+SQ   Sequence 1050 BP; 191 A; 285 C; 267 G; 307 T; 0 other;
+     ataaacaaga tgtcagagga agaggagttt tatctgttca agaacgcctc ctcagtgggg        60
+     ccgtgggacg ggcctcagta ccacgttgct cctgtctggg ccttccgcct tcaggcagcc       120
+     ttcatgggca ttgtcttctg tatagggaca ccactcaatg gcatagtgtt ggtggccaca       180
+     ttgctgtaca aaaagttgcg gcagccactc aactatattc tggtcaatgt gtccctgggg       240
+     ggctttctcg tctgcatatt ctctgtcctt gctgtcttca tcgccagctg ttatggatac       300
+     ttcatcttcg gccgccatgt ctgtgctctg gagggcttcc tgggctctgt ggcaggtatg       360
+     gtgacaggct ggtcactggc cttcctggcc tttgagcgct accttgtcat ctgtaagccc       420
+     tttggcaact tccgcttcag ctccaagcat gcattgatcg ttgtcctggc tacttgggtc       480
+     attggtattg gtgtctccat cccccccttc tttggctgga gccggtacat gcctgagggc       540
+     ctgcagtgct cctgtggccc tgactggtat accgtgggca ccaaatatcg cagcgagtat       600
+     ttcgcctggt tccttttcat cttttgcttc atcgtgcctc tctccctcat ctgcttttcc       660
+     tactgtcagc tgctgaggac gctcagaact gtggcagctc agcagcagga atcagctaca       720
+     acccagaagg ctgagcggga ggtgagccgc atggtggtgg tgatggtggg atccttctgt       780
+     gtctgctatg tgccctatgc tgccctggcc atgtacatag tcaataatcg taaccatggg       840
+     ctggacttac ggcttgtcac cattcctgct ttcttctcca agagctcctg tatttataat       900
+     cctatcatct actgcttcat gaacaagcag ttccgagctt gtatcatgga attggtgtgt       960
+     aggaagccca tggcagatga atccgatatg tccacctccc agaaaaccga agtttctgct      1020
+     gtctcttcta gcaaagttgg ccctcactga                                       1050
+//

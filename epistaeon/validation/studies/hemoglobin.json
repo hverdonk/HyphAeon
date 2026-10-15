@@ -10,49 +10,59 @@
     {
       "file": "../data/experimental/hemoglobin_2009_storz.pdf",
       "cite": "Storz et al., PNAS 2009, doi:10.1073/pnas.0905224106",
-      "role": "defines the deer mouse isoform site sets"
+      "role": "defines naturally occurring deer mouse isoform site sets and beta-haplotype functional differences; does not measure substitution order"
     }
   ],
   "replication_targets": [
     {
       "id": "HB1",
       "finding": "Deer mouse alpha-globin isoforms are defined by five sites: 50, 57, 60, 64, 71 (alphaI=PGAGS, alphaII=HGAGS, alphaIII=HAGDG); beta-globin by four sites: 62, 72, 128, 135 (betaI=GGAA, betaII=ASSS).",
-      "source": "Storz 2009, verbatim in the text",
-      "test": "Do epistaeon's detected epistatic sites for HBA/HBB recover these positions above chance?",
+      "source": "Storz 2009, p. 14453, Fig. 3 legend",
+      "test": "Verify the diagnostic positions and isoform residue states as a contextual site-mapping check. Storz 2009 does not establish that every diagnostic site is individually epistatic; do not score overlap with this list as recovery of proven epistatic sites. Report that epistasis target as not_testable with reason no_ground_truth.",
       "validates": "epistatic_sites",
-      "measures_order": false
+      "measures_order": false,
+      "score_as_individual_site_epistasis": false,
+      "benchmark_scope": "contextual isoform/site-mapping or functional-direction check; no individual-site epistasis ground truth in this source"
     },
     {
       "id": "HB2",
-      "finding": "Beta-chain isoform differences in O2 affinity are attributable to DPG sensitivity, not intrinsic affinity.",
-      "source": "Storz 2009",
-      "test": "Does epistaeon assign the beta sites to a coupled group distinct from the alpha sites?",
+      "finding": "In matched hemolysates with the same alpha-chain isoform composition, betaI has suppressed DPG sensitivity and higher O2 affinity in the presence of DPG than betaII; the beta-isoform affinity difference is attributable to DPG sensitivity rather than intrinsic affinity.",
+      "source": "Storz 2009, pp. 14453-14454, Functional Significance of beta-Globin Polymorphism; Fig. 3",
+      "test": "Use the measured beta-haplotype functional difference as context. The study does not isolate individual beta substitutions or establish a coupled group distinct from alpha sites; report that proposed individual-site grouping target as not_testable with reason no_ground_truth.",
       "validates": "epistatic_sites",
-      "measures_order": false
+      "measures_order": false,
+      "score_as_individual_site_epistasis": false,
+      "benchmark_scope": "contextual isoform/site-mapping or functional-direction check; no individual-site epistasis ground truth in this source"
     },
     {
       "id": "HB3",
-      "finding": "High-altitude deer mice carry alphaI/betaI; the high-affinity electromorph is at high frequency above 2750 m.",
-      "source": "Storz 2009",
-      "test": "Directionality check. Establish the polarity from Storz 2009 itself: which isoform combination is the high-altitude, high-affinity form. Report epistaeon's implied direction against that.",
+      "finding": "Fig. 3 compares high-altitude betaI (GGAA) with low-altitude betaII (ASSS) in matched alphaI/alphaII or alphaI/alphaII/alphaIII hemolysates. BetaI has suppressed DPG sensitivity. The per-site evolutionary polarity relative to P. leucopus is A62G, G72S, S128A and A135S; the two contemporary haplotypes contain different mixtures of ancestral and derived states.",
+      "source": "Storz 2009, pp. 14451-14452, Patterns of beta-Globin Polymorphism; p. 14453, Fig. 3 and legend",
+      "test": "Check the observed betaI/betaII functional direction within the matched mixed-alpha panels, and separately check any reported beta substitution polarity against the outgroup-polarized states. Do not replace a hemolysate with a single alphaI genotype, interpret betaII-to-betaI as an ancestral trajectory, or score these contextual checks as individual-site epistasis or mutation-order recovery.",
       "validates": "epistatic_sites",
-      "measures_order": false
+      "measures_order": false,
+      "score_as_individual_site_epistasis": false,
+      "benchmark_scope": "contextual isoform/site-mapping or functional-direction check; no individual-site epistasis ground truth in this source"
     }
   ],
   "structures": {
     "active": "../data/coordinates/2HHB.cif",
-    "notes": "Human deoxy (T) state, 1.74 A, four chains complete. About half the alpha1beta2 contacts differ in the R state. Alpha-beta pairs are contacts at exactly one interface (alpha1beta1 or alpha1beta2) and never both, so an interface convention must be fixed and reported. Sites 57 and 64 are haem-pocket residues, 6.5-7.5 A from haem and over 15 A from the nearest beta1 residue."
+    "notes": "Human deoxy (T) state, 1.74 A, four complete globin chains: alpha A/C (author residues 1-141), beta B/D (1-146). This is a homologous geometric scaffold for deer mouse variants. Paper mature numbering maps to the same PDB author position; load numbering_offsets.json to convert to human UniProt numbering (+1). Human scaffold residue identity need not equal a deer mouse allele. Specify the alpha-beta interface convention for contact analyses."
   },
   "known_limitations": [
-    "BLOCKING: no Peromyscus maniculatus sequence exists in the HBA1, HBA2 or HBB TOGA2 alignments, although three assemblies are present in TOGA2. The study's focal species is absent from the input.",
-    "Storz 2009 is a deer mouse study only. This registry covers no bird taxa; the alignments are mammal-only in any case.",
-    "HBA1 34.5% and HBA2 44.0% of codons are gaps or masked bases. Expect weak signal.",
-    "No panel of recombinant genotypes was published. Storz 2009 assayed isoform combinations, not individual substitutions, so there is no order evidence for this system.",
-    "Yak and snow leopard are present for HBB only; neither has an HBA1 or HBA2 sequence."
+    "Peromyscus maniculatus representatives are present as HLperManSon3 in HBA1, HBA2 and HBB after the additions documented in data/sequences/deer_mouse/README.md. Each is a high-type allele representative, not the study's complete segregating allele panel.",
+    "The same deer mouse alpha CDS was inserted into HBA1 and HBA2 because paralog orthology was unresolved; these alignments are alternatives, not independent replications. The HLperManSon3 assembly label is a tree-placement stand-in, with the actual GenBank accessions recorded in the sequence README.",
+    "Full phased experimental HBA-T1/T2 and HBB-T1/T2 genotypes and alpha isoform expression mixtures are needed to reconstruct the Fig. 3 hemolysates. A diagnostic residue string alone does not identify a complete protein sequence.",
+    "Storz 2009 measured natural hemolysates, not an exhaustive single-substitution recombinant panel. It supplies no individual-site epistasis labels or experimentally measured substitution-order constraints.",
+    "The local Storz 2009 supplement is missing, including Table S2 numeric affinity/cofactor results. Fig. 3 and the main text support qualitative beta-haplotype contrasts.",
+    "Storz 2009 is a deer mouse study; it supplies no bird benchmark. Natarajan et al. Science 2013 is a separate 12-site experiment and must not be treated as this study's genotype panel.",
+    "A run-specific map from model alignment columns to mature globin and PDB author positions is required. The separate HBA and HBB inputs do not directly encode the full mixed-subunit experimental genotype."
   ],
   "minimum_pairs_for_or_benchmark": {
     "2HHB_alpha": 181,
     "2HHB_beta": 173
   },
-  "expected_outcome_note": "The species needed to test this study's central findings are missing from the input. A verdict of not_testable is the likely honest result. Do not substitute a different rodent and call it a replication."
+  "expected_outcome_note": "Focal-species presence is no longer the main blocker. HB1-HB3 provide contextual checks of isoform states, numbering, haplotype phenotype and beta-site polarity. Storz 2009 does not establish individual-site epistasis or substitution order, so those benchmark axes are not_testable with reason no_ground_truth and must not enter an epistasis or order performance score.",
+  "source_verified_reference": "../data/substitution_reference/hemoglobin.json",
+  "source_verification_date": "2026-10-15"
 }

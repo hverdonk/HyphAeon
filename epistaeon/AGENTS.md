@@ -38,9 +38,12 @@ author numbering and UniProt numbering do not coincide. Load
 `epistaeon/data/numbering_offsets.json`; never hardcode an offset.
 
 - 2HHB and 1MBO: UniProt = PDB **+1** (cleaved initiator Met)
-- 1U19, 7PRX: offset **0**
-- AncCR → human GR: **+531** up to position 210, then **+530** — the S212
-  deletion shifts it. A single constant is wrong.
+- 7PRX: offset **0**. 1U19 also has offset **0** to its own bovine rod-opsin
+  sequence, but is only a homology template for SWS1; use the separate SWS1
+  source-site crosswalk, never a direct constant offset.
+- AncCR → human GR: **+531** through position 210, **+530** from 213 onward.
+  Deleted S212 has no modern homolog; source211 is alignment-ambiguous.
+  Apply the explicit exceptions in the offsets JSON. A single constant is wrong.
 - The TOGA2 **NR3C1 alignment is the GRγ isoform**: an extra Arg at 452 means
   positions after 451 are one higher than UniProt/7PRX.
 - Model output is **alignment columns**, not residue numbers. Drop the columns
@@ -55,6 +58,30 @@ AI-written and several claims are fabricated (`Thr36` does not exist; the
 α57/α64 polarity is inverted; two cited distances do not reproduce). Do not
 read it as ground truth, do not cite it, and do not test anything against it.
 The original studies in `epistaeon/data/experimental/` are the only authority.
+
+The reviewed event lists, structural locations and qualified partial orders are
+in `data/substitution_reference/README.md` and its per-case JSON files. These
+extend the older `validation/studies/` registries. Keep reconstructed branch
+precedence, assayed group paths and author conjectures distinct. Diagnostic
+globin sites and charge-changing myoglobin sites are not individually proven
+epistatic sites. Use modern1MBO for myoglobin transition locations.
+
+**Case 4 is SWS1 cone opsin, Yokoyama et al. 2014**
+(doi:10.1371/journal.pgen.1004884). Its comparative input is
+`data/alignments/sws1/SWS1.codonified.fa`, rebuilt from paper-listed extant
+boreoeutherian accessions; no ancestral rows are required for that input.
+Seven source-labeled substitutions are F46T, F49L, T52F, F86L, T93P, A114G
+and S118T. The paper reports 1,032 accessible orders from its 127-mutant panel;
+the historical partial order `{93,114} -> 86 -> {49,118} -> {46,52}` comes
+from phylogenetic/parsimony inference and yields eight favored paths. Do not
+score those eight as the only experimentally accessible orders. T52F-first
+is experimentally excluded on the assayed ancestral background. This case
+does not measure thermal decay or dark noise. Use cited human M13295 and the
+explicit crosswalk rather than current UniProt P03999 numbering. The original
+paper used bovine 1U19 for homology modeling; 1U19 is not a SWS1 structure.
+The S1-table transcription has genotype/formatting anomalies and its local
+enumeration does not yet match the reported path count. Preserve that
+discrepancy and resolve it before exact accessibility scoring.
 
 **The model scores each codon site independently.** `window_size: 1`, no
 cross-site layers, and the batch dimension is the site. Therefore **no part of
@@ -164,7 +191,7 @@ scale.
 
 Patristic and TN93 distances are both **substitutions per site**, so they are
 the same kind of quantity, but they are not the same matrix here.
-`speciesTree.nh` is one tree shipped once for all seven gene alignments, so its
+`speciesTree.nh` is one tree shipped once for the six retained TOGA2 gene alignments, so its
 branch lengths are a genome-wide scale, while TN93 measures the gene in front
 of you — and NR3C1 is conserved. Measured over 40 taxa:
 
@@ -427,6 +454,7 @@ never be folded into a performance score.
 | `epistaeon/IMPLEMENTATION_PLAN.md` | design rationale and the verification list |
 | `epistaeon/data/README.md` | structure audit: what each PDB file is, and what reproduces |
 | `epistaeon/data/alignments/toga2/README.md` | alignment provenance and 14 known issues |
+| `epistaeon/data/alignments/sws1/` | rebuilt extant boreoeutherian SWS1 codon alignment, source accessions and provenance |
 | `epistaeon/data/numbering_offsets.json` | **the** numbering authority |
 | `epistaeon/data/sequences/ancestral/` | AncCR, AncGR1, AncGR1.1, AncGR2 + posterior probabilities |
 | `epistaeon/validation/` | the replication harness, registries and schemas |

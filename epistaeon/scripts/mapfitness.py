@@ -64,7 +64,7 @@ def copycmp(pdb,ch1,ch2,label):
     print(f"      class disagreement between copies: {flip*100:.2f}%   contact<->allosteric flips: {hard.sum()} ({hard.mean()*100:.3f}%)")
 copycmp('2HHB','A','C','2HHB alpha copies A vs C')
 copycmp('2HHB','B','D','2HHB beta  copies B vs D')
-copycmp('1U19','A','B','1U19 rhodopsin copies A vs B')
+copycmp('1U19','A','B','1U19 bovine homolog-template copies A vs B')
 
 print("\n"+"="*86)
 print("C.  HEMOGLOBIN INTER-CHAIN AMBIGUITY  (an alpha-beta pair has two inequivalent realisations)")

@@ -33,7 +33,7 @@
   "replication_targets": [
     {
       "id": "SR1",
-      "finding": "Group X (S106P, L111Q) is the adaptive, function-switching pair. Introduced into AncGR1 it recapitulates a large portion of the AncGR1-to-AncGR2 shift: EC50 rises 169-fold for aldosterone and 57-fold for DOC, but only 2-fold for cortisol. The pair is internally epistatic -- L111Q alone has little effect on sensitivity to any hormone, S106P alone dramatically reduces activation by all ligands, and only the combination switches preference. Mechanism: S106P kinks the backbone and partially unwinds helix 7, repositioning site 111 so L111Q can hydrogen-bond cortisol's C17-hydroxyl. Ortlund names this conformational epistasis.",
+      "finding": "Group X (S106P, L111Q) is the adaptive, function-switching pair. Introduced into AncGR1 it recapitulates a large portion of the AncGR1-to-AncGR2 shift: EC50 rises 169-fold for aldosterone and 57-fold for DOC, but only 2-fold for cortisol. The pair is internally epistatic -- L111Q alone has little effect on sensitivity to any hormone, S106P alone dramatically reduces activation by all ligands, and only the combination switches preference. Mechanism: S106P kinks the backbone and partially unwinds helix 7, repositioning site 111 so L111Q can hydrogen-bond cortisol's C17-hydroxyl. Ortlund names this conformational epistasis. Figure 2A depicts L111Q followed by S106P as the probable path through functional intermediates; S106P first greatly reduces ligand sensitivity. This supports a preferred path, not directly observed historical chronology.",
       "source": "Ortlund 2007, Fig. 2A-2B and accompanying text",
       "test": "Does epistaeon rank sites 106 and 111 as a coupled pair, above the background pairing rate?",
       "validates": "epistatic_sites",
@@ -49,17 +49,18 @@
     },
     {
       "id": "SR3",
-      "finding": "Reversal is blocked: from AncGR2, reversing the group X function-switching substitutions yields a non-functional receptor (AncGR2-x), as does AncGR2-xyz and every combination restoring group x. Reversing the restrictive substitutions first does not restore ancestral function.",
-      "source": "Bridgham 2009, Fig. 1f-1g and accompanying text",
-      "test": "MEASURED ORDER. Does epistaeon infer the same directional constraint between these substitutions -- viable forward through group X, not viable in reverse? Judge the inferred order only; how epistaeon arrives at it internally is not under test.",
+      "finding": "Direct reversal of X is impaired in AncGR2: AncGR2-x and all tested reversals restoring x without reversing the restrictive group W lose activation. Group W is H84Q, Y91C, A107Y, G114Q and L197M. Reversing W in the AncGR2-xyz background substantially restores ancestral promiscuous hormone response; individual Y107A or the interacting pairs Q84H/C91Y and Q114G/M197L partially rescue it. Reversing W alone does not switch the derived receptor to the ancestral phenotype. The experiments establish conditional paths for reversal, not an absolute inability to reverse and not the chronology of every individual substitution.",
+      "source": "Bridgham 2009, Fig. 1f-1g, Fig. 2a-2c, Fig. 3a-3b, Fig. 4a-4b and accompanying text (pp. 516-518)",
+      "test": "Does epistaeon recover the tested group-level conditional constraint: reversing W (and Y for ancestral-conformation restoration) permits reversal of X, whereas reversing X first is strongly impaired in the tested AncGR2 backgrounds? Score reverse-path constraints separately from forward chronology; do not expand them into unmeasured pairwise mutation orders.",
       "validates": "mutation_order",
-      "measures_order": true
+      "measures_order": true,
+      "scope_note": "W contains five substitutions and has no established internal chronological order. These additional assayed sites invalidate the earlier claim that order evidence covers only X/Y/Z. Forward W-completion constraints are recorded separately in SR5. At whole-block resolution, Fig4A supports restoring Y before W, and W before X; full W reversal is not necessary for every partial rescue."
     },
     {
       "id": "SR4",
-      "finding": "Order constraint on the AncGR1-to-AncGR2 interval. Group Y (L29M, F98I, S212del) abolishes receptor activity unless BOTH group X (S106P, L111Q) and group Z (N26T, Q105L) are present; the XYZ combination yields complete cortisol specificity. X alone is functional (it performs most of the switch) and Z alone is functional (little or no effect). Because trajectories through functional intermediates are more likely than those through dead ones, the historically likely pathways are those in which Z and X occurred before Y was complete. Y27R, from the earlier interval, precedes all of them.",
+      "finding": "On the AncGR1.0 background used in Ortlund 2007, the complete group Y (L29M, F98I, S212del) abolishes activity unless both group X (S106P, L111Q) and group Z (N26T, Q105L) are present. X and Z may occur in either group-level order. The authors infer that X and Z preceded completion of Y along historically likely functional paths. This does not establish that every member of X or Z preceded every member of Y, or resolve the internal order of Y or Z. Y27R belongs to the earlier AncCR-to-AncGR1.0 branch and is permissive for the later XYZ phenotype.",
       "source": "Ortlund 2007, Fig. 3A caption and Fig. 3C",
-      "test": "MEASURED ORDER. Does epistaeon place group Z and group X before group Y in its inferred order of substitutions, and Y27R before all of them? Judge the inferred order only; how epistaeon arrives at it internally is not under test.",
+      "test": "Does epistaeon place X and Z before completion of Y, allowing either order between X and Z, on the matching AncGR1.0 background? Compare Y27R using its earlier phylogenetic interval. Do not score unmeasured member-by-member precedence as ground truth.",
       "validates": "mutation_order",
       "measures_order": true,
       "assayed_genotypes": {
@@ -70,28 +71,58 @@
         "AncGR1+Y": "NON-FUNCTIONAL",
         "AncGR1+X+Y": "NON-FUNCTIONAL",
         "AncGR1+X+Y+Z": "functional; fully GR-like, complete cortisol specificity",
-        "AncGR1+X+Y+Z, Y27R reversed": "NON-FUNCTIONAL"
+        "AncGR1+X+Y+Z, Y27R reversed": "NON-FUNCTIONAL",
+        "AncGR1+X+Z": "functional; cortisol preference, not the fully cortisol-specific XYZ phenotype",
+        "AncGR1+Y+Z": "NON-FUNCTIONAL"
       },
-      "scope_note": "Order evidence covers only these 8 changes: X = S106P, L111Q; Y = L29M, F98I, S212del; Z = N26T, Q105L; plus Y27R. The rest of the interval (36 substitutions and one deletion in total) was never assayed for order and must not be scored. NOTE: S212del is a single-codon DELETION, not a Ser-to-Asp substitution -- Ortlund's footnote 21 states the deletion replaces Ser at codon 212. It appears as a gap, not a residue change, so a site-based detector may have no position to report; score it accordingly rather than as a miss."
+      "scope_note": "Ortlund 2007 assays seven later-branch events in X/Y/Z (six amino-acid substitutions and the S212 single-codon deletion) plus earlier Y27R. The full AncGR1.0-to-AncGR2 branch contains 36 amino-acid substitutions plus one deletion. Bridgham 2009 adds five assayed W substitutions. S212del has no homologous residue coordinate in modern human GR; score its ancestral/alignment column or indel unit and do not assign it to modern Asp742 or count its absence from a residue-only detector as a miss. These group-level assays do not determine every individual order."
+    },
+    {
+      "id": "SR5",
+      "finding": "Restrictive group W (H84Q, Y91C, A107Y, G114Q, L197M) markedly reduces sensitivity in AncGR1.0 backgrounds lacking X, but weakly or moderately improves activation and cortisol specificity in X-containing backgrounds. The authors infer that W was unlikely to have been complete before the remodeling caused by X. At least some W events therefore likely followed the function switch; their individual order is unresolved.",
+      "source": "Bridgham 2009, pp. 517-518, Fig. 4b and accompanying text",
+      "test": "Does epistaeon prefer X before completion of W in the matching AncGR1.0 forward benchmark? Do not require every W member to follow every X member.",
+      "validates": "mutation_order",
+      "measures_order": true,
+      "evidence_status": "group-level functional-path inference, not direct historical chronology"
+    },
+    {
+      "id": "SR6",
+      "finding": "In the updated AncCR-to-AncGR1.1 reconstruction of Carroll 2011, V43A and R116H are large-effect desensitizing substitutions. C71S alone has negligible effect on sensitivity, but buffers their double mutant to AncGR1.1-like sensitivity. Q113K also reduces sensitivity more weakly. The authors conjecture that C71S occurred before V43A and R116H; they do not directly determine chronological order.",
+      "source": "Carroll 2011, Fig. 3, Table 1 (pp. 4-5), Fig. 4-5 (pp. 6-7), Discussion (p. 7)",
+      "test": "Check recovery of V43A, R116H and buffering C71S on the exact2011 background. Report Q113K as weaker single-mutant phenotype evidence, not a demonstrated epistatic partner. Treat C71S-first as author conjecture, excluded from measured-order scoring.",
+      "validates": "epistatic_sites",
+      "measures_order": false,
+      "order_expectation": {
+        "prerequisite": "C71S",
+        "dependent_set": [
+          "V43A",
+          "R116H"
+        ],
+        "evidence_status": "author conjecture supported by buffering assays"
+      },
+      "scope_note": "AncGR1.1 differs from the AncGR1.0 reconstruction used in 2007/2009. Do not concatenate their exact substitutions into one trajectory: position 107, for example, is S in AncGR1.1 but A in the AncGR1.0 background of W=A107Y. Stability effects in this paper are FoldX predictions, not measured thermal stability."
     }
   ],
   "structures": {
     "active": "../data/coordinates/7PRX.cif",
     "backup": "../data/ancestral_coordinates/",
-    "notes": "7PRX is the wild-type human GR ligand-binding domain, 2.20 A, residues 529-776 complete, numbering equal to UniProt P04150. The resurrected ancestral receptors (AncCR 2Q1H/2Q1V/2Q3Y, AncGR1 3RY9, AncGR2 3GN8) are in ../data/ancestral_coordinates/ and use local LBD numbering: add 531 to reach human GR. In 3GN8 that offset breaks after about position 212."
+    "notes": "7PRX is the wild-type modern human GR ligand-binding domain with numbering equal to UniProt P04150. Use it as a structural scaffold; its sequence and conformation are not the ancestral experimental background. The ancestral series is a backup. 3RY9 is the updated AncGR1.1 structure, not the AncGR1.0 reconstruction used in 2007/2009. Load data/numbering_offsets.json and the verified reference for the ancestral-to-modern crosswalk; the S212 deletion has no modern homologous residue and must not be assigned modern742."
   },
   "known_limitations": [
     "The NR3C1 TOGA2 reference is the GR-gamma isoform: positions after 451 are one higher than UniProt / 7PRX numbering. Misapplying this shifts the entire ligand-binding domain by one residue, silently.",
-    "Order evidence covers only the 7 assayed substitutions in groups X, Y and Z; the rest of the AncGR1 to AncGR2 interval (37 substitutions total) was never assayed for order.",
     "The Carroll 2011 stability table is calculated, not measured.",
-    "No cortisol-bound ancestral structure exists. 2Q1V is titled cortisol but its deposited ligand is prednisone."
+    "No cortisol-bound ancestral structure exists. 2Q1V is titled cortisol but its deposited ligand is prednisone.",
+    "No study determines a complete individual-substitution chronology. Score measured group-level functional constraints, preferred paths and author conjectures as separate evidence types.",
+    "The modern residue formerly assigned to S212del (Asp742) is not the deleted serine homolog. A source-anchored crosswalk is required at ancestral211/212.",
+    "The 2007/2009 AncGR1.0 and 2011 AncGR1.1 backgrounds are distinct reconstructions and require separate matched endpoints."
   ],
   "minimum_pairs_for_or_benchmark": {
     "7PRX": 247
   },
-  "expected_outcome_note": "The strongest case available, and the only one with measured mutation order. SR1 and SR2 test site identification, SR3 and SR4 test inferred order against assayed intermediates. Note SR2's permissive sites are functionally silent on their own backgrounds by definition.",
+  "expected_outcome_note": "This case provides experimentally supported partial order constraints at assayed group resolution, a preferred internal X path, and a separate 2011 conjecture about buffering-first order. It provides no unique total historical sequence. SR1/SR2/SR6 test sites, SR3/SR4/SR5 test applicable group-level or path constraints with matching reconstructed backgrounds.",
   "substitution_sets": {
-    "_numbering": "AncCR/AncGR local LBD numbering, as used throughout Ortlund 2007 and Bridgham 2009. Mapping to human GR (7PRX, NR3C1) verified by alignment: +531 holds for Anc positions -2..210, then +530 from 212 onward, because of the S212 single-codon deletion. Do not apply a single constant.",
+    "_numbering": "AncCR local LBD numbering as used in the original papers. Load data/numbering_offsets.json and the source-verified reference rather than hardcoding an offset. S212del is a deletion with no homologous modern residue; coordinate742 is a neighboring modern residue, not its substitution target.",
     "adaptive_group_X": {
       "sites": [
         106,
@@ -115,10 +146,10 @@
       "human_GR": [
         560,
         629,
-        742
+        null
       ],
       "note": "completes the switch structurally but destabilises the AF-H network; lethal without X and Z",
-      "human_GR_note": "site 212 maps to GR 742 (+530), not 743; the deletion shifts the offset"
+      "human_GR_note": "S212del has no modern homologous residue. Record an indel unit and flanking coordinates using the source-anchored crosswalk, not a spurious Ser212-to-Asp742 substitution."
     },
     "permissive_group_Z": {
       "sites": [
@@ -142,13 +173,59 @@
       "human_GR": [
         558
       ]
+    },
+    "restrictive_group_W": {
+      "sites": [
+        84,
+        91,
+        107,
+        114,
+        197
+      ],
+      "changes": "H84Q, Y91C, A107Y, G114Q, L197M",
+      "interval": "AncGR1.0 -> AncGR2",
+      "human_GR": [
+        615,
+        622,
+        638,
+        645,
+        728
+      ],
+      "note": "Bridgham 2009 group W; internal order unresolved. X likely preceded completion of W; W reversal permits tested X reversal."
+    },
+    "early_desensitizing_2011": {
+      "sites": [
+        43,
+        116
+      ],
+      "changes": "V43A, R116H",
+      "interval": "AncCR -> AncGR1.1",
+      "human_GR": [
+        574,
+        647
+      ],
+      "note": "Updated 2011 reconstruction; distinct from 2007/2009 AncGR1.0."
+    },
+    "early_buffering_2011": {
+      "sites": [
+        71
+      ],
+      "changes": "C71S",
+      "interval": "AncCR -> AncGR1.1",
+      "human_GR": [
+        602
+      ],
+      "note": "Buffers V43A/R116H; preceding them is an author conjecture. Wild-type human GR carries Phe602, not this historical Ser state."
     }
   },
   "receptor_versions": {
     "AncCR": "Ancestral corticoid receptor, ~450 Ma, MR-like: responds to aldosterone, DOC and cortisol. Carries ancestral Tyr27.",
-    "AncGR1": "GR of the common ancestor of jawed vertebrates; still MR-like in sensitivity. Already carries Y27R. All combinatorial mutagenesis was done on this background.",
+    "AncGR1": "AncGR1.0: the 2007/2009 GR-node reconstruction, still promiscuous in ligand specificity. Already carries Y27R. This is the background of X/Y/Z/W experiments.",
     "AncGR2": "GR of the common ancestor of bony vertebrates; cortisol-specific. Carries X, Y and Z.",
-    "_intervals": "AncCR -> AncGR1: 25 substitutions. AncGR1 -> AncGR2: 36 substitutions plus one single-codon deletion.",
-    "_human_GR": "7PRX carries the derived states at Anc 27, 29, 98, 105, 106 and 111 (Arg558, Met560, Ile629, Leu636, Pro637, Gln642) but not at 26. Human GR is not AncGR2; use it as a scaffold, not as the derived genotype."
-  }
+    "_intervals": "2007/2009: AncCR -> AncGR1.0, 25 substitutions; AncGR1.0 -> AncGR2, 36 amino-acid substitutions plus one single-codon deletion. 2011 updated reconstruction: AncCR -> AncGR1.1, 36 amino-acid differences.",
+    "_human_GR": "7PRX carries the derived states at Anc 27, 29, 98, 105, 106 and 111 (Arg558, Met560, Ile629, Leu636, Pro637, Gln642) but not at 26. Human GR is not AncGR2; use it as a scaffold, not as the derived genotype.",
+    "AncGR1.1": "Updated 2011 reconstruction of the same node using expanded cartilaginous-fish sampling; low hormone sensitivity. The 3RY9 structure is this reconstruction, and it must not silently replace AncGR1.0 in the earlier benchmark."
+  },
+  "source_verified_reference": "../data/substitution_reference/steroid_receptor.json",
+  "source_verification_date": "2026-10-15"
 }

@@ -12,6 +12,20 @@ against: the benchmark coordinate set, the published studies, and the scripts
 that validate both. See [`data/README.md`](data/README.md) for the full audit
 and [`AGENTS.md`](AGENTS.md) for how to run the engine.
 
+The [source-verified substitution reference](data/substitution_reference/README.md)
+lists expected events, partial orders, modern structural locations and the
+remaining inputs needed for validation. It corrects the older study registries.
+
+Case 4 uses **SWS1 cone opsin** from Yokoyama et al. (2014),
+[doi:10.1371/journal.pgen.1004884](https://doi.org/10.1371/journal.pgen.1004884).
+The [rebuilt codon-aware alignment](data/alignments/sws1/SWS1.codonified.fa)
+contains extant boreoeutherian sequences from the paper's accession lists.
+The [SWS1 reference](data/substitution_reference/sws1.json) keeps the eight
+phylogenetically favored paths separate from the paper's reported 1,032
+experimentally accessible orders. Table-transcription anomalies and a path-count
+discrepancy remain explicit in the reference. No ancestral sequence is included
+in this comparative input.
+
 ```bash
 export PYTHONPATH=../aeon-core/src:../hyphaeon/src:src
 python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
@@ -40,7 +54,7 @@ python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
 > | `2HHB` | A, C | α-globin | P69905 | **+1** |
 > | `2HHB` | B, D | β-globin | P68871 | **+1** |
 > | `1MBO` | A | myoglobin | P02185 | **+1** |
-> | `1U19` | A, B | rhodopsin | P02699 | **0** |
+> | `1U19` | A, B | bovine rod-opsin template for SWS1 | P02699 | **0** to its own sequence only |
 > | `7PRX` | A | glucocorticoid receptor | P04150 | **0** |
 >
 > Skipping this shifts **every** hemoglobin and myoglobin contact call by one
@@ -53,10 +67,14 @@ python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
 > numbering, so add **+531** (Ser106 → GR 637, Leu111 → GR 642). The backup
 > ancestral structures in `data/ancestral_coordinates/` use local LBD
 > numbering (`-2` … `247`), and in 3GN8 the +531 rule breaks after about
-> position 212.
+> position 212. Deleted S212 itself has no modern residue coordinate; the
+> source 211/212 boundary needs curated alignment.
 >
 > `1U19` carries an `ACE` acetyl cap at author position `0` that must be
-> skipped when iterating residues.
+> skipped when iterating residues. It is the homology template used by the
+> SWS1 study, not a SWS1 structure. Apply the explicit source-site crosswalk
+> before locating SWS1 substitutions; source labels are not direct current
+> human UniProt positions or raw PDB numbers.
 >
 > **Alignment side, too.** The TOGA2 model inputs in
 > `data/alignments/toga2/` report *alignment columns*, and the NR3C1 reference
@@ -65,8 +83,8 @@ python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
 >
 > **Do not hardcode these.** Load
 > [`data/numbering_offsets.json`](data/numbering_offsets.json), the
-> machine-readable source of truth, and regenerate it with
-> `python scripts/numbering.py` if the coordinate set ever changes.
+> machine-readable source of truth. `python scripts/numbering.py` verifies the
+> modern chain offsets; ancestral deletion exceptions require source curation.
 
 ---
 
@@ -156,13 +174,15 @@ are equal.
 
 | Path | Contents |
 | --- | --- |
-| `data/coordinates/` | The active set: `2HHB`, `1MBO`, `7PRX`, `1U19` |
+| `data/coordinates/` | Active globin/receptor structures `2HHB`, `1MBO`, `7PRX`, plus SWS1 homolog template `1U19` |
 | `data/alternate_coordinates/` | Backup: `4LSJ` (human GR; domain-swapped, superseded by 7PRX) |
 | `data/ancestral_coordinates/` | Backup: Thornton ancestral receptor series (`2Q1H`, `2Q1V`, `2Q3Y`, `3RY9`, `3GN8`) |
 | `data/experimental/` | Published source papers and supplements for the four cases |
 | `data/uniprot/` | Canonical reference sequences, so the numbering check runs offline |
-| `data/alignments/toga2/` | TOGA2 codon alignments + species tree — the model inputs |
+| `data/alignments/toga2/` | TOGA2 codon alignments + species tree for the globin/receptor cases |
+| `data/alignments/sws1/` | Rebuilt codon-aware extant boreoeutherian SWS1 alignment and accession provenance |
 | `data/numbering_offsets.json` | **Verified numbering crosswalk — load this, don't hardcode** |
+| `data/substitution_reference/` | Source-verified events, ordered sets, structural locations and validation gaps |
 | `data/README.md` | Full structure audit and contact-mapping fitness report |
 | `data/model/` | Model checkpoint (gitignored; see `AGENTS.md` for the fetch) |
 | `src/epistaeon/` | The engine: `lattice`, `scoring`, `trajectory`, `background`, `timing`, `cli` |

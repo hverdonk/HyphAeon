@@ -1,0 +1,612 @@
+[
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "join{M13295.1[409:761](+), M13296.1[10:179](+), M13297.1[10:176](+), M13298.1[10:250](+), [10:130](+)}",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:P03999",
+        "H-InvDB:HIT000397414.6",
+        "HGNC:HGNC:1012",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "PDB:1KPN",
+        "UniProtKB/Swiss-Prot:P03999"
+      ],
+      "gene": [
+        "BCP"
+      ],
+      "product": [
+        "blue cone photoreceptor pigment"
+      ],
+      "protein_id": [
+        "AAB05207.1"
+      ],
+      "translation": [
+        "MRKMSEEEFYLFKNISSVGPWDGPQYHIAPVWAFYLQAAFMGTVFLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKAMTDESDTCSSQKTEVSTVSSTQVGPN"
+      ]
+    },
+    "cds_record": "M13299.1",
+    "cds_record_file": "M13299.embl",
+    "cited_accession": "M13295",
+    "excluded_partial_codon_bases": "",
+    "id": "Homo_sapiens",
+    "notes": [
+      "Full historical CDS is explicitly annotated in M13299.1, joining M13295.1 through M13299.1. Preserve its 348-residue sequence rather than replacing it with current 345-residue UniProt P03999."
+    ],
+    "paper_species": "Homo sapiens",
+    "protein_length_aa": 348,
+    "record_description": "Human blue cone photoreceptor pigment gene, exon 5.",
+    "record_organism": "Homo sapiens (human)",
+    "source_cds_length_nt": 1047,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "join{AF039433.1[74:426](+), AF039434.1[158:327](+), AF039434.1[647:813](+), [10:250](+), [1238:1358](+)}",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:P60015",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/Swiss-Prot:P60015"
+      ],
+      "note": [
+        "BOP"
+      ],
+      "product": [
+        "blue opsin"
+      ],
+      "protein_id": [
+        "AAB95490.1"
+      ],
+      "translation": [
+        "MRKMSEEEFYLFKNISSVGPWDGPQYHIAPVWAFYLQAAFMGTVFLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKAMTDESDTCSSQKTEVSTVSSTQVGPN"
+      ]
+    },
+    "cds_record": "AF039435.1",
+    "cds_record_file": "AF039435.embl",
+    "cited_accession": "AF039433",
+    "excluded_partial_codon_bases": "",
+    "id": "Pan_troglodytes",
+    "notes": [
+      "Full CDS is explicitly annotated in AF039435.1, joining AF039433.1, AF039434.1 and AF039435.1."
+    ],
+    "paper_species": "Pan troglodytes",
+    "protein_length_aa": 348,
+    "record_description": "Pan troglodytes blue opsin gene, exons 4, 5 and complete cds.",
+    "record_organism": "Pan troglodytes (chimpanzee)",
+    "source_cds_length_nt": 1047,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[0:1047](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GeneID:101139215"
+      ],
+      "gene": [
+        "OPN1SW"
+      ],
+      "product": [
+        "short-wave-sensitive opsin 1"
+      ],
+      "protein_id": [
+        "XP_004046224.1"
+      ],
+      "translation": [
+        "MRKMSEEEFYLFKNISPVGPWDGPQYHIAPVWAFYLQAAFMGTVFLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKAMTDESDTCSSQKTEVSTVSSTQVGPN"
+      ]
+    },
+    "cds_record": "XM_004046176.1",
+    "cds_record_file": "XM_004046176.1.gb",
+    "cited_accession": "XM_004046176",
+    "excluded_partial_codon_bases": "",
+    "id": "Gorilla_gorilla",
+    "notes": [],
+    "paper_species": "Gorilla gorilla gorilla",
+    "protein_length_aa": 348,
+    "record_description": "PREDICTED: Gorilla gorilla gorilla opsin 1 (cone pigments), short-wave-sensitive (OPN1SW), mRNA",
+    "record_organism": "Gorilla gorilla gorilla",
+    "source_cds_length_nt": 1047,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[0:1047](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GeneID:100446473"
+      ],
+      "gene": [
+        "OPN1SW"
+      ],
+      "product": [
+        "short-wave-sensitive opsin 1"
+      ],
+      "protein_id": [
+        "XP_002818467.1"
+      ],
+      "translation": [
+        "MRKMSDEEFYLFKNISSVGPWDGPQYHIAPVWAFYLQAAFMGTVFLVGLPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKAMTDESDTCSSQKTEVSTVSSTQVGPN"
+      ]
+    },
+    "cds_record": "XM_002818421.1",
+    "cds_record_file": "XM_002818421.1.gb",
+    "cited_accession": "XM_002818421",
+    "excluded_partial_codon_bases": "",
+    "id": "Pongo_abelii",
+    "notes": [],
+    "paper_species": "Pongo abelii",
+    "protein_length_aa": 348,
+    "record_description": "PREDICTED: Pongo abelii opsin 1 (cone pigments), short-wave-sensitive (OPN1SW), mRNA",
+    "record_organism": "Pongo abelii",
+    "source_cds_length_nt": 1047,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[0:1047](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GeneID:100593188"
+      ],
+      "gene": [
+        "OPN1SW"
+      ],
+      "product": [
+        "short-wave-sensitive opsin 1"
+      ],
+      "protein_id": [
+        "XP_003261345.1"
+      ],
+      "translation": [
+        "MRKMSDEEFYLFKNISSVGPWDGPQYHIAPVWAFYLQAAFMGTVFLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKTMTDESDTCSSQKTEVSTVSSSQVGPN"
+      ]
+    },
+    "cds_record": "XM_003261297.1",
+    "cds_record_file": "XM_003261297.1.gb",
+    "cited_accession": "XM_003261297",
+    "excluded_partial_codon_bases": "",
+    "id": "Nomascus_leucogenys",
+    "notes": [],
+    "paper_species": "Nomascus leucogenys",
+    "protein_length_aa": 348,
+    "record_description": "PREDICTED: Nomascus leucogenys opsin 1 (cone pigments), short-wave-sensitive (OPN1SW), mRNA",
+    "record_organism": "Nomascus leucogenys",
+    "source_cds_length_nt": 1047,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[0:1050](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:Q9XS34",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/TrEMBL:Q9XS34"
+      ],
+      "note": [
+        "G protein-coupled receptor; short wave visual pigment"
+      ],
+      "product": [
+        "SW opsin"
+      ],
+      "protein_id": [
+        "AAD40690.1"
+      ],
+      "translation": [
+        "MRKMSEEEEFYLFKNLSSVKPWDGPQYHIAPVWAFYLQAAFMGTVFLAGFPLNAMVLVATVRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVNSCKGYFVFGRHVCAFEAFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPAFFSKSACIYNPIIYCFMNKQFQAHIMKMVCGKAMTDESDISSSQKTEVSTVSSSQVGPN"
+      ]
+    },
+    "cds_record": "AF158977.1",
+    "cds_record_file": "AF158977.embl",
+    "cited_accession": "AF158977",
+    "excluded_partial_codon_bases": "",
+    "id": "Macaca_fascicularis",
+    "notes": [],
+    "paper_species": "Macaca fascicularis",
+    "protein_length_aa": 349,
+    "record_description": "Macaca fascicularis SW opsin mRNA, complete cds.",
+    "record_organism": "Macaca fascicularis (crab-eating macaque)",
+    "source_cds_length_nt": 1050,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "join{[47:402](+), [685:854](+), [1183:1349](+), [1946:2186](+), [3155:3275](+)}",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:O13092",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/Swiss-Prot:O13092"
+      ],
+      "note": [
+        "G-coupled-protein receptor family; photovisual pigment"
+      ],
+      "product": [
+        "blue cone pigment"
+      ],
+      "protein_id": [
+        "AAC51335.1"
+      ],
+      "translation": [
+        "MSKMPEEEEFYLFKNISSVGPWDGPQYHIAPVWAFQLQAAFMGIVFLAGLPLNSMVLVATVRYKKLRHPLNYVLVNVSVGGFLLCIFSVLPVFVNSCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALMVVLTTWTIGIGVSIPPFFGWSRYIAEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIVPLSLICFSYAQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAALAMYMVNNRNHGLDLRLVSIPAFFSKSSCIYNPIIYCFMNKQFRACIMEMVCGKAMTDESDISSSQKTEVSTVSSSQVGPN"
+      ]
+    },
+    "cds_record": "U53875.1",
+    "cds_record_file": "U53875.embl",
+    "cited_accession": "U53875",
+    "excluded_partial_codon_bases": "",
+    "id": "Saimiri_boliviensis",
+    "notes": [
+      "Paper labels U53875 as Saimiri sciureus; the current source record identifies Saimiri boliviensis. Accession sequence is preserved; taxon identifier follows the source record.",
+      "Record title says partial CDS, but the annotated CDS has an initiating ATG and terminal stop, with no internal stop or ambiguous nucleotide. This discrepancy is retained in metadata."
+    ],
+    "paper_species": "Saimiri sciureus",
+    "protein_length_aa": 349,
+    "record_description": "Saimiri boliviensis blue cone pigment gene, partial cds.",
+    "record_organism": "Saimiri boliviensis (Bolivian squirrel monkey)",
+    "source_cds_length_nt": 1050,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": null,
+    "cds_feature_qualifiers": null,
+    "cds_record": "L76201.1",
+    "cds_record_file": "L76201.embl",
+    "cited_accession": "L76201",
+    "excluded_partial_codon_bases": "T",
+    "id": "Callithrix_jacchus",
+    "notes": [
+      "No CDS feature: frame 0 starts ATG and translates 343 codons without stops; supported by full-length protein homology. One terminal T is excluded as a partial codon; unsequenced C terminus is not filled."
+    ],
+    "paper_species": "Callithrix jacchus",
+    "protein_length_aa": 343,
+    "record_description": "Callithrix jacchus blue cone pigment gene.",
+    "record_organism": "Callithrix jacchus (white-tufted-ear marmoset)",
+    "source_cds_length_nt": 1029,
+    "terminal_stop_removed_for_alignment": false
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "join{[349:695](+), [968:1137](+), [1438:1604](+), [1883:2123](+), [3337:3457](+)}",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:Q76B95",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/TrEMBL:Q76B95"
+      ],
+      "gene": [
+        "SWS"
+      ],
+      "product": [
+        "blue sensitive cone opsin"
+      ],
+      "protein_id": [
+        "BAD14290.1"
+      ],
+      "transl_table": [
+        "1"
+      ],
+      "translation": [
+        "MSEEEEFYLFKNISSVGPWDGPQHHLAPVWVFHLQAAFMGVVFSVGIPLNTMVLVATLRYRKLRQPLNYILVNVSLGGFLLCIFSVLPVFIASCRGYFVFGRHVCALEGFLGSVAGLVTGWSLAFLAFERYMVICKPFGNFRFSPKHALMVVLATWTIGIGVSVPPFFGWSRFIPEGLQCSCGPDWYTVDTKYHSEYYTWFLFIFCFIVPLSLICFSYAQLLRALRAVAAQQQESATTQKAEREVSRMVVVMVGSFCLCYVPYAALAMYMVNNQNHGLDLRLVTIPSFFSKSACVYNPIIYCFMNKQFQACIMEMVCRKAMADESDTSSSQKTEVSALSSSQVSPN"
+      ]
+    },
+    "cds_record": "AB111463.1",
+    "cds_record_file": "AB111463.embl",
+    "cited_accession": "AB111463",
+    "excluded_partial_codon_bases": "",
+    "id": "Cephalopachus_bancanus",
+    "notes": [
+      "Paper uses the historical name Tarsius bancanus; current source uses Cephalopachus bancanus."
+    ],
+    "paper_species": "Tarsius bancanus",
+    "protein_length_aa": 346,
+    "record_description": "Tarsius bancanus SWS gene for blue sensitive cone opsin, complete cds.",
+    "record_organism": "Cephalopachus bancanus (Horsfield's tarsier)",
+    "source_cds_length_nt": 1041,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "join{[100:452](+), [738:907](+), [1256:1422](+), [1725:1965](+), [2882:3002](+)}",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:A6ZI84",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/TrEMBL:A6ZI84"
+      ],
+      "gene": [
+        "OPN1SW"
+      ],
+      "product": [
+        "opsin 1 short-wavelength senstive protein"
+      ],
+      "protein_id": [
+        "ABR53751.1"
+      ],
+      "translation": [
+        "MRKMSGEEFYLFKNLSSVGPWDGPQYHIAPVWAFYLQAAFMGFVFFAGTPLNVMVLVATLRYKKLRQPLNYVLVNVSFGGFLFCIFSVFPVFIASCRGYFVFGRHVCALEGFLGSVAGLVIGWSLAFLAFERYIVICKPFGNFHFSSKHALMVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYHSEYYTWFLFIFCFIVPLSLICFSYSQLLGALRAVAAQQQESATTQKAEREVSRMVVVMVGSFCLCYVPYATLAMYMVNNRNHGLDLRLVTIPAFFSKSACVYNPIIYCFMNKQFQACILGMVCGKAVTDESDTSSSWKMQVSTVSSSQVGPN"
+      ]
+    },
+    "cds_record": "EF667285.1",
+    "cds_record_file": "EF667285.embl",
+    "cited_accession": "EF667285",
+    "excluded_partial_codon_bases": "",
+    "id": "Daubentonia_madagascariensis",
+    "notes": [],
+    "paper_species": "Daubentonia madagascariensis",
+    "protein_length_aa": 348,
+    "record_description": "Daubentonia madagascariensis isolate Ozma-6453f opsin 1 short-wavelength senstive protein (OPN1SW) gene, complete cds.",
+    "record_organism": "Daubentonia madagascariensis (aye-aye)",
+    "source_cds_length_nt": 1047,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[0:1050](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:P51490",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/Swiss-Prot:P51490"
+      ],
+      "product": [
+        "blue cone pigment protein"
+      ],
+      "protein_id": [
+        "AAB50158.1"
+      ],
+      "translation": [
+        "MSKMSEEEEFLLFKNISLVGPWDGPQYHLAPVWAFHLQAVFMGFVFFVGTPLNATVLVATLRYRKLRQPLNYILVNVSLGGFIYCIFSVFIVFITSCYGYFVFGRHVCALEAFLGCTAGLVTGWSLAFLAFERYIIICKPFGNFRFSSKHALMVVVATWTIGIGVSIPPFFGWSRFVPEGLQCSCGPDWYTVGTKYYSEYYTWFLFIFCYIVPLSLICFSYSQLLGALRAVAAQQQESASTQKAEREVSHMVVVMVGSFCLCYTPYAALAMYIVNNRNHGVDLRLVTIPAFFSKSACVYNPIIYCFMNKQFRACIMEMVCGKPMTDESELSSSQKTEVSTVSSSQVGPN"
+      ]
+    },
+    "cds_record": "U92557.1",
+    "cds_record_file": "U92557.embl",
+    "cited_accession": "U92557",
+    "excluded_partial_codon_bases": "",
+    "id": "Bos_taurus",
+    "notes": [],
+    "paper_species": "Bos taurus",
+    "protein_length_aa": 349,
+    "record_description": "Bos taurus blue cone pigment protein mRNA, complete cds.",
+    "record_organism": "Bos taurus (cattle)",
+    "source_cds_length_nt": 1050,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[0:1041](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:P51491",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "MGI:MGI:99438",
+        "UniProtKB/Swiss-Prot:P51491"
+      ],
+      "note": [
+        "visual pigment; short-wave cone pigment"
+      ],
+      "product": [
+        "blue cone pigment"
+      ],
+      "protein_id": [
+        "AAA92458.1"
+      ],
+      "translation": [
+        "MSGEDDFYLFQNISSVGPWDGPQYHLAPVWAFRLQAAFMGFVFFVGTPLNAIVLVATLHYKKLRQPLNYILVNVSLGGFLFCIFSVFTVFIASCHGYFLFGRHVCALEAFLGSVAGLVTGWSLAFLAFERYVVICKPFGSIRFNSKHALMVVLATWIIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIIPLSLICFSYSQLLRTLRAVAAQQQESATTQKAEREVSHMVVVMVGSFCLCYVPYAALAMYMVNNRNHGLDLRLVTIPAFFSKSSCVYNPIIYCFMNKQFRACILEMVCRKPMADESDVSGSQKTEVSTVSSSKVGPH"
+      ]
+    },
+    "cds_record": "U49720.1",
+    "cds_record_file": "U49720.embl",
+    "cited_accession": "U49720",
+    "excluded_partial_codon_bases": "",
+    "id": "Mus_musculus",
+    "notes": [],
+    "paper_species": "Mus musculus",
+    "protein_length_aa": 346,
+    "record_description": "Mus musculus blue cone pigment mRNA, complete cds.",
+    "record_organism": "Mus musculus (house mouse)",
+    "source_cds_length_nt": 1041,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [
+      {
+        "amino_acid": "X",
+        "codon": "GWC",
+        "source_codon": 5
+      }
+    ],
+    "cds_feature_location": "[48:1089](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:Q63652",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/Swiss-Prot:Q63652"
+      ],
+      "product": [
+        "blue cone opsin-like pigment"
+      ],
+      "protein_id": [
+        "AAB05931.1"
+      ],
+      "translation": [
+        "MSGEXEFYLFQNISSVGPWDGPQYHIAPVWAFHLQAAFMGFVFFAGTPLNATVLVATLHYKKLRQPLNYILVNVSLGGFLFCIFSVFTVFIASCHGYFLFGRHVCALEAFLGSVAGLVTGWSLAFLAFERYLVICKPFGNIRFNSKHALTVVLITWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEHYTWFLFIFCFIIPLSLICFSYFQLLRTLRAVAAQQQESATTQKAEREVSHMVVVMVGSFCLCYVPYAALAMYMVNNRNHGLYLRLVTIPAFFSKSSCVYNPIIYCFMNKQFRACILEMVCRKPMTDESDMSGSQKTEVSTVSSSKVGPH"
+      ]
+    },
+    "cds_record": "U63972.1",
+    "cds_record_file": "U63972.embl",
+    "cited_accession": "U63972",
+    "excluded_partial_codon_bases": "",
+    "id": "Rattus_norvegicus",
+    "notes": [
+      "Source ambiguity is retained as IUPAC nucleotides; translated unresolved codons remain X, without imputation."
+    ],
+    "paper_species": "Rattus norvegicus",
+    "protein_length_aa": 346,
+    "record_description": "Rattus norvegicus blue cone opsin-like pigment mRNA, complete cds.",
+    "record_organism": "Rattus norvegicus (Norway rat)",
+    "source_cds_length_nt": 1041,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[14:1055](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:Q2F6J0",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/TrEMBL:Q2F6J0"
+      ],
+      "note": [
+        "G-coupled receptor; violet-sensitive pigment"
+      ],
+      "product": [
+        "shortwave-sensitive 1 violet opsin"
+      ],
+      "protein_id": [
+        "ABC26408.1"
+      ],
+      "translation": [
+        "MSEEEEFFLFKNISSVGPLDGPQYHIAPVWAFRLQAAFLGFVFFAGTPLNAIVLVATLRYKKLRQPLNYILVNVSLGGFIYCMFSVFVVFVNSCHGYFVFGRHVCALEAFLGSAAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHAVVVVLATWIIGVGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIIPLGLICFSYAQLLRTLRTVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAALAMYMVNNRNHGLDLRLVTIPAFFSKSSCVYNPIIYSFMNKQFRACIMEMVCRKPMTDESEVSSSQKTEVSTVSSSKVGPH"
+      ]
+    },
+    "cds_record": "DQ302163.1",
+    "cds_record_file": "DQ302163.embl",
+    "cited_accession": "DQ302163",
+    "excluded_partial_codon_bases": "",
+    "id": "Sciurus_carolinensis",
+    "notes": [],
+    "paper_species": "Sciurus carolinensis",
+    "protein_length_aa": 346,
+    "record_description": "Sciurus carolinensis shortwave-sensitive 1 violet opsin mRNA, complete cds.",
+    "record_organism": "Sciurus carolinensis (gray squirrel)",
+    "source_cds_length_nt": 1041,
+    "terminal_stop_removed_for_alignment": true
+  },
+  {
+    "ambiguous_codons": [],
+    "cds_feature_location": "[9:1050](+)",
+    "cds_feature_qualifiers": {
+      "codon_start": [
+        "1"
+      ],
+      "db_xref": [
+        "GOA:Q698K7",
+        "InterPro:IPR000276",
+        "InterPro:IPR001521",
+        "InterPro:IPR001760",
+        "InterPro:IPR017452",
+        "InterPro:IPR027430",
+        "UniProtKB/TrEMBL:Q698K7"
+      ],
+      "gene": [
+        "SWS1"
+      ],
+      "note": [
+        "opsin"
+      ],
+      "product": [
+        "violet-sensitive visual pigment"
+      ],
+      "protein_id": [
+        "AAT36312.1"
+      ],
+      "translation": [
+        "MSEEEEFYLFKNASSVGPWDGPQYHVAPVWAFRLQAAFMGIVFCIGTPLNGIVLVATLLYKKLRQPLNYILVNVSLGGFLVCIFSVLAVFIASCYGYFIFGRHVCALEGFLGSVAGMVTGWSLAFLAFERYLVICKPFGNFRFSSKHALIVVLATWVIGIGVSIPPFFGWSRYMPEGLQCSCGPDWYTVGTKYRSEYFAWFLFIFCFIVPLSLICFSYCQLLRTLRTVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAALAMYIVNNRNHGLDLRLVTIPAFFSKSSCIYNPIIYCFMNKQFRACIMELVCRKPMADESDMSTSQKTEVSAVSSSKVGPH"
+      ]
+    },
+    "cds_record": "AY552608.1",
+    "cds_record_file": "AY552608.embl",
+    "cited_accession": "AY552608",
+    "excluded_partial_codon_bases": "",
+    "id": "Cavia_porcellus",
+    "notes": [],
+    "paper_species": "Cavia porcellus",
+    "protein_length_aa": 346,
+    "record_description": "Cavia porcellus violet-sensitive visual pigment (SWS1) mRNA, complete cds.",
+    "record_organism": "Cavia porcellus (domestic guinea pig)",
+    "source_cds_length_nt": 1041,
+    "terminal_stop_removed_for_alignment": true
+  }
+]

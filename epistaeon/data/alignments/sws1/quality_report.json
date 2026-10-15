@@ -1,0 +1,56 @@
+{
+  "alignment_gaps_codons_per_taxon": {
+    "Bos_taurus": 1,
+    "Callithrix_jacchus": 7,
+    "Cavia_porcellus": 4,
+    "Cephalopachus_bancanus": 4,
+    "Daubentonia_madagascariensis": 2,
+    "Gorilla_gorilla": 2,
+    "Homo_sapiens": 2,
+    "Macaca_fascicularis": 1,
+    "Mus_musculus": 4,
+    "Nomascus_leucogenys": 2,
+    "Pan_troglodytes": 2,
+    "Pongo_abelii": 2,
+    "Rattus_norvegicus": 4,
+    "Saimiri_boliviensis": 1,
+    "Sciurus_carolinensis": 4
+  },
+  "alignment_width_codons": 350,
+  "alignment_width_nt": 1050,
+  "ancestral_rows": 0,
+  "checks": [
+    "raw accession record SHA256",
+    "annotated CDS translation agrees with source",
+    "no internal stops",
+    "15 unique extant taxa",
+    "equal alignment lengths divisible by three",
+    "gap codons exactly ---",
+    "ungapped codons reproduce source after documented terminal trimming",
+    "translated codon alignment reproduces protein alignment"
+  ],
+  "excluded_partial_codon_bases": {
+    "Callithrix_jacchus": "T"
+  },
+  "extant_only": true,
+  "human_length_aa": 348,
+  "human_row": "Homo_sapiens",
+  "internal_stop_codons": 0,
+  "limitations": [
+    "Rebuilt alignment, not the unreleased original author alignment.",
+    "Taxa are the boreoeutherian union of both Methods accession lists; this is not asserted to reproduce the exact Figure 4 panel.",
+    "Marmoset source lacks CDS annotation and full C terminus; excluded partial codon and missing codons are not imputed.",
+    "Rat source has one ambiguous W nucleotide translating to X.",
+    "Paper substitution positions require an explicit coordinate crosswalk; they are not necessarily human CDS indices."
+  ],
+  "partial_rows": [
+    "Callithrix_jacchus"
+  ],
+  "protein_backtranslation_exact": true,
+  "retained_ambiguous_codons": 1,
+  "source_codon_sequences_preserved_exactly": true,
+  "status": "pass_with_documented_source_limitations",
+  "taxon_count": 15,
+  "terminal_stops_excluded": 14,
+  "triplet_gaps_only": true
+}

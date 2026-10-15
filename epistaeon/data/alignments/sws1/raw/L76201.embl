@@ -1,0 +1,60 @@
+ID   L76201; SV 1; linear; genomic DNA; STD; MAM; 1030 BP.
+XX
+AC   L76201;
+XX
+DT   14-FEB-1996 (Rel. 46, Created)
+DT   02-JUL-1999 (Rel. 60, Last updated, Version 2)
+XX
+DE   Callithrix jacchus blue cone pigment gene.
+XX
+KW   blue cone protein.
+XX
+OS   Callithrix jacchus (white-tufted-ear marmoset)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Platyrrhini; Cebidae;
+OC   Callitrichinae; Callithrix; Callithrix.
+XX
+RN   [1]
+RP   1-1030
+RX   DOI; 10.1006/geno.1995.1088.
+RX   PUBMED; 7558038.
+RA   Hunt D.M., Cowing J.A., Patel R., Appukuttan B., Bowmaker J.K.,
+RA   Mollon J.D.;
+RT   "Sequence and evolution of the blue cone pigment gene in Old and New World
+RT   primates";
+RL   Genomics 27(3):535-538(1995).
+XX
+DR   MD5; 798d812c363ec10d156c3de97e797a80.
+DR   EuropePMC; PMC1664589; 17107620.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1030
+FT                   /organism="Callithrix jacchus"
+FT                   /mol_type="genomic DNA"
+FT                   /sex="male"
+FT                   /dev_stage="adult"
+FT                   /tissue_type="liver"
+FT                   /germline
+FT                   /db_xref="taxon:9483"
+XX
+SQ   Sequence 1030 BP; 196 A; 289 C; 262 G; 283 T; 0 other;
+     atgagcaaga tgtcagagga agaggagttt tatctgttca agaacatctc ctcggtgggg        60
+     ccgtgggatg ggcctcagta cccccacatt gccccttcct gggcctacta cctccaggca       120
+     gctttcatgg gcattgtctt ccttataggg ttaccactga ataccatggt gctggtggcc       180
+     acagtgcgct acaaaaagtt gcggcatccc ctcaactacg ttctggtcaa cgtgtctgtg       240
+     ggaggcttcc ttctttgcat cttctccgtc ttccctgtat tcgtcgccag ctgtcatgga       300
+     tacttcgtct ttggccgcca tgtttgtgct ctggagggct tcctgggcac tgtagcaggt       360
+     ctggttacag gatggtcact ggccttcctg gcctttgagc gctacattgt catctgtaag       420
+     cccttcggca acttccgctt cagctccaag cacgcactga tggtggtcct gactacctgg       480
+     accattggta ttggcgtctc catcccaccc ttctttggct ggagccggta catcgctgag       540
+     ggtctgcagt gttcatgtgg tcctgactgg tacaccgtgg gcaccaaata tcgcagcgag       600
+     tactatacgt ggttcctctt catcttctgc ttcatcgtgc ctctcgccct catctgcttc       660
+     tcctatgctc agctgctgag ggccctgaaa gctgttgcag ctcagcagca ggagtcagct       720
+     acaacccaga aggctgaacg ggaggtgagc cgcatggtgg ttgtgatggt aggatccttc       780
+     tgtgtctgct acgtgcccta cgcagccctg gccatgtaca tggtcaataa ccgtaaccat       840
+     gggctagact tacggcttgt caccattcct gcgttcttct ccaagagttc ttgcatctac       900
+     aatcccatca tctactgctt catgaataag cagttccgag cttgcatcat ggagatggtg       960
+     tgtgggaagg ccatgacaga cgaatccgac ataagcagct cccagaaaac agaagtttct      1020
+     actgtctcgt                                                             1030
+//

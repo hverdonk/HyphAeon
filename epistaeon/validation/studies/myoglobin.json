@@ -8,7 +8,7 @@
     {
       "file": "../data/experimental/myoglobin_2013_article.pdf",
       "cite": "Mirceta et al., Science 2013, doi:10.1126/science.1234192",
-      "role": "ZMb evolution across 712 species"
+      "role": "Charge evolution across130 aligned mammalian sequences; not712 species"
     },
     {
       "file": "../data/experimental/myoglobin_2013_supplement.pdf",
@@ -18,11 +18,13 @@
   "replication_targets": [
     {
       "id": "MB1",
-      "finding": "Maximal Mb net surface charge (ZMb) increased along lineages evolving high Mb concentration; ZMb rises from about +1 to +7 in deep divers.",
+      "finding": "At pH6.5, Mb net surface charge increased from about+1 in terrestrial mammals to about+5 in elite divers. FigS2 identifies reconstructed charge-changing substitutions by branch.",
       "source": "Mirceta 2013",
       "test": "Do epistaeon's detected sites for MB concentrate on surface, charge-changing positions in 1MBO?",
       "validates": "epistatic_sites",
-      "measures_order": false
+      "measures_order": false,
+      "score_as_individual_site_epistasis": false,
+      "benchmark_scope": "Structural/charge enrichment only; not measured individual-site epistasis or within-branch order."
     },
     {
       "id": "MB2",
@@ -30,7 +32,9 @@
       "source": "Mirceta 2013",
       "test": "Structural, not evolutionary: are the detected sites solvent-exposed rather than buried?",
       "validates": "epistatic_sites",
-      "measures_order": false
+      "measures_order": false,
+      "score_as_individual_site_epistasis": false,
+      "benchmark_scope": "Structural/charge enrichment only; not measured individual-site epistasis or within-branch order."
     }
   ],
   "structures": {
@@ -38,12 +42,15 @@
     "notes": "Sperm whale (Physeter macrocephalus), the study's focal taxon. 1.6 A, 153 residues complete, no gaps, haem plus bound O2, His93-Fe 2.1 A."
   },
   "known_limitations": [
-    "Mirceta 2013 crystallised no ancestral myoglobins, so 1MBO can only serve as a geometric scaffold.",
+    "Use modern1MBO as the geometric scaffold for transition sites. No ancestral coordinates are required for this location analysis; ancestral exposure/contact changes are not measured by the scaffold.",
     "No measured recombinant ancestral mutation panel. The supplement gives inferred ancestral states and trait data.",
-    "Species coverage is good: sperm whale, southern elephant seal and Weddell seal are all present in the MB alignment."
+    "Species coverage is good: sperm whale, southern elephant seal and Weddell seal are all present in the MB alignment.",
+    "FigS2 gives phylogenetic partial orders among branch sets; it does not order changes on the same branch or measure epistatic mutant viability."
   ],
   "minimum_pairs_for_or_benchmark": {
     "1MBO": 187
   },
-  "expected_outcome_note": "MB1 and MB2 are genuinely testable: the focal species are present and the structure is the right taxon."
+  "expected_outcome_note": "MB1/MB2 can evaluate surface/charge enrichment on the modern scaffold, not recovery of individually demonstrated epistatic sites. FigS2 branch-order targets require source-matched reconstructed endpoints and a partial-order comparator.",
+  "source_verified_reference": "../data/substitution_reference/myoglobin.json",
+  "source_verification_date": "2026-10-15"
 }

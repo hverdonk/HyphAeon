@@ -1,0 +1,65 @@
+ID   AF039434; SV 1; linear; genomic DNA; STD; MAM; 908 BP.
+XX
+AC   AF039434;
+XX
+DT   14-JAN-1998 (Rel. 54, Created)
+DT   14-NOV-2006 (Rel. 89, Last updated, Version 3)
+XX
+DE   Pan troglodytes blue opsin gene, exons 2 and 3.
+XX
+KW   .
+XX
+OS   Pan troglodytes (chimpanzee)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Primates; Haplorrhini; Catarrhini; Hominidae;
+OC   Pan.
+XX
+RN   [1]
+RP   1-908
+RX   PUBMED; 9549095.
+RA   Shimmin L.C., Miller J., Tran H.N., Li W.H.;
+RT   "Contrasting levels of DNA polymorphism at the autosomal and X-linked
+RT   visual color pigment loci in humans and squirrel monkeys";
+RL   Mol. Biol. Evol. 15(4):449-455(1998).
+XX
+RN   [2]
+RP   1-908
+RA   Shimmin L.C., Miller J., Tran H.N., Li W.-H.;
+RT   ;
+RL   Submitted (20-DEC-1997) to the INSDC.
+RL   Human Genetics Center, University of Texas Health Science Center, 6901
+RL   Bertner, Houston, TX 77030, USA
+XX
+DR   MD5; a828cbcd24bd4ddcbba522dd3db290c8.
+DR   Ensembl-Gn; ENSPTRG00000019669; pan_troglodytes.
+DR   Ensembl-Tr; ENSPTRT00000036429; pan_troglodytes.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..908
+FT                   /organism="Pan troglodytes"
+FT                   /mol_type="genomic DNA"
+FT                   /db_xref="taxon:9598"
+FT   exon            159..327
+FT                   /number=2
+FT   exon            648..813
+FT                   /number=3
+XX
+SQ   Sequence 908 BP; 183 A; 234 C; 242 G; 249 T; 0 other;
+     agactagaag tttggctaaa ataggatgtt tgagtcttca ctccaaatgt cagtccagcc        60
+     ctgtctctct gtgcttgctc cacccgatct gtttgccact ctgccagcca ggctgggtgg       120
+     ggctctgtct agcccattat cctcacattt caccacaggt ctggttacag gctggtcact       180
+     ggccttcctg gcctttgagc gctacattgt catctgtaag cccttcggca acttccgctt       240
+     cagctccaag catgcactga cggtggtcct ggctacctgg accattggta ttggcgtctc       300
+     catcccaccc ttctttggct ggagccggtg agagtgcagg gcagtggtgc tgagttaact       360
+     aggagctcag gttgatgtgg gtggaaagag cttgggtata actatttagt ctttgacctc       420
+     tacttttaaa gagttgcaat atgaggcgaa agggcagtgg gagacaagtg ctaacgttta       480
+     ctctgcagtt ggaattgctg tagcttctcc cagtcaggac agaaaacccc cctgcttgaa       540
+     gcctttgggc attctgtggg ttctaagtgg agaacacaat ccaggcatct cagctcccac       600
+     tgcactcttg tggagagtcc agtgagcaag tgtttggtcc tttgcaggtt catccctgag       660
+     ggcctgcagt gttcctgtgg ccctgactgg tacaccgtgg gcaccaaata ccgcagcgag       720
+     tcctatacgt ggttcctctt catcttctgc ttcattgtgc ctctctccct catctgcttc       780
+     tcctacactc agctgctgag ggccctgaaa gctgtgagtg gcatttgata gtcagggagg       840
+     aaggggttcg gggctccaca tgagaaggaa gagtgctctg gaacataaga tgcctggaaa       900
+     tgtccata                                                                908
+//

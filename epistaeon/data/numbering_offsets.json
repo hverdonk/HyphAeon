@@ -1,5 +1,5 @@
 {
-  "_comment": "Authoritative PDB-author-numbering -> UniProt-canonical-numbering map for the epistaeon benchmark structures. VERIFIED by global pairwise alignment with zero sequence mismatches (scripts/numbering.py, 2026-09-17). ALWAYS apply: uniprot_position = pdb_author_position + offset_to_uniprot. Alignment/tensor site indices are UniProt-canonical; PDB coordinates are NOT. For the non-human structures (1MBO, 1U19), 'human_equivalent' gives the offset from HUMAN UniProt numbering, which is what TOGA2 hg38 residue positions use.",
+  "_comment": "Authoritative numbering maps for epistaeon benchmark structures and published substitution sites. PDB chain offset_to_uniprot applies ONLY to the named structure protein. Model indices are alignment columns, not UniProt positions. The SWS1 benchmark uses a separate explicit source-site -> historical-human-CDS -> alignment-column map; 1U19 is only its bovine homolog template. Source-numbering exceptions override ancestral offsets. Deleted S212 has no modern residue; source211 is alignment-ambiguous. scripts/numbering.py checks modern chain offsets and the SWS1 map.",
   "structures": {
     "2HHB": {
       "chains": {
@@ -82,7 +82,7 @@
     "1U19": {
       "chains": {
         "A": {
-          "role": "rhodopsin",
+          "role": "bovine rod opsin, SWS1 homolog template",
           "uniprot": "P02699",
           "offset_to_uniprot": 0,
           "pdb_range": [
@@ -91,11 +91,10 @@
           ],
           "uniprot_length": 348,
           "modelled": "348/348",
-          "mismatches": 0,
-          "human_uniprot": "P08100"
+          "mismatches": 0
         },
         "B": {
-          "role": "rhodopsin",
+          "role": "bovine rod opsin, SWS1 homolog template",
           "uniprot": "P02699",
           "offset_to_uniprot": 0,
           "pdb_range": [
@@ -104,19 +103,11 @@
           ],
           "uniprot_length": 348,
           "modelled": "348/348",
-          "mismatches": 0,
-          "human_uniprot": "P08100"
+          "mismatches": 0
         }
       },
       "reason": "1:1; but an ACE acetyl cap occupies author position 0 and must be skipped when iterating residues",
-      "human_equivalent": {
-        "human_uniprot": "P08100",
-        "offset_to_human_uniprot": 0,
-        "internal_indels": 0,
-        "substitutions": 23,
-        "toga2_check": "RHO alignment rows HLbosTau10 and bosTau9 (Bos taurus) have no indels relative to hg38",
-        "note": "Same numbering scheme as human rhodopsin. human (and TOGA2 hg38) residue n = 1U19 author residue n. Verified by scripts/numbering.py."
-      }
+      "benchmark_use": "Homologous geometric template for SWS1, as in Yokoyama2014; NOT an assayed SWS1 structure. Paper site labels use bovine rhodopsin numbering; human SWS1/CDS and alignment coordinates require the explicit sws1_benchmark map."
     },
     "7PRX": {
       "chains": {
@@ -136,7 +127,7 @@
           ],
           "engineered_mutations": [],
           "mismatches": 0,
-          "note": "Full-length NR3C1 numbering. Ortlund/Bridgham residues are in AncCR numbering: Y27R->558, L29M->560, F98I->629, Q105L->636, S106P->637, L111Q->642, S212del->742 (note +530 past the deletion). Chain B is a PGC1a coactivator peptide, not GR."
+          "note": "Full-length NR3C1 numbering. Ortlund/Bridgham source positions map Y27R->558, L29M->560, F98I->629, Q105L->636, S106P->637, L111Q->642. Deleted ancestral S212 has NO modern homolog; do not map it to Asp742. The source211/212 boundary needs curated alignment. Chain B is a PGC1a coactivator peptide, not GR."
         }
       },
       "ligand": "82H, velsecorat (non-steroidal GR modulator)"
@@ -150,13 +141,27 @@
           "offset_to_uniprot": null,
           "offset_to_human_GR_NR3C1": {
             "-2..210": 531,
-            "212..": 530
+            "211..212": null,
+            "213..": 530
           },
           "pdb_range": [
             -2,
             247
           ],
-          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
+          "note": "Offsets refer to original AncCR source numbering, not a universal map for each PDB author sequence. Apply source-numbering exceptions first. Positions-2/-1/0 are expression tags; 1..210 use+531, 213 onward+530. Deleted source S212 has no modern homolog. An unconstrained alignment instead gaps Q211 and pairs S212 with Asp742; resolve this boundary from the original source alignment before assigning211. AncGR2/3GN8 author numbering shifts after the deletion and must be mapped separately.",
+          "source_numbering_exceptions": {
+            "212": {
+              "kind": "deletion_in_derived_receptor",
+              "human_GR_position": null,
+              "authority": "Ortlund2007 footnote21"
+            },
+            "211": {
+              "kind": "ambiguous_alignment_near_deletion",
+              "human_GR_position": null,
+              "generic_alignment_candidate": 742,
+              "status": "source_anchored_curation_required"
+            }
+          }
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -168,13 +173,27 @@
           "offset_to_uniprot": null,
           "offset_to_human_GR_NR3C1": {
             "-2..210": 531,
-            "212..": 530
+            "211..212": null,
+            "213..": 530
           },
           "pdb_range": [
             -2,
             247
           ],
-          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
+          "note": "Offsets refer to original AncCR source numbering, not a universal map for each PDB author sequence. Apply source-numbering exceptions first. Positions-2/-1/0 are expression tags; 1..210 use+531, 213 onward+530. Deleted source S212 has no modern homolog. An unconstrained alignment instead gaps Q211 and pairs S212 with Asp742; resolve this boundary from the original source alignment before assigning211. AncGR2/3GN8 author numbering shifts after the deletion and must be mapped separately.",
+          "source_numbering_exceptions": {
+            "212": {
+              "kind": "deletion_in_derived_receptor",
+              "human_GR_position": null,
+              "authority": "Ortlund2007 footnote21"
+            },
+            "211": {
+              "kind": "ambiguous_alignment_near_deletion",
+              "human_GR_position": null,
+              "generic_alignment_candidate": 742,
+              "status": "source_anchored_curation_required"
+            }
+          }
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -186,13 +205,27 @@
           "offset_to_uniprot": null,
           "offset_to_human_GR_NR3C1": {
             "-2..210": 531,
-            "212..": 530
+            "211..212": null,
+            "213..": 530
           },
           "pdb_range": [
             -2,
             246
           ],
-          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
+          "note": "Offsets refer to original AncCR source numbering, not a universal map for each PDB author sequence. Apply source-numbering exceptions first. Positions-2/-1/0 are expression tags; 1..210 use+531, 213 onward+530. Deleted source S212 has no modern homolog. An unconstrained alignment instead gaps Q211 and pairs S212 with Asp742; resolve this boundary from the original source alignment before assigning211. AncGR2/3GN8 author numbering shifts after the deletion and must be mapped separately.",
+          "source_numbering_exceptions": {
+            "212": {
+              "kind": "deletion_in_derived_receptor",
+              "human_GR_position": null,
+              "authority": "Ortlund2007 footnote21"
+            },
+            "211": {
+              "kind": "ambiguous_alignment_near_deletion",
+              "human_GR_position": null,
+              "generic_alignment_candidate": 742,
+              "status": "source_anchored_curation_required"
+            }
+          }
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -204,13 +237,27 @@
           "offset_to_uniprot": null,
           "offset_to_human_GR_NR3C1": {
             "-2..210": 531,
-            "212..": 530
+            "211..212": null,
+            "213..": 530
           },
           "pdb_range": [
             -2,
             247
           ],
-          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues."
+          "note": "Offsets refer to original AncCR source numbering, not a universal map for each PDB author sequence. Apply source-numbering exceptions first. Positions-2/-1/0 are expression tags; 1..210 use+531, 213 onward+530. Deleted source S212 has no modern homolog. An unconstrained alignment instead gaps Q211 and pairs S212 with Asp742; resolve this boundary from the original source alignment before assigning211. AncGR2/3GN8 author numbering shifts after the deletion and must be mapped separately.",
+          "source_numbering_exceptions": {
+            "212": {
+              "kind": "deletion_in_derived_receptor",
+              "human_GR_position": null,
+              "authority": "Ortlund2007 footnote21"
+            },
+            "211": {
+              "kind": "ambiguous_alignment_near_deletion",
+              "human_GR_position": null,
+              "generic_alignment_candidate": 742,
+              "status": "source_anchored_curation_required"
+            }
+          }
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -222,13 +269,27 @@
           "offset_to_uniprot": null,
           "offset_to_human_GR_NR3C1": {
             "-2..210": 531,
-            "212..": 530
+            "211..212": null,
+            "213..": 530
           },
           "pdb_range": [
             -2,
             246
           ],
-          "note": "AncCR/AncGR local LBD numbering (Ortlund 2007, Bridgham 2009), not UniProt. Mapping to human GR (NR3C1): +531 for positions -2..210, then +530 from 212 onward -- the S212 single-codon deletion shifts the offset, so a single constant is wrong. Verified by alignment against 7PRX. N-terminal positions -2/-1/0 are expression-tag residues. CAUTION for 3GN8 specifically: AncGR2 carries the deletion, so its author numbers run one lower than the equivalent AncCR residue from about 212 onward."
+          "note": "Offsets refer to original AncCR source numbering, not a universal map for each PDB author sequence. Apply source-numbering exceptions first. Positions-2/-1/0 are expression tags; 1..210 use+531, 213 onward+530. Deleted source S212 has no modern homolog. An unconstrained alignment instead gaps Q211 and pairs S212 with Asp742; resolve this boundary from the original source alignment before assigning211. AncGR2/3GN8 author numbering shifts after the deletion and must be mapped separately.",
+          "source_numbering_exceptions": {
+            "212": {
+              "kind": "deletion_in_derived_receptor",
+              "human_GR_position": null,
+              "authority": "Ortlund2007 footnote21"
+            },
+            "211": {
+              "kind": "ambiguous_alignment_near_deletion",
+              "human_GR_position": null,
+              "generic_alignment_candidate": 742,
+              "status": "source_anchored_curation_required"
+            }
+          }
         }
       },
       "folder": "data/ancestral_coordinates (backup, not in the active set)"
@@ -261,5 +322,158 @@
       "ligand": "LSJ, synthetic non-steroidal dibenzoxapine sulfonamide (2 copies)",
       "folder": "data/alternate_coordinates (superseded, not in the active set)"
     }
+  },
+  "sws1_benchmark": {
+    "study_id": "sws1",
+    "source_numbering": "Bovine rhodopsin homolog numbering, not sequential SWS1 CDS numbering",
+    "numbering_authority": {
+      "doi": "10.1073/pnas.201257398",
+      "locator": "Shi et al2001, Fig5 caption; same seven-site set cited by Yokoyama2014",
+      "local_file": "epistaeon/data/experimental/sws1_2001_shi_numbering.html"
+    },
+    "human_reference": {
+      "row": "Homo_sapiens",
+      "cited_accession": "M13295",
+      "cds_record": "M13299.1 with explicit M13295.1-M13299.1 exon join",
+      "length_aa": 348,
+      "note": "Preserve the historical accession sequence; current UniProt P03999 is not the benchmark coordinate authority."
+    },
+    "alignment_file": "epistaeon/data/alignments/sws1/SWS1.codonified.fa",
+    "site_map": [
+      {
+        "substitution": "F46T",
+        "source_position": 46,
+        "source_from": "F",
+        "source_to": "T",
+        "human_cds_position_1based": 43,
+        "human_residue": "T",
+        "alignment_codon_column_1based": 45,
+        "alignment_nt_columns_1based": [
+          133,
+          134,
+          135
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 46,
+        "template_residue": "L",
+        "template_region": "Transmembrane helix I"
+      },
+      {
+        "substitution": "F49L",
+        "source_position": 49,
+        "source_from": "F",
+        "source_to": "L",
+        "human_cds_position_1based": 46,
+        "human_residue": "L",
+        "alignment_codon_column_1based": 48,
+        "alignment_nt_columns_1based": [
+          142,
+          143,
+          144
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 49,
+        "template_residue": "M",
+        "template_region": "Transmembrane helix I"
+      },
+      {
+        "substitution": "T52F",
+        "source_position": 52,
+        "source_from": "T",
+        "source_to": "F",
+        "human_cds_position_1based": 49,
+        "human_residue": "F",
+        "alignment_codon_column_1based": 51,
+        "alignment_nt_columns_1based": [
+          151,
+          152,
+          153
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 52,
+        "template_residue": "F",
+        "template_region": "Transmembrane helix I"
+      },
+      {
+        "substitution": "F86L",
+        "source_position": 86,
+        "source_from": "F",
+        "source_to": "L",
+        "human_cds_position_1based": 83,
+        "human_residue": "L",
+        "alignment_codon_column_1based": 85,
+        "alignment_nt_columns_1based": [
+          253,
+          254,
+          255
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 86,
+        "template_residue": "M",
+        "template_region": "Transmembrane helix II"
+      },
+      {
+        "substitution": "T93P",
+        "source_position": 93,
+        "source_from": "T",
+        "source_to": "P",
+        "human_cds_position_1based": 90,
+        "human_residue": "P",
+        "alignment_codon_column_1based": 92,
+        "alignment_nt_columns_1based": [
+          274,
+          275,
+          276
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 93,
+        "template_residue": "T",
+        "template_region": "Transmembrane helix II"
+      },
+      {
+        "substitution": "A114G",
+        "source_position": 114,
+        "source_from": "A",
+        "source_to": "G",
+        "human_cds_position_1based": 111,
+        "human_residue": "G",
+        "alignment_codon_column_1based": 113,
+        "alignment_nt_columns_1based": [
+          337,
+          338,
+          339
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 114,
+        "template_residue": "G",
+        "template_region": "Transmembrane helix III"
+      },
+      {
+        "substitution": "S118T",
+        "source_position": 118,
+        "source_from": "S",
+        "source_to": "T",
+        "human_cds_position_1based": 115,
+        "human_residue": "T",
+        "alignment_codon_column_1based": 117,
+        "alignment_nt_columns_1based": [
+          349,
+          350,
+          351
+        ],
+        "template_pdb": "1U19",
+        "template_chain": "A",
+        "template_author_position": 118,
+        "template_residue": "T",
+        "template_region": "Transmembrane helix III"
+      }
+    ],
+    "scope": "Only the seven explicitly curated sites. No global SWS1-to-1U19 offset is implied; template residue identity need not equal either SWS1 state."
   }
 }

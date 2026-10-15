@@ -1,0 +1,74 @@
+{
+  "study_id": "sws1",
+  "gene_targets": [
+    "OPN1SW"
+  ],
+  "authority_rule": "The original published study is the only source of biological truth. Keep assay-derived functional accessibility separate from phylogenetic historical order and source-table normalization assumptions.",
+  "alignment": {
+    "file": "../data/alignments/sws1/SWS1.codonified.fa",
+    "reference_row": "Homo_sapiens",
+    "extant_only": true,
+    "taxon_count": 15,
+    "site_map": "../data/numbering_offsets.json#/sws1_benchmark",
+    "manifest": "../data/alignments/sws1/manifest.json"
+  },
+  "primary_sources": [
+    {
+      "file": "../data/experimental/sws1_2014_yokoyama.pdf",
+      "cite": "Yokoyama et al., PLOS Genetics2014, doi:10.1371/journal.pgen.1004884",
+      "role": "Seven-site SWS1 functional landscape and phylogenetically inferred historical paths"
+    },
+    {
+      "file": "../data/experimental/sws1_2014_S1_Table.pdf",
+      "cite": "Yokoyama2014 S1 Table",
+      "role": "Measured functional spectra and inferred values for nonfunctional pigments; retain curation caveats"
+    },
+    {
+      "file": "../data/experimental/sws1_2001_shi_numbering.html",
+      "cite": "Shi et al., PNAS2001, doi:10.1073/pnas.201257398, Fig5",
+      "role": "Numbering convention only"
+    }
+  ],
+  "replication_targets": [
+    {
+      "id": "SWS1_sites",
+      "finding": "Seven substitutions F46T,F49L,T52F,F86L,T93P,A114G,S118T interact to shift ancestral357nm pigment to411nm.",
+      "source": "Yokoyama2014 Results/Fig6 and S1 Table",
+      "test": "Map detected columns using explicit SWS1 crosswalk before comparing site set. Seven sites participate in the assayed epistatic landscape; the list is not a set of21 individually established pair interactions.",
+      "validates": "epistatic_sites",
+      "measures_order": false
+    },
+    {
+      "id": "SWS1_historical_order",
+      "finding": "{T93P,A114G}->F86L->{F49L,S118T}->{F46T,T52F}, retaining8 internal permutations.",
+      "source": "Yokoyama2014 Fig4/5 and historical reconstruction Methods",
+      "test": "Score the inferred partial order against eight historically favored paths. Label evidence phylogenetic, not experimentally obligatory.",
+      "validates": "mutation_order",
+      "measures_order": true,
+      "order_evidence": "phylogenetic_inference"
+    },
+    {
+      "id": "SWS1_accessibility",
+      "finding": "T52F alone fails to form pigment and therefore cannot be first under the functional-intermediate criterion. The normalized table additionally suggests the provisional disjunctive rescue rule F46T or T93P before T52F.",
+      "source": "Yokoyama2014 Fig2 and S1 Table",
+      "test": "Compare directly reported T52F-alone failure separately from the provisional normalized-table disjunctive prerequisite. Treat the universal rescue rule and exact accessible-path-set score as provisional because a genotype label is repaired and normalized table enumerates1076 paths while the paper reports1032. Do not force labels to match the reported count.",
+      "validates": "mutation_order",
+      "measures_order": true,
+      "order_evidence": "experimental_genotype_accessibility",
+      "exact_path_set_scoring": "provisional_source_discrepancy"
+    }
+  ],
+  "structures": {
+    "template": "../data/coordinates/1U19.cif",
+    "notes": "Bovine RH1 homolog template used in the original SWS1 modeling. Curated conventional site positions can be located, but template coordinates are not experimentally determined SWS1 contacts."
+  },
+  "known_limitations": [
+    "Reconcile S1 Table probable duplicated genotype label0011011 and missing0111011, bold-only inferred value1010011, and published1032 accessible paths vs1076 from normalized table. Full discrepancy documented per record.",
+    "The seven-site assays used chimeric AncBoreotheria S1 with anole termini. Natural extant sequences are model inputs, not identical assay backgrounds.",
+    "1U19 is a bovine rod-opsin homolog template only. It does not validate SWS1 distances or a dark-noise mechanism.",
+    "Marmoset L76201 has incomplete C terminus; rat U63972 retains one ambiguous W codon. All seven focal sites are observed in every alignment row.",
+    "All15 nucleotide rows are unique; human/chimp proteins are identical but nucleotide sequences differ. No ancestral sequence is required or supplied for the extant alignment."
+  ],
+  "source_verified_reference": "../data/substitution_reference/sws1.json",
+  "source_verification_date": "2026-10-15"
+}

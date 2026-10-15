@@ -1,0 +1,215 @@
+{
+  "alignment": {
+    "algorithm": "Protein global homology alignment followed by exact source-codon backtranslation",
+    "command": [
+      "mafft",
+      "--quiet",
+      "--amino",
+      "--globalpair",
+      "--maxiterate",
+      "1000",
+      "--thread",
+      "1",
+      "--inputorder",
+      "SWS1.protein.fa"
+    ],
+    "genetic_code": 1,
+    "missing_data": "whole-codon gaps only; no nucleotide imputation; IUPAC source ambiguity retained",
+    "sequence_order": "Pinned TAXA list in rebuild_sws1_alignment.py",
+    "terminal_stop_codons": "removed prior to protein alignment and retained in SWS1.source_cds.fa"
+  },
+  "products": {
+    "SWS1.cds.fa": "eb3d94b8fd8909abd889753ac8c8d681e3b16d29953b671fd3258b28710d6c58",
+    "SWS1.codonified.fa": "1408e963d098b03b0dcf7dd060debbd142016a5fecc1117684bcb86ce2fcc74d",
+    "SWS1.protein.aligned.fa": "ccf935a7c3a7fb753a9c48dec65aed2207155feff8632e5364e6953341b71418",
+    "SWS1.protein.fa": "e1af704fdb451e13e096538b84bcbcaf8a5ec429055967e448692d9196881182",
+    "SWS1.source_cds.fa": "6b57145125de2c9bd00103b6d90fa56b38ac9193d792f07ca99869a1f31823f7",
+    "human_coordinate_map.tsv": "be03598195878a8f7f0d1e86eca56497da1fb2506ae3978eead4b8931cace5ee",
+    "quality_report.json": "4954b2e8440f75f84d584d28b8af73b40632586bed15426f6842b9bbf8fee685",
+    "taxa.json": "fd0a880ad83dd2e0c9293337d1fd602818e6a7e3d0fb4b2570827b696dfe9e83"
+  },
+  "raw_records": [
+    {
+      "file": "AB111463.embl",
+      "format": "embl",
+      "record_id": "AB111463.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "9f2f0f8b27bb2ede150cb1754fe19d7b8ef0d98ca93b7c3f38e5c2bcc426bd68",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AB111463?download=false"
+    },
+    {
+      "file": "AF039433.embl",
+      "format": "embl",
+      "record_id": "AF039433.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "fc08329b88410d63e1d3ce47f6a6754df69160d3dbb09cc942dfdb4f695819e9",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AF039433?download=false"
+    },
+    {
+      "file": "AF039434.embl",
+      "format": "embl",
+      "record_id": "AF039434.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "3d028e942fa6525a374d352774ce6be94dce2d8794f4ac83022fe0bf35a15667",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AF039434?download=false"
+    },
+    {
+      "file": "AF039435.embl",
+      "format": "embl",
+      "record_id": "AF039435.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "d24ccf720e4fca40b96543914dcff3e6cb141f34d871a98f4b7426ed4fc6f5d1",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AF039435?download=false"
+    },
+    {
+      "file": "AF158977.embl",
+      "format": "embl",
+      "record_id": "AF158977.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "622ee74e71a66910ceb8bf4c71ed840bba61185f1c96e4ec5075d4c0157c4f36",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AF158977?download=false"
+    },
+    {
+      "file": "AY552608.embl",
+      "format": "embl",
+      "record_id": "AY552608.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "76982de963b5a5c8e1cafcbd38fbfa24d73f64c1c112149aac3fd2ef7392b69a",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AY552608?download=false"
+    },
+    {
+      "file": "DQ302163.embl",
+      "format": "embl",
+      "record_id": "DQ302163.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "5869926135b4280123412e8c11251da2db0471d0591c5d850246a5edf114a05e",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/DQ302163?download=false"
+    },
+    {
+      "file": "EF667285.embl",
+      "format": "embl",
+      "record_id": "EF667285.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "5d2652509e8e529f50123e4124f90ef9be7aa2debba3418d5c42aec512e8fe74",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/EF667285?download=false"
+    },
+    {
+      "file": "L76201.embl",
+      "format": "embl",
+      "record_id": "L76201.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "6f0e94e5556edb9e866547c37e7460c1ad0fe9bcbcdd2a199cd3019b38dc4db1",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/L76201?download=false"
+    },
+    {
+      "file": "M13295.embl",
+      "format": "embl",
+      "record_id": "M13295.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "c79c314ccbe5d09c47a9005d827004c8f92e795830414f36befee4df5f28526d",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/M13295?download=false"
+    },
+    {
+      "file": "M13296.embl",
+      "format": "embl",
+      "record_id": "M13296.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "2ebc9f07a098b9998c19a2082bf69cec246844cede510fc755928ade4a77a310",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/M13296?download=false"
+    },
+    {
+      "file": "M13297.embl",
+      "format": "embl",
+      "record_id": "M13297.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "ba98a620a16705562c1478a97f9e32c8e1a3918bf762adca779c45fc865b3d1c",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/M13297?download=false"
+    },
+    {
+      "file": "M13298.embl",
+      "format": "embl",
+      "record_id": "M13298.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "6b5086255bc0e754de0ca10ac8088899fc216fb25aa3340f05a4528359d8f227",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/M13298?download=false"
+    },
+    {
+      "file": "M13299.embl",
+      "format": "embl",
+      "record_id": "M13299.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "72c35e008d19b8f19fb3f796b09c89f639a2a89450646330d8eb6f7fe1861fda",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/M13299?download=false"
+    },
+    {
+      "file": "U49720.embl",
+      "format": "embl",
+      "record_id": "U49720.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "37f27fd5866e9dd09464c3d09f20b445eb6254e24a2f30afbffdefa600eabb99",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/U49720?download=false"
+    },
+    {
+      "file": "U53875.embl",
+      "format": "embl",
+      "record_id": "U53875.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "7028a48f36a4d4aabfa415bdb4e2545bcac6ba80e9fbbd3cd9d42c6eb7c5e4c9",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/U53875?download=false"
+    },
+    {
+      "file": "U63972.embl",
+      "format": "embl",
+      "record_id": "U63972.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "2dc994028dad0c6512ba840ed873485564ec13c6057fac5d7c5d9cd799a6588e",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/U63972?download=false"
+    },
+    {
+      "file": "U92557.embl",
+      "format": "embl",
+      "record_id": "U92557.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "b1f0fdb27ebcfbe867b546bd984c3486c0e4f4ba8d78e8368791782d7631bc04",
+      "url": "https://www.ebi.ac.uk/ena/browser/api/embl/U92557?download=false"
+    },
+    {
+      "file": "XM_002818421.1.gb",
+      "format": "genbank",
+      "record_id": "XM_002818421.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "03d365ed09dc9f31f31bf51fa1d22c5f33679d27d7cde935a4261d8faf66ee45",
+      "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=XM_002818421.1&rettype=gb&retmode=text"
+    },
+    {
+      "file": "XM_003261297.1.gb",
+      "format": "genbank",
+      "record_id": "XM_003261297.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "1f796d5044e6795527021b7851af32777a44a8ce0f3501f670c2fb5825c5d3a6",
+      "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=XM_003261297.1&rettype=gb&retmode=text"
+    },
+    {
+      "file": "XM_004046176.1.gb",
+      "format": "genbank",
+      "record_id": "XM_004046176.1",
+      "retrieved_utc_date": "2026-10-15",
+      "sha256": "3fd863341e676faea08a7f069805ebffd4da903302d3b3b371ff00c9a995c84f",
+      "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=XM_004046176.1&rettype=gb&retmode=text"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Extant Boreoeutheria: union of the nine qualifying taxa in the 33-SWS1 reconstruction list and six additional primates cited in Methods; not an assertion of exact Fig4 taxon identity. Elephant, wallaby, dunnart and nonmammalian/outgroup sequences excluded.",
+  "software": {
+    "biopython": "1.85",
+    "mafft": "v7.526 (2024/Apr/26)"
+  },
+  "study": {
+    "accession_source_section": "Materials and Methods: Reconstruction of the ancestral SWS1 pigment",
+    "authors": "Yokoyama et al.",
+    "doi": "10.1371/journal.pgen.1004884",
+    "title": "Epistatic Adaptive Evolution of Human Color Vision",
+    "url": "https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004884",
+    "year": 2014
+  }
+}

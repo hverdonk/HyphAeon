@@ -5,6 +5,9 @@ Downloaded 2026-09-18 from
 (`individualAlis/`, plus `speciesTree.nh`). `assemblies_and_species.tsv` is from
 `https://genome.senckenberg.de/download/TOGA2/` and maps sequence names
 (e.g. `HLmirAng2`) to species. Human-referenced, so **mammals only**.
+Case 4 now uses the rebuilt extant SWS1 alignment in [../sws1/](../sws1/).
+The former TOGA2 rod-opsin input has been removed from this benchmark.
+
 Per the upstream README, only species with exactly one ortholog are included;
 `N` marks masked (frameshift-affected) codons.
 
@@ -16,9 +19,8 @@ Per the upstream README, only species with exactly one ortholog are included;
 | `MB.codonified.fa` | NM_203377.1 | 863 | 186 | 154 | 665 |
 | `NR3C1.codonified.fa` | NM_001364183.2 | 870 | 866 | **778** | 737 |
 | `NR3C2.codonified.fa` | XM_047415708.1 | 867 | 1094 | 984 | 792 |
-| `RHO.codonified.fa` | ENST00000296271.4 | 864 | 356 | 348 | 724 |
 
-Every sequence name is a tip in `speciesTree.nh`; all seven load with
+Every sequence name is a tip in `speciesTree.nh`; all six load with
 `aeon_core.dataset.load_alignment_and_tree(fa, "speciesTree.nh")`, which
 prunes the tree to the alignment and collapses identical sequences.
 
@@ -28,7 +30,7 @@ The model reports **alignment columns**, not residue numbers. To reach PDB
 coordinates:
 
 1. **Column → human residue.** Drop columns where `hg38` has a gap. Every
-   alignment has such columns (HBB 6, RHO 8, MB 32, HBA1 32, HBA2 62,
+   alignment has such columns (HBB 6, MB 32, HBA1 32, HBA2 62,
    NR3C1 88), so column index ≠ residue number.
 2. **Human residue → structure numbering.** Then apply
    `../../numbering_offsets.json`.
@@ -38,10 +40,9 @@ coordinates:
 higher than UniProt P04150 / 7PRX numbering**: GR 637 is reference residue
 638. Subtract 1 before applying the 7PRX offset. Fails silently if skipped.
 
-MB and RHO: the human reference is the same length as the structure's
-UniProt entry (sperm whale P02185, bovine P02699) with no indels, so human
-residue *n* is structure-UniProt residue *n*; the sequences differ at 24 and
-23 sites respectively.
+For MB, the human reference and sperm-whale UniProt P02185 have no internal
+indels; their sequences differ at 24 sites. The SWS1 benchmark is a separate
+accession-based dataset in [../sws1/](../sws1/), with its own explicit site map.
 
 ## Known issues
 
@@ -51,7 +52,7 @@ results silently if ignored.
 **Position mapping**
 
 1. **Model positions are alignment columns, not residues.** Columns where
-   `hg38` has a gap (insertions in other species): HBB 6, RHO 8, MB 32,
+   `hg38` has a gap (insertions in other species): HBB 6, MB 32,
    HBA1 32, HBA2 62, NR3C1 88, NR3C2 110. Drop them to get human residue
    numbers before applying `../../numbering_offsets.json`.
 2. **NR3C1 reference is the GRγ isoform** (NM_001364183.2, 778 aa). It has an
@@ -59,18 +60,15 @@ results silently if ignored.
    P04150 / 7PRX. Subtract 1 there (GR 637 = reference 638).
 3. **HBA2 reference ends in one masked codon** (translates to `X` at 143).
    Harmless: it falls after the last residue (142).
-4. **MB and RHO references are human, the structures are not** (sperm whale
-   1MBO, bovine 1U19). Neither has an indel relative to human, so the
-   numbering schemes match: human residue *n* = 1U19 residue *n*, and = 1MBO
-   residue *n* − 1 (the usual cleaved-Met offset). The sequences differ at 24
-   (MB) and 23 (RHO) sites. Confirmed against human UniProt P02144 / P08100
-   and inside the alignments (the sperm whale and cow rows have no indels
-   relative to `hg38`); recorded under `human_equivalent` in
-   `../../numbering_offsets.json` and reproduced by `scripts/numbering.py`.
+4. **The MB reference is human; its structure is sperm-whale 1MBO.** There
+   are no internal indels, so human residue *n* = 1MBO author residue *n* − 1
+   (the cleaved-Met offset). The sequences differ at 24 sites. Confirmed
+   against human UniProt P02144 and the sperm-whale alignment row; recorded
+   under `human_equivalent` in `../../numbering_offsets.json`.
 
 **Taxon coverage**
 
-5. **Mammals only.** All 3,847 sequences and all 882 species-tree tips are
+5. **Mammals only.** The retained alignments and all 882 species-tree tips are
    mammals; this is the human-referenced TOGA2 set. (The species table also
    lists birds, turtles and fish because it covers TOGA2's other references.)
 6. **Deer mouse was missing from every globin alignment, and has been added.**
@@ -89,11 +87,9 @@ results silently if ignored.
    set, so no avian taxon can be included from this input.
 8. **Other white-paper taxa:** yak and snow leopard have HBB only (no HBA1 or
    HBA2). Sperm whale, southern elephant seal and Weddell seal are in MB.
-   Naked mole-rat, star-nosed mole, *Myotis nattereri* and sperm whale are in
-   RHO (with 75 cetaceans and 113 bats); *Rhinolophus unihastatus* has no TOGA2
-   assembly, and no fish are present.
+   No fish are present in this human-referenced source.
 9. **Globins are thinly sampled.** HBA1 has 149, HBA2 212 and HBB 422 of the
-   882 species, versus 863–870 for MB, NR3C1, NR3C2 and RHO — consistent with
+   882 species, versus 863–870 for MB, NR3C1 and NR3C2 — consistent with
    multi-copy species being excluded. The split between HBA1 and HBA2 is
    TOGA2's ortholog assignment; α-globin paralogs are hard to assign, so
    treat per-paralog species sets with caution.
@@ -102,11 +98,11 @@ results silently if ignored.
 
 10. **HBA1 and HBA2 are sparse.** Share of codons that are gaps or masked
     (`N`): HBA1 34.5%, HBA2 44.0%, MB 19.5%, NR3C2 13.9%, NR3C1 13.5%,
-    HBB 7.8%, RHO 5.0%. Expect weaker signal for Case 1.
+    HBB 7.8%. Expect weaker signal for Case 1.
 11. **Internal stop codons:** grey seal (`HLhalGry1`) has 2 in NR3C1, a
     possible frameshift or pseudogene.
 12. **The loader collapses identical sequences** before inference (HBA1 19,
-    HBA2 21, HBB 99, MB 198, NR3C1 133, NR3C2 75, RHO 140). This doesn't affect
+    HBA2 21, HBB 99, MB 198, NR3C1 133, NR3C2 75). This doesn't affect
     site positions, but a named species can be merged into a duplicate.
 
 **Provenance**

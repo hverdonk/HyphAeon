@@ -1,0 +1,133 @@
+ID   U49720; SV 1; linear; mRNA; STD; MUS; 1041 BP.
+XX
+AC   U49720;
+XX
+DT   20-MAR-1996 (Rel. 47, Created)
+DT   24-SEP-2008 (Rel. 97, Last updated, Version 5)
+XX
+DE   Mus musculus blue cone pigment mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Mus musculus (house mouse)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Euarchontoglires; Glires; Rodentia; Myomorpha; Muroidea; Muridae;
+OC   Murinae; Mus; Mus.
+XX
+RN   [1]
+RP   1-1041
+RX   DOI; 10.1006/geno.1994.1292.
+RX   PUBMED; 8088841.
+RA   Chiu M.I., Zack D.J., Wang Y., Nathans J.;
+RT   "Murine and bovine blue cone pigment genes: cloning and characterization of
+RT   two new members of the S family of visual pigments";
+RL   Genomics 21(2):440-443(1994).
+XX
+RN   [2]
+RP   1-1041
+RA   Chiu M.I., Nathans J.;
+RT   ;
+RL   Submitted (14-FEB-1996) to the INSDC.
+RL   M. Isabel Chiu, Biology, Mitotix Inc., One Kendall Square, Bldg 600,
+RL   Cambridge, MA 02139, USA
+XX
+DR   MD5; b203954a38bfcbf7d78886197de27da2.
+DR   Ensembl-Gn; ENSMUSG00000058831; mus_musculus.
+DR   Ensembl-Gn; MGP_129S1SvImJ_G0030521; mus_musculus_129s1svimj.
+DR   Ensembl-Gn; MGP_AJ_G0030494; mus_musculus_aj.
+DR   Ensembl-Gn; MGP_AKRJ_G0030421; mus_musculus_akrj.
+DR   Ensembl-Gn; MGP_BALBcJ_G0030504; mus_musculus_balbcj.
+DR   Ensembl-Gn; MGP_C3HHeJ_G0030217; mus_musculus_c3hhej.
+DR   Ensembl-Gn; MGP_C57BL6NJ_G0030958; mus_musculus_c57bl6nj.
+DR   Ensembl-Gn; MGP_CASTEiJ_G0029619; mus_musculus_casteij.
+DR   Ensembl-Gn; MGP_CBAJ_G0030195; mus_musculus_cbaj.
+DR   Ensembl-Gn; MGP_DBA2J_G0030339; mus_musculus_dba2j.
+DR   Ensembl-Gn; MGP_FVBNJ_G0030293; mus_musculus_fvbnj.
+DR   Ensembl-Gn; MGP_LPJ_G0030426; mus_musculus_lpj.
+DR   Ensembl-Gn; MGP_NODShiLtJ_G0030329; mus_musculus_nodshiltj.
+DR   Ensembl-Gn; MGP_NZOHlLtJ_G0030988; mus_musculus_nzohlltj.
+DR   Ensembl-Gn; MGP_PWKPhJ_G0029333; mus_musculus_pwkphj.
+DR   Ensembl-Gn; MGP_WSBEiJ_G0029695; mus_musculus_wsbeij.
+DR   Ensembl-Tr; ENSMUST00000080428; mus_musculus.
+DR   Ensembl-Tr; MGP_129S1SvImJ_T0076620; mus_musculus_129s1svimj.
+DR   Ensembl-Tr; MGP_AJ_T0076697; mus_musculus_aj.
+DR   Ensembl-Tr; MGP_AKRJ_T0076605; mus_musculus_akrj.
+DR   Ensembl-Tr; MGP_BALBcJ_T0076640; mus_musculus_balbcj.
+DR   Ensembl-Tr; MGP_C3HHeJ_T0076263; mus_musculus_c3hhej.
+DR   Ensembl-Tr; MGP_C57BL6NJ_T0077111; mus_musculus_c57bl6nj.
+DR   Ensembl-Tr; MGP_CASTEiJ_T0076827; mus_musculus_casteij.
+DR   Ensembl-Tr; MGP_CBAJ_T0076227; mus_musculus_cbaj.
+DR   Ensembl-Tr; MGP_DBA2J_T0076374; mus_musculus_dba2j.
+DR   Ensembl-Tr; MGP_FVBNJ_T0076270; mus_musculus_fvbnj.
+DR   Ensembl-Tr; MGP_LPJ_T0076424; mus_musculus_lpj.
+DR   Ensembl-Tr; MGP_NODShiLtJ_T0076277; mus_musculus_nodshiltj.
+DR   Ensembl-Tr; MGP_NZOHlLtJ_T0077348; mus_musculus_nzohlltj.
+DR   Ensembl-Tr; MGP_PWKPhJ_T0076263; mus_musculus_pwkphj.
+DR   Ensembl-Tr; MGP_WSBEiJ_T0075390; mus_musculus_wsbeij.
+DR   EuropePMC; PMC16551; 10861005.
+DR   EuropePMC; PMC23052; 10535984.
+DR   EuropePMC; PMC26872; 10339578.
+DR   EuropePMC; PMC2765098; 19805066.
+DR   EuropePMC; PMC4643761; 26601250.
+DR   EuropePMC; PMC87143; 11416145.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1041
+FT                   /organism="Mus musculus"
+FT                   /mol_type="mRNA"
+FT                   /tissue_type="retina"
+FT                   /note="cDNA clone obtained from PCR-amplification of
+FT                   reverse-transcribed RNA"
+FT                   /db_xref="taxon:10090"
+FT   exon            <1..346
+FT                   /number=1
+FT   CDS             1..1041
+FT                   /codon_start=1
+FT                   /product="blue cone pigment"
+FT                   /note="visual pigment; short-wave cone pigment"
+FT                   /db_xref="GOA:P51491"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="MGI:MGI:99438"
+FT                   /db_xref="UniProtKB/Swiss-Prot:P51491"
+FT                   /protein_id="AAA92458.1"
+FT                   /translation="MSGEDDFYLFQNISSVGPWDGPQYHLAPVWAFRLQAAFMGFVFFV
+FT                   GTPLNAIVLVATLHYKKLRQPLNYILVNVSLGGFLFCIFSVFTVFIASCHGYFLFGRHV
+FT                   CALEAFLGSVAGLVTGWSLAFLAFERYVVICKPFGSIRFNSKHALMVVLATWIIGIGVS
+FT                   IPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIIPLSLICFSYSQLL
+FT                   RTLRAVAAQQQESATTQKAEREVSHMVVVMVGSFCLCYVPYAALAMYMVNNRNHGLDLR
+FT                   LVTIPAFFSKSSCVYNPIIYCFMNKQFRACILEMVCRKPMADESDVSGSQKTEVSTVSS
+FT                   SKVGPH"
+FT   exon            347..515
+FT                   /number=2
+FT   exon            516..681
+FT                   /number=3
+FT   exon            682..921
+FT                   /number=4
+FT   exon            922..>1041
+FT                   /number=5
+XX
+SQ   Sequence 1041 BP; 190 A; 293 C; 256 G; 302 T; 0 other;
+     atgtcaggag aggatgactt ttacctgttt cagaatatct cttcggtggg gccctgggat        60
+     gggcctcagt accaccttgc tcctgtctgg gccttccgcc tccaggcagc cttcatggga       120
+     tttgtcttct ttgtggggac cccactcaat gccatagtgc tggtggccac actgcattac       180
+     aaaaagttgc gacagcccct caactatatt ctggtcaatg tatccctcgg gggcttcctc       240
+     ttctgcatct tctctgtctt cacagtcttc atcgccagct gtcacggata cttcctcttt       300
+     ggtcgccatg tttgtgctct ggaggccttc ttgggctctg tagcaggtct agtgacagga       360
+     tggtcattgg ctttcctggc ttttgaacgc tacgttgtca tctgtaaacc cttcggcagc       420
+     atccgcttca actccaagca tgcactgatg gtggtcctgg ctacttggat tattggtatc       480
+     ggggtgtcca tcccaccctt ttttggctgg agcaggttca tccctgaggg cctgcagtgc       540
+     tcctgtggcc cagactggta cactgtgggc accaagtatc gaagcgagta ctacacctgg       600
+     ttcctcttca tcttctgttt catcattcct ctttccctca tctgcttctc ctactcccag       660
+     ttgctgagga ctctcagagc tgtggcagct cagcagcaag agtctgctac gacacaaaag       720
+     gctgaacggg aggtgagtca tatggtggtg gtgatggtgg gatccttctg tctctgctac       780
+     gtgccctatg ctgccctggc catgtacatg gtcaacaatc ggaaccacgg gctggactta       840
+     cggcttgtca ccatccccgc cttcttttcc aagagctcct gtgtctacaa ccccatcatc       900
+     tactgcttca tgaataagca gttccgggct tgcattctgg agatggtgtg caggaagccc       960
+     atggcagacg aatctgacgt gtctggctct cagaaaacag aagtttctac tgtctcttct      1020
+     agcaaagttg gccctcactg a                                                1041
+//

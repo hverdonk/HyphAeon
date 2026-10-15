@@ -27,10 +27,10 @@ print("="*84)
 print("NUMBERING CROSSWALK: PDB author numbering  vs  UniProt canonical numbering")
 print("="*84)
 CHECKS=[('2HHB','A','P69905','Hb alpha'),('2HHB','B','P68871','Hb beta'),
-        ('1MBO','A','P02185','Myoglobin, sperm whale'),('1U19','A','P02699','Rhodopsin, bovine'),
+        ('1MBO','A','P02185','Myoglobin, sperm whale'),('1U19','A','P02699','Bovine opsin homolog template for SWS1'),
         ('7PRX','A','P04150','Glucocorticoid receptor LBD'),
         # non-human structures against the HUMAN protein (the TOGA2 reference species)
-        ('1MBO','A','P02144','Myoglobin vs HUMAN'),('1U19','A','P08100','Rhodopsin vs HUMAN')]
+        ('1MBO','A','P02144','Myoglobin vs HUMAN')]
 for pdb,ch,acc,label in CHECKS:
     ps,pn=pdbchain(pdb,ch); us=upseq(acc)
     aln=al.align(ps,us)[0]; iP,iU=aln.indices
@@ -75,7 +75,7 @@ if os.path.exists(AL+'assemblies_and_species.tsv'):
             if line.startswith('>'): k=line[1:]; s[k]=''
             else: s[k]+=line
         return s
-    for gene,species in [('MB','Physeter macrocephalus'),('RHO','Bos taurus')]:
+    for gene,species in [('MB','Physeter macrocephalus')]:
         seqs=read(AL+gene+'.codonified.fa'); h=seqs['hg38']
         for asm in [x for x in tab.get(species,[]) if x in seqs]:
             q=seqs[asm]
@@ -85,3 +85,22 @@ if os.path.exists(AL+'assemblies_and_species.tsv'):
             print(f"   {gene}: {species} ({asm}): {h_only} human residues without a counterpart, {q_only} residues in human-gap columns")
 else:
     print("   (data/alignments/toga2 not present; skipped)")
+
+# SWS1 uses an explicit seven-site crosswalk, not a universal protein offset.
+import json
+from Bio import SeqIO
+from Bio.Seq import Seq
+numbering = json.loads(open(os.path.join(_HERE, '..', 'data', 'numbering_offsets.json')).read())
+sws1 = numbering['sws1_benchmark']
+rows = {r.id: str(r.seq) for r in SeqIO.parse(os.path.join(_HERE, '..', 'data', 'alignments', 'sws1', 'SWS1.codonified.fa'), 'fasta')}
+human = rows[sws1['human_reference']['row']]
+print("\nSWS1: paper site -> historical human CDS -> codon column -> homolog template")
+for site in sws1['site_map']:
+    col = site['alignment_codon_column_1based']
+    codon = human[(col-1)*3:col*3]
+    human_position = sum(human[i:i+3] != '---' for i in range(0, col*3, 3))
+    assert human_position == site['human_cds_position_1based']
+    assert str(Seq(codon).translate()) == site['source_to']
+    assert all(set(row[(col-1)*3:col*3]) <= set('ACGT') for row in rows.values())
+    print(f"  {site['substitution']} -> {human_position} -> {col} -> "
+          f"{site['template_pdb']} {site['template_chain']}:{site['template_author_position']}")

@@ -1,0 +1,879 @@
+{
+  "case_number": 1,
+  "study_id": "hemoglobin",
+  "sources": [
+    {
+      "id": "storz2009",
+      "doi": "10.1073/pnas.0905224106",
+      "url": "https://doi.org/10.1073/pnas.0905224106",
+      "local_file": "epistaeon/data/experimental/hemoglobin_2009_storz.pdf",
+      "verified_locators": [
+        "pp.14451-14452 (PDF pages 2-3), four beta polymorphisms, ancestral polarity and d0/d1 haplotypes",
+        "p.14453 (PDF page 4), Fig.3 and legend, alpha/beta isoforms and matched hemolysate comparisons",
+        "pp.14453-14454, functional DPG sensitivity interpretation"
+      ],
+      "verification": "Full local PDF text inspected; PDF pages 2-4 rendered and visually inspected",
+      "local_sha256": "f85536b6a7b85d114823d6dbb434293e00ac8cb51d1f42c4f7c3fd199394f7eb"
+    },
+    {
+      "id": "2HHB_local",
+      "doi": null,
+      "url": "https://www.rcsb.org/structure/2HHB",
+      "local_file": "epistaeon/data/coordinates/2HHB.cif",
+      "verified_locators": [
+        "_struct_conf helix records",
+        "_atom_site alpha chains A/C and beta chains B/D at all nine sites"
+      ],
+      "verification": "Parsed local mmCIF; no-indel global alignments of high-type deer alpha/beta CDS translations to human scaffold; loaded offsets from data/numbering_offsets.json",
+      "local_sha256": "d41ec279c2fb8e9b53e6ab4c1e6ecca52e20346a3f3808a6d31d9e8307dd3810"
+    },
+    {
+      "id": "natarajan2013",
+      "doi": "10.1126/science.1236862",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4409680/",
+      "local_file": null,
+      "verified_locators": [
+        "main text paragraphs on three allele blocks and all eight recombinant combinations",
+        "main text paragraph on alpha50/alpha64 mutations and beta128; refers to Fig.S3/S4"
+      ],
+      "verification": "Primary author manuscript full main text returned by cached web search; direct PMC open captcha. University author repository https://digitalcommons.unl.edu/bioscistorz/56/ lists included supplement but PDF retrieval403. Supplement not verified."
+    }
+  ],
+  "events": [
+    {
+      "id": "HB_alpha_50",
+      "label": "alpha50 P/H",
+      "kind": "observed_isoform_polymorphism",
+      "source_numbering": "mature alpha-globin residue; initiator Met excluded",
+      "position": 50,
+      "from": null,
+      "to": null,
+      "observed_states": [
+        "P",
+        "H"
+      ],
+      "direction_status": "Storz 2009 Fig. 3 defines isoform states but does not polarize alpha substitutions",
+      "interval": null,
+      "group": "alpha_isoforms",
+      "structural_region": "CD loop (globin CD8); 2HHB retains a two-residue degenerate D-helix annotation at 50-51",
+      "structure_mapping": [
+        {
+          "chain": "A",
+          "uniprot": "P69905",
+          "uniprot_position": 51,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            28.482,
+            2.78,
+            20.621
+          ],
+          "pdb": "2HHB",
+          "author_position": 50,
+          "observed_residue": "H",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 80,
+            "HBA2": 94
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "C",
+          "uniprot": "P69905",
+          "uniprot_position": 51,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -10.024,
+            11.764,
+            59.74
+          ],
+          "pdb": "2HHB",
+          "author_position": 50,
+          "observed_residue": "H",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 80,
+            "HBA2": 94
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 p. 14453, Fig. 3 legend; 2HHB _struct_conf annotation (alpha helix E 52-71)",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_alpha_57",
+      "label": "alpha57 G/A",
+      "kind": "observed_isoform_polymorphism",
+      "source_numbering": "mature alpha-globin residue; initiator Met excluded",
+      "position": 57,
+      "from": null,
+      "to": null,
+      "observed_states": [
+        "G",
+        "A"
+      ],
+      "direction_status": "Storz 2009 Fig. 3 defines isoform states but does not polarize alpha substitutions",
+      "interval": null,
+      "group": "alpha_isoforms",
+      "structural_region": "E helix (E6)",
+      "structure_mapping": [
+        {
+          "chain": "A",
+          "uniprot": "P69905",
+          "uniprot_position": 58,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            27.805,
+            14.758,
+            16.918
+          ],
+          "pdb": "2HHB",
+          "author_position": 57,
+          "observed_residue": "G",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 87,
+            "HBA2": 101
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "C",
+          "uniprot": "P69905",
+          "uniprot_position": 58,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -5.528,
+            23.841,
+            61.507
+          ],
+          "pdb": "2HHB",
+          "author_position": 57,
+          "observed_residue": "G",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 87,
+            "HBA2": 101
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 p. 14453, Fig. 3 legend; 2HHB _struct_conf annotation (alpha helix E 52-71)",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_alpha_60",
+      "label": "alpha60 A/G",
+      "kind": "observed_isoform_polymorphism",
+      "source_numbering": "mature alpha-globin residue; initiator Met excluded",
+      "position": 60,
+      "from": null,
+      "to": null,
+      "observed_states": [
+        "A",
+        "G"
+      ],
+      "direction_status": "Storz 2009 Fig. 3 defines isoform states but does not polarize alpha substitutions",
+      "interval": null,
+      "group": "alpha_isoforms",
+      "structural_region": "E helix (E9)",
+      "structure_mapping": [
+        {
+          "chain": "A",
+          "uniprot": "P69905",
+          "uniprot_position": 61,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            29.404,
+            17.944,
+            20.914
+          ],
+          "pdb": "2HHB",
+          "author_position": 60,
+          "observed_residue": "K",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 90,
+            "HBA2": 104
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "C",
+          "uniprot": "P69905",
+          "uniprot_position": 61,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -6.067,
+            26.685,
+            57.196
+          ],
+          "pdb": "2HHB",
+          "author_position": 60,
+          "observed_residue": "K",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 90,
+            "HBA2": 104
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 p. 14453, Fig. 3 legend; 2HHB _struct_conf annotation (alpha helix E 52-71)",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_alpha_64",
+      "label": "alpha64 G/D",
+      "kind": "observed_isoform_polymorphism",
+      "source_numbering": "mature alpha-globin residue; initiator Met excluded",
+      "position": 64,
+      "from": null,
+      "to": null,
+      "observed_states": [
+        "G",
+        "D"
+      ],
+      "direction_status": "Storz 2009 Fig. 3 defines isoform states but does not polarize alpha substitutions",
+      "interval": null,
+      "group": "alpha_isoforms",
+      "structural_region": "E helix (E13)",
+      "structure_mapping": [
+        {
+          "chain": "A",
+          "uniprot": "P69905",
+          "uniprot_position": 65,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            28.882,
+            23.506,
+            23.306
+          ],
+          "pdb": "2HHB",
+          "author_position": 64,
+          "observed_residue": "D",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 94,
+            "HBA2": 108
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "C",
+          "uniprot": "P69905",
+          "uniprot_position": 65,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -4.087,
+            31.306,
+            53.817
+          ],
+          "pdb": "2HHB",
+          "author_position": 64,
+          "observed_residue": "D",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 94,
+            "HBA2": 108
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 p. 14453, Fig. 3 legend; 2HHB _struct_conf annotation (alpha helix E 52-71)",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_alpha_71",
+      "label": "alpha71 S/G",
+      "kind": "observed_isoform_polymorphism",
+      "source_numbering": "mature alpha-globin residue; initiator Met excluded",
+      "position": 71,
+      "from": null,
+      "to": null,
+      "observed_states": [
+        "S",
+        "G"
+      ],
+      "direction_status": "Storz 2009 Fig. 3 defines isoform states but does not polarize alpha substitutions",
+      "interval": null,
+      "group": "alpha_isoforms",
+      "structural_region": "E helix (E20)",
+      "structure_mapping": [
+        {
+          "chain": "A",
+          "uniprot": "P69905",
+          "uniprot_position": 72,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            30.311,
+            31.605,
+            29.675
+          ],
+          "pdb": "2HHB",
+          "author_position": 71,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 101,
+            "HBA2": 115
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "C",
+          "uniprot": "P69905",
+          "uniprot_position": 72,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -3.026,
+            38.532,
+            46.113
+          ],
+          "pdb": "2HHB",
+          "author_position": 71,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBA1": 101,
+            "HBA2": 115
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 p. 14453, Fig. 3 legend; 2HHB _struct_conf annotation (alpha helix E 52-71)",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_beta_62",
+      "label": "betaA62G",
+      "kind": "outgroup_polarized_substitution",
+      "source_numbering": "mature beta-globin residue; initiator Met excluded",
+      "position": 62,
+      "from": "A",
+      "to": "G",
+      "interval": null,
+      "group": "beta_isoforms",
+      "structural_region": "E helix (E6)",
+      "structure_mapping": [
+        {
+          "chain": "B",
+          "uniprot": "P68871",
+          "uniprot_position": 63,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            30.229,
+            6.396,
+            61.511
+          ],
+          "pdb": "2HHB",
+          "author_position": 62,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 67
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "D",
+          "uniprot": "P68871",
+          "uniprot_position": 63,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -12.015,
+            8.914,
+            19.493
+          ],
+          "pdb": "2HHB",
+          "author_position": 62,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 67
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 pp. 14451-14452, Patterns of beta-Globin Polymorphism: ancestral residue first, derived second relative to P. leucopus; Fig. 1 and Fig. 3 legend",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_beta_72",
+      "label": "betaG72S",
+      "kind": "outgroup_polarized_substitution",
+      "source_numbering": "mature beta-globin residue; initiator Met excluded",
+      "position": 72,
+      "from": "G",
+      "to": "S",
+      "interval": null,
+      "group": "beta_isoforms",
+      "structural_region": "E helix (E16)",
+      "structure_mapping": [
+        {
+          "chain": "B",
+          "uniprot": "P68871",
+          "uniprot_position": 73,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            27.186,
+            -4.372,
+            51.211
+          ],
+          "pdb": "2HHB",
+          "author_position": 72,
+          "observed_residue": "S",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 77
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "D",
+          "uniprot": "P68871",
+          "uniprot_position": 73,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -11.335,
+            -0.507,
+            31.522
+          ],
+          "pdb": "2HHB",
+          "author_position": 72,
+          "observed_residue": "S",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 77
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 pp. 14451-14452, Patterns of beta-Globin Polymorphism: ancestral residue first, derived second relative to P. leucopus; Fig. 1 and Fig. 3 legend",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_beta_128",
+      "label": "betaS128A",
+      "kind": "outgroup_polarized_substitution",
+      "source_numbering": "mature beta-globin residue; initiator Met excluded",
+      "position": 128,
+      "from": "S",
+      "to": "A",
+      "interval": null,
+      "group": "beta_isoforms",
+      "structural_region": "H helix (H6)",
+      "structure_mapping": [
+        {
+          "chain": "B",
+          "uniprot": "P68871",
+          "uniprot_position": 129,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            23.878,
+            0.722,
+            34.336
+          ],
+          "pdb": "2HHB",
+          "author_position": 128,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 135
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "D",
+          "uniprot": "P68871",
+          "uniprot_position": 129,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            -6.295,
+            6.732,
+            47.268
+          ],
+          "pdb": "2HHB",
+          "author_position": 128,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 135
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 pp. 14451-14452, Patterns of beta-Globin Polymorphism: ancestral residue first, derived second relative to P. leucopus; Fig. 1 and Fig. 3 legend",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    },
+    {
+      "id": "HB_beta_135",
+      "label": "betaA135S",
+      "kind": "outgroup_polarized_substitution",
+      "source_numbering": "mature beta-globin residue; initiator Met excluded",
+      "position": 135,
+      "from": "A",
+      "to": "S",
+      "interval": null,
+      "group": "beta_isoforms",
+      "structural_region": "H helix (H13)",
+      "structure_mapping": [
+        {
+          "chain": "B",
+          "uniprot": "P68871",
+          "uniprot_position": 136,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            17.071,
+            1.54,
+            42.552
+          ],
+          "pdb": "2HHB",
+          "author_position": 135,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 142
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        },
+        {
+          "chain": "D",
+          "uniprot": "P68871",
+          "uniprot_position": 136,
+          "offset_source": "data/numbering_offsets.json",
+          "ca_xyz_angstrom": [
+            0.256,
+            3.894,
+            39.176
+          ],
+          "pdb": "2HHB",
+          "author_position": 135,
+          "observed_residue": "A",
+          "coordinate_present": true,
+          "toga2_hg38_alignment_columns_1based": {
+            "HBB": 142
+          },
+          "alignment_mapping_scope": "hg38 reference to modern scaffold only; target/ancestral homolog and CLI endpoint numbering require separate mapping"
+        }
+      ],
+      "source_ids": [
+        "storz2009",
+        "2HHB_local"
+      ],
+      "locator": "Storz 2009 pp. 14451-14452, Patterns of beta-Globin Polymorphism: ancestral residue first, derived second relative to P. leucopus; Fig. 1 and Fig. 3 legend",
+      "epistasis_scoring": false,
+      "order_scoring": false,
+      "order_evidence": "none"
+    }
+  ],
+  "groups": [
+    {
+      "id": "alpha_isoforms",
+      "positions": [
+        50,
+        57,
+        60,
+        64,
+        71
+      ],
+      "isoforms": {
+        "alphaI": "PGAGS",
+        "alphaII": "HGAGS",
+        "alphaIII": "HAGDG"
+      },
+      "order": "unordered",
+      "evidence_kind": "diagnostic isoform states; not individually proven epistatic sites",
+      "source_ids": [
+        "storz2009"
+      ],
+      "locator": "p.14453 Fig.3 legend",
+      "members": [
+        "HB_alpha_50",
+        "HB_alpha_57",
+        "HB_alpha_60",
+        "HB_alpha_64",
+        "HB_alpha_71"
+      ]
+    },
+    {
+      "id": "beta_isoforms",
+      "positions": [
+        62,
+        72,
+        128,
+        135
+      ],
+      "isoforms": {
+        "betaI_d1_high_altitude": "GGAA",
+        "betaII_d0_low_altitude": "ASSS"
+      },
+      "order": "unordered",
+      "outgroup_ancestral_states_at_four_sites": "AGSA",
+      "note": "AGSA follows the per-site polarity relative to P. leucopus; it is not a reconstructed full ancestral sequence or evidence for one path from betaII to betaI.",
+      "source_ids": [
+        "storz2009"
+      ],
+      "locator": "pp.14451-14452 and p.14453 Fig.3 legend",
+      "members": [
+        "HB_beta_62",
+        "HB_beta_72",
+        "HB_beta_128",
+        "HB_beta_135"
+      ]
+    }
+  ],
+  "order_constraints": [],
+  "order_status": {
+    "status": "not_testable_from_storz2009",
+    "reason": "Storz 2009 assays naturally occurring hemolysates with known isoform composition; no single-mutant trajectory, temporal order or obligate precedence was measured. Beta outgroup polarization gives direction per site, not order."
+  },
+  "structure_scope": {
+    "structure": "2HHB",
+    "taxon": "Homo sapiens",
+    "state": "deoxy T state",
+    "purpose": "homologous geometric scaffold, not the experimental deer-mouse structure",
+    "mapping_note": "Paper mature residue n maps to PDB author n, then to human UniProt n+1 via the authoritative offsets JSON. Human residue identities differ from deer allele identities. Alignment columns must be mapped separately for each run."
+  },
+  "missing_for_validation": [
+    "A source that actually measures order is required for an order score; no amount of sequence completion supplies missing temporal information in Storz 2009.",
+    "Exact experimental full sequences and phased HBA-T1/T2 and HBB-T1/T2 genotypes/expression for the Fig.3 hemolysates; diagnostic strings alone do not specify the whole protein or the mixed alpha isoform composition.",
+    "Storz 2009 supplement, especially numeric P50/effector data Table S2 and genotype metadata, is not present locally.",
+    "A run-specific mapping from each model alignment column to mature deer-mouse position and the scaffold; consistent paralog assignment and a declared alpha-beta interface convention.",
+    "The alignments currently add one high-type deer-mouse representative, not the segregating allele panel. Alternative haplotypes remain in local FASTAs; identical alpha representatives in HBA1/HBA2 are not independent evidence.",
+    "If validating intersubunit alpha-beta epistasis, a declared way to combine the separate HBA/HBB model runs and explicit study-supported scoring targets; diagnostic association alone does not prove every listed site epistatic."
+  ],
+  "corrections_to_existing": [
+    {
+      "path": "data/README.md",
+      "claim": "a 2^5 and 2^4 design",
+      "correction": "These are five and four diagnostic polymorphism sites; Storz 2009 did not assay an exhaustive 32- or16-genotype single-substitution design."
+    },
+    {
+      "path": "validation/studies/hemoglobin.json",
+      "claim": "no Peromyscus maniculatus sequence exists in HBA1/HBA2/HBB alignments",
+      "correction": "Stale: HLperManSon3 occurs in all three files and data/sequences/deer_mouse/README.md documents merged high-type representatives and provenance caveats."
+    },
+    {
+      "path": "validation/studies/hemoglobin.json",
+      "claim": "HB2 does epistaeon assign beta sites to a coupled group distinct from alpha sites",
+      "correction": "Beta haplotype DPG sensitivity is measured, but this does not establish a complete individual-site epistatic group or separation from alpha effects."
+    },
+    {
+      "path": "validation/studies/hemoglobin.json",
+      "claim": "HB3 high-altitude mice carry alphaI/betaI",
+      "correction": "Fig.3 uses high-altitude hemolysates with alphaI/alphaII or alphaI/alphaII/alphaIII and betaI, matched to the same alpha mixtures with betaII. Avoid replacing these with a single alphaI genotype."
+    }
+  ],
+  "related_study_separate_from_storz": {
+    "study_id": "hemoglobin_natarajan2013",
+    "source_ids": [
+      "natarajan2013"
+    ],
+    "status": "candidate_epistasis_and_accessible_path_benchmark; not a historical total-order benchmark",
+    "blocks": {
+      "alpha_exon2": [
+        50,
+        57,
+        60,
+        64,
+        71
+      ],
+      "alpha_exon3": [
+        113,
+        115,
+        116
+      ],
+      "beta_globin": [
+        62,
+        72,
+        128,
+        135
+      ]
+    },
+    "measured_panel": "Eight H/L block combinations and 10 extra single/double mutants.",
+    "verified_background_dependence": [
+      {
+        "mutation": "betaS128A",
+        "background": "LL-L",
+        "condition": "Cl and DPG",
+        "effect": "decreases affinity; four H-type beta changes together increase affinity",
+        "locator": "main text paragraph referring to Fig.S4",
+        "inference_limit": "Does not identify which other beta changes must precede S128A or establish historical order."
+      },
+      {
+        "mutations": [
+          "alphaH50P",
+          "alphaD64G"
+        ],
+        "background": "LL-L versus HH-H",
+        "effect": "No significant affinity gain individually/together on LL-L; reverse changes decrease affinity on HH-H with effectors",
+        "locator": "main text paragraph referring to Fig.S3",
+        "inference_limit": "Background dependence, not a unique compulsory order of these substitutions."
+      }
+    ],
+    "additional_structure_sites": [
+      {
+        "chain": "alpha",
+        "position": 113,
+        "structural_region": "G helix C-terminal region / GH turn; 2HHB annotation G ends112, H begins118",
+        "structure_mapping": [
+          {
+            "structure_id": "2HHB",
+            "chain": "A",
+            "pdb_author_position": 113,
+            "pdb_residue": "LEU",
+            "uniprot": "P69905",
+            "uniprot_position": 114,
+            "offset_source": "data/numbering_offsets.json",
+            "ca_xyz_angstrom": [
+              38.112,
+              14.838,
+              36.908
+            ]
+          },
+          {
+            "structure_id": "2HHB",
+            "chain": "C",
+            "pdb_author_position": 113,
+            "pdb_residue": "LEU",
+            "uniprot": "P69905",
+            "uniprot_position": 114,
+            "offset_source": "data/numbering_offsets.json",
+            "ca_xyz_angstrom": [
+              -15.833,
+              23.657,
+              41.653
+            ]
+          }
+        ]
+      },
+      {
+        "chain": "alpha",
+        "position": 115,
+        "structural_region": "G helix C-terminal region / GH turn; 2HHB annotation G ends112, H begins118",
+        "structure_mapping": [
+          {
+            "structure_id": "2HHB",
+            "chain": "A",
+            "pdb_author_position": 115,
+            "pdb_residue": "ALA",
+            "uniprot": "P69905",
+            "uniprot_position": 116,
+            "offset_source": "data/numbering_offsets.json",
+            "ca_xyz_angstrom": [
+              41.227,
+              15.967,
+              41.451
+            ]
+          },
+          {
+            "structure_id": "2HHB",
+            "chain": "C",
+            "pdb_author_position": 115,
+            "pdb_residue": "ALA",
+            "uniprot": "P69905",
+            "uniprot_position": 116,
+            "offset_source": "data/numbering_offsets.json",
+            "ca_xyz_angstrom": [
+              -18.287,
+              24.657,
+              36.92
+            ]
+          }
+        ]
+      },
+      {
+        "chain": "alpha",
+        "position": 116,
+        "structural_region": "G helix C-terminal region / GH turn; 2HHB annotation G ends112, H begins118",
+        "structure_mapping": [
+          {
+            "structure_id": "2HHB",
+            "chain": "A",
+            "pdb_author_position": 116,
+            "pdb_residue": "GLU",
+            "uniprot": "P69905",
+            "uniprot_position": 117,
+            "offset_source": "data/numbering_offsets.json",
+            "ca_xyz_angstrom": [
+              38.568,
+              18.653,
+              40.846
+            ]
+          },
+          {
+            "structure_id": "2HHB",
+            "chain": "C",
+            "pdb_author_position": 116,
+            "pdb_residue": "GLU",
+            "uniprot": "P69905",
+            "uniprot_position": 117,
+            "offset_source": "data/numbering_offsets.json",
+            "ca_xyz_angstrom": [
+              -15.138,
+              26.739,
+              37.327
+            ]
+          }
+        ]
+      }
+    ],
+    "missing": [
+      "Verified supplement Fig.S1 exact H/L residue states and full endpoint genotypes, Fig.S3/S4 values, Table1 numeric matrix and assay uncertainty; obtain before scoring accessible paths.",
+      "Explicit phenotype/effector condition and accessibility rule; higher oxygen affinity is not a condition-independent fitness measure.",
+      "Do not transfer the 2009 alpha five-site registry to this 12-site experiment."
+    ]
+  },
+  "verified_date": "2026-10-15",
+  "schema_version": "1.0"
+}

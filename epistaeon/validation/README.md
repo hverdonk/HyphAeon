@@ -1,6 +1,6 @@
 # Validation harness for `epistaeon`
 
-Tests whether `epistaeon` can reproduce the findings of four published studies,
+Tests whether `epistaeon` can reproduce the findings of four empirical cases,
 on two axes: **which epistatic sites it identifies**, and **the order of
 mutations, where a study measured it**. `epistaeon`'s internal machinery is not
 under test — only the sites and order it reports.
@@ -12,6 +12,14 @@ an input: agents are instructed not to read it, the registries contain no claim
 drawn from it, and the validator rejects any report citing it as a source.
 Its assertions are unreliable, so agreement or disagreement with it would carry
 no information.
+
+The [source-verified reference](../data/substitution_reference/README.md)
+(2026-10-15) extends and corrects the original registries. It includes event
+identities, structural locations, qualified ordered sets and explicit unknowns.
+Candidate-site recall and structural enrichment are not evidence of recovering
+individually demonstrated epistasis. Respect each target's `benchmark_scope`
+and `score_as_individual_site_epistasis` fields; the existing `validates` field
+is retained for report-schema compatibility, not as a claim of ground truth.
 
 ## Design
 
@@ -49,9 +57,13 @@ original study ───► adversary  ─► <id>.rebuttal.json ─────
   a genuine published finding because `epistaeon` did badly on it counts the
   same way.
 - **`not_testable` is a first-class verdict.** Several published findings
-  cannot be tested against the available inputs: the deer mouse is missing from
-  the globin alignments, and the phenotype panels that were published cover
-  only a handful of genotypes each. Scoring those as `epistaeon` failures would be
+  cannot be tested against the available inputs: the full phased experimental
+  deer-mouse allele panel is missing, and some phenotype panels cover only a
+  handful of genotypes. SWS1 instead has all 127 combinations of seven
+  substitutions; its eight historically favored paths remain distinct from
+  the paper's reported 1,032 paths accessible under the pigment-formation
+  assay. Scoring missing
+  inputs as `epistaeon` failures would be
   wrong, and scoring them as successes would be worse. They are counted
   separately and the summarizer may not average them away.
 - **False negatives are hunted too.** The adversary must verify reported
@@ -76,7 +88,7 @@ Or run the whole flow with `/validate-epistaeon`.
 Validate a single report while iterating:
 
 ```bash
-python3 epistaeon/validation/compact_reports.py --validate reports/rhodopsin.replication.json
+python3 epistaeon/validation/compact_reports.py --validate reports/sws1.replication.json
 ```
 
 ## Layout
@@ -84,6 +96,7 @@ python3 epistaeon/validation/compact_reports.py --validate reports/rhodopsin.rep
 | Path | Contents |
 | --- | --- |
 | `studies/*.json` | Per-study registry: published findings to test, local sources, structures, known data limits, minimum pair counts for the odds-ratio benchmark |
+| `../data/substitution_reference/` | Verified events and locations, partial-order semantics, source hashes and missing inputs |
 | `DATA_FACTS.md` | Operational facts agents need — numbering offsets, contact baselines, species coverage, model constraints. Facts about the data, not findings to replicate |
 | `schemas/*.json` | Report schemas for the two hand-offs |
 | `reports/` | Agent output (gitignored except this structure) |
@@ -92,19 +105,25 @@ python3 epistaeon/validation/compact_reports.py --validate reports/rhodopsin.rep
 ## Study status before any run
 
 From the structural and alignment audits already in `data/README.md` and
-`data/alignments/toga2/README.md`:
+`data/alignments/toga2/README.md` and the rebuilt SWS1 input in
+`data/alignments/sws1/README.md`:
 
 | Study | Targets | Prospects |
 | --- | --- |
-| `steroid_receptor` | SR1–SR4 | **Best case, and the only measured mutation order.** Ortlund 2007 and Bridgham 2009 assayed intermediates: SR4 tests the forward order constraint (group Z permissive for group Y), SR3 the forward/reverse asymmetry. |
-| `rhodopsin` | RH1–RH2 | **Best epistasis ground truth**: a published, statistically tested species-by-site interaction at site 83. |
-| `myoglobin` | MB1–MB2 | Species coverage good; the focal taxon is also the structure's species. |
-| `hemoglobin` | HB1–HB3 | **Largely untestable.** Storz 2009's focal species, the deer mouse, has no globin sequence in the alignments. |
+| `steroid_receptor` | SR1–SR6 | Assayed intermediate constraints, preferred paths and reverse group paths; 2011 C71S-first remains author conjecture. Reconstruction versions must stay distinct. |
+| `sws1` | SWS1 spectral tuning and path accessibility | Yokoyama 2014 tests all 127 seven-site mutant combinations. The paper reports 60 nonfunctional mutants and 1,032 accessible orders out of 5,040. The four historical substitution sets yield eight favored paths by phylogenetic inference, not eight uniquely viable paths. S1 transcription/path-count discrepancies must be reconciled before exact accessibility scoring. |
+| `myoglobin` | MB1–MB2 | Modern1MBO supports surface/charge enrichment. FigS2 branch assignments support phylogenetic partial order, not measured within-branch order or epistasis. |
+| `hemoglobin` | HB1–HB3 | Representative deer-mouse sequences are now present. Storz measures isoform/mixed-hemolysate effects, not individual-site epistasis or mutation order. |
 
-Eleven replication targets: **nine test site identification**, **two test
-mutation order** — both in the steroid receptor, the only system whose authors
-assayed intermediates. The other three published no ordering experiments, so
-order cannot be validated there at all, whatever `epistaeon` reports.
+Do not score unsupported site-pair or temporal labels. The original studies
+provide different kinds of evidence: experimentally assayed intermediate paths,
+phylogenetic branch precedence, contextual phenotype effects and unknown order.
+The reference preserves those distinctions. A comparator that joins model units
+to source events and scores conditional sets has not yet been implemented.
 
-A `not_testable` verdict on `hemoglobin` is the expected honest outcome; the
-harness is built to make that finding legible rather than to avoid it.
+The SWS1 input contains only extant boreoeutherian sequences rebuilt from the
+paper's accessions. It is not the recovered original alignment and contains no
+ancestral sequences. Source sites 46, 49, 52, 86, 93, 114 and 118 require the
+explicit crosswalk in `data/numbering_offsets.json`; they are not raw alignment
+columns or automatically current human UniProt positions. Bovine 1U19 is only
+the homolog template used in the original paper's structural modeling.

@@ -1,0 +1,78 @@
+LOCUS       XM_004046176            1177 bp    mRNA    linear   PRI 03-DEC-2012
+DEFINITION  PREDICTED: Gorilla gorilla gorilla opsin 1 (cone pigments),
+            short-wave-sensitive (OPN1SW), mRNA.
+ACCESSION   XM_004046176
+VERSION     XM_004046176.1
+KEYWORDS    RefSeq.
+SOURCE      Gorilla gorilla gorilla (western lowland gorilla)
+  ORGANISM  Gorilla gorilla gorilla
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Gorilla.
+COMMENT     MODEL REFSEQ:  This record is predicted by automated computational
+            analysis. This record is derived from a genomic sequence
+            (NW_004003774) annotated using gene prediction method: GNOMON,
+            supported by mRNA and EST evidence.
+            Also see:
+                Documentation of NCBI's Annotation Process
+            
+            [WARNING] On Nov 4, 2016 this sequence was replaced by
+            XM_004046176.2.
+            
+            ##Genome-Annotation-Data-START##
+            Annotation Provider :: NCBI
+            Annotation Status   :: Full annotation
+            Annotation Version  :: Gorilla gorilla Annotation Release 100
+            Annotation Pipeline :: NCBI eukaryotic genome annotation pipeline
+            Annotation Method   :: Best-placed RefSeq; Gnomon
+            Features Annotated  :: Gene; mRNA; CDS; ncRNA
+            ##Genome-Annotation-Data-END##
+FEATURES             Location/Qualifiers
+     source          1..1177
+                     /organism="Gorilla gorilla gorilla"
+                     /mol_type="mRNA"
+                     /sub_species="gorilla"
+                     /db_xref="taxon:9595"
+                     /chromosome="7"
+     gene            1..1177
+                     /gene="OPN1SW"
+                     /note="Derived by automated computational analysis using
+                     gene prediction method: GNOMON. Supporting evidence
+                     includes similarity to: 2 mRNAs, 6 ESTs, 10 Proteins"
+                     /db_xref="GeneID:101139215"
+     CDS             1..1047
+                     /gene="OPN1SW"
+                     /codon_start=1
+                     /product="short-wave-sensitive opsin 1"
+                     /protein_id="XP_004046224.1"
+                     /db_xref="GeneID:101139215"
+                     /translation="MRKMSEEEFYLFKNISPVGPWDGPQYHIAPVWAFYLQAAFMGTV
+                     FLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVF
+                     GRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTI
+                     GIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICF
+                     SYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNR
+                     NHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFQACIMKMVCGKAMTDESDTCSSQK
+                     TEVSTVSSTQVGPN"
+ORIGIN      
+        1 atgagaaaaa tgtcagagga agagttttat ctgttcaaaa atatctctcc ggtggggccg
+       61 tgggatgggc ctcagtacca cattgcccct gtctgggcct tctacctcca ggcagctttc
+      121 atgggcactg tcttccttat agggttccca ctcaatgcca tggtgctggt ggccacactg
+      181 cgctacaaaa agttgcggca gcccctcaac tacattctgg tcaacgtgtc cttcggaggc
+      241 ttcctcctct gcatcttctc tgtcttccct gtcttcgtcg ccagctgtaa cggatacttc
+      301 gtcttcggtc gccatgtttg tgctttggag ggcttcctgg gcactgtagc aggtctggtt
+      361 acaggctggt cactggcctt cctggccttt gagcgctaca ttgtcatctg taagcccttc
+      421 ggcaacttcc gcttcagctc caagcatgca ctgacggtgg tcctggctac ctggaccatt
+      481 ggtattggcg tctccatccc acccttcttt ggctggagcc ggttcatccc tgagggcctg
+      541 cagtgttcct gtggccctga ctggtacacc gtgggcacca aataccgcag cgagtcctat
+      601 acgtggttcc tcttcatctt ctgcttcatt gtgcctctct ccctcatctg cttctcctac
+      661 actcagctgc tgagggccct gaaagctgtt gcagctcagc agcaggagtc agctacgacc
+      721 cagaaggctg aacgggaggt gagccgcatg gtggttgtga tggtaggatc cttctgtgtc
+      781 tgctacgtgc cctacgcggc cttcgccatg tacatggtca acaaccgtaa ccatgggctg
+      841 gacttacggc ttgtcaccat tccttcattc ttctccaaga gtgcttgcat ctacaatccc
+      901 atcatctact gcttcatgaa taagcagttc caagcttgca tcatgaagat ggtgtgtggg
+      961 aaggccatga cagatgaatc cgacacatgc agctcccaga aaacagaagt ttctactgtc
+     1021 tcgtctaccc aagttggccc caactgagga cccaatattg gcctgtttgc aacagctaga
+     1081 attaaatttt acttttaagt aagtttctat tgtctccgtc agaaaccaaa ctactaaaaa
+     1141 cacaaaaaag atggtaagag gagtgatggc agtttgg
+//
+
