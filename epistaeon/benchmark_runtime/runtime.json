@@ -51,5 +51,14 @@
     ],
     "tmpfs": "/tmp"
   },
-  "source_policy": "Only explicitly allowlisted production Python modules; no documentation, empirical references, experimental files, tests or agent histories."
+  "source_policy": "Only explicitly allowlisted production Python modules; no documentation, empirical references, experimental files, tests or agent histories.",
+  "hyphy": {
+    "version": "2.5.96",
+    "upstream_commit": "c2daaafe3f372e8e0f44e275db61f37c74a1516d",
+    "source_url": "https://codeload.github.com/veg/hyphy/tar.gz/c2daaafe3f372e8e0f44e275db61f37c74a1516d",
+    "source_sha256": "59c4a7420f6a6f73d78f55ca13fc368b0893582fde468f5a48d25628b28177dc",
+    "build_snapshot": "https://snapshot.debian.org/archive/debian/20250501T000000Z",
+    "cpu_profile": "generic x86-64; no AVX/SSE4/NEON; static libstdc++/libgcc; no OpenMP, MPI, CURL, BLAS or ZLIB",
+    "installation": "/opt/hyphy"
+  }
 }

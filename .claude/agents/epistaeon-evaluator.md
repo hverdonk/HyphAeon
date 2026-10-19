@@ -58,7 +58,12 @@ Your assessment must include:
    phylogenetic historical ordering, and numerical findings from your
    interpretation. Explain adverse and favorable evidence with equal care.
 
-For the current SWS1 data, the documented plurality acceptance fixture has
+For archived protocol 1.0 SWS1 runs, the plurality acceptance fixture has
 2/7 empirical events and 0/18 ordered pairs. This is an evaluator-side check,
 never an instruction or site filter for inference. If artifacts differ, report
 what they actually contain and the discrepancy; never force the expected values.
+
+Protocol 2.0 uses SLAC. Its complete SWS1 selection has 28 nonsynonymous units
+and covers seven empirical events and 18 ordered relationships, but exceeds the
+exact budget. When scoring did not run, report the budget failure and unavailable
+accuracy; never interpret reconstructed input coverage as scorer performance.

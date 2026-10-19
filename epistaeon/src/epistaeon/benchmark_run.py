@@ -1,7 +1,8 @@
 """Host-side orchestration of an offline, reference-blind scorer comparison.
 
 The host builds a content-addressed inference image from an explicit source
-allowlist. Only four staged input files and an output directory enter workers.
+allowlist. Only declared alignment/tree/checkpoint/configuration inputs, frozen
+protocol/reconstruction artifacts and an output directory enter workers.
 There is deliberately no empirical-reference argument or native-run fallback.
 """
 
@@ -19,7 +20,7 @@ import time
 from .benchmark_artifacts import (
     SCORERS, canonical_digest, seal_run, sha256_file, utc_now, write_json,
 )
-from .benchmark_inputs import BenchmarkInputError, select_benchmark_inputs
+from .benchmark_inputs import BenchmarkInputError, read_codon_alignment
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -28,7 +29,7 @@ SOURCE_ALLOWLIST = {
     "epistaeon": ("epistaeon/src/epistaeon", (
         "__init__.py", "lattice.py", "scoring.py", "trajectory.py", "timing.py",
         "background.py", "couplings.py", "io.py", "cli.py",
-        "benchmark_inputs.py", "benchmark_worker.py",
+        "benchmark_inputs.py", "benchmark_worker.py", "ancestral.py", "benchmark_prepare.py",
     )),
     "aeon_core": ("aeon-core/src/aeon_core", (
         "__init__.py", "model.py", "weights.py", "inference.py", "splits.py",
@@ -208,7 +209,10 @@ def _run_container(command, **kwargs):
 ISOLATION_PROBE = r'''
 import importlib.metadata, json, os, pathlib, shutil, socket
 p = pathlib.Path('/inputs')
-assert sorted(x.name for x in p.iterdir()) == ['alignment.fa', 'config.json', 'model.safetensors', 'protocol.json']
+expected = {'alignment.fa', 'config.json', 'model.safetensors', 'protocol.json', 'asr_alignment.fa', 'asr_tree.nwk'}
+if (p/'reconstruction.json').exists(): expected.add('reconstruction.json')
+assert {x.name for x in p.iterdir()} == expected
+assert shutil.which('hyphy') is not None
 assert all(not x.is_symlink() and x.is_file() for x in p.iterdir())
 for name in ('/app/AGENTS.md', '/app/src/epistaeon/AGENTS.md', '/app/data', '/app/epistaeon/data', '/workspace', '/var/run/docker.sock', '/app/src/epistaeon/benchmark_evaluate.py', '/app/src/epistaeon/benchmark_run.py'):
     assert not pathlib.Path(name).exists(), name
@@ -240,9 +244,11 @@ def check_isolation(image_id, inputs, outputs):
     return json.loads(result.stdout)
 
 
-def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id):
+def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id, asr_node):
     return {
-        "schema_version": "1.0", "focal_taxon": focal_taxon,
+        "schema_version": "2.0", "focal_taxon": focal_taxon,
+        "ancestral_method": "hyphy-slac", "asr_node": asr_node,
+        "asr_alignment": "/inputs/asr_alignment.fa", "asr_tree": "/inputs/asr_tree.nwk",
         "scorers": list(SCORERS), "seed": 0, "mode": "exact",
         "max_genotypes": max_genotypes, "temperature": 0.5, "alpha": 1.0,
         "anchor": "root-token", "viability_floor": None, "device": "cpu", "threads": 1,
@@ -253,7 +259,7 @@ def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id):
     }
 
 
-def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
+def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *, asr_tree=None, asr_node=None, asr_alignment=None):
     alignment = _regular_file(alignment, "Alignment")
     weights = _regular_file(weights, "Checkpoint")
     if weights.suffix != ".safetensors":
@@ -265,7 +271,15 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
         raise BenchmarkRunError("Checkpoint config.json is invalid JSON") from exc
     if not isinstance(architecture, dict) or not architecture:
         raise BenchmarkRunError("Checkpoint config.json must be a nonempty JSON object")
-    selection = select_benchmark_inputs(alignment, focal_taxon, max_genotypes)
+    if not asr_tree or not asr_node:
+        raise BenchmarkRunError("--asr-tree and --asr-node are required for SLAC reconstruction")
+    asr_tree = _regular_file(asr_tree, "ASR tree")
+    asr_alignment = _regular_file(asr_alignment or alignment, "ASR alignment")
+    rows, asr_rows = read_codon_alignment(alignment), read_codon_alignment(asr_alignment)
+    if focal_taxon not in rows or any(asr_rows.get(name) != seq for name, seq in rows.items()):
+        raise BenchmarkInputError("ASR alignment must contain identical sequences for every scoring taxon")
+    if type(max_genotypes) is not int or max_genotypes < 1:
+        raise BenchmarkInputError("max_genotypes must be a positive integer")
     output = Path(output).expanduser()
     if output.exists() or output.is_symlink():
         raise BenchmarkRunError("Output already exists; each frozen benchmark needs a new directory")
@@ -283,16 +297,17 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
     try:
         for key, origin, target in (("alignment", alignment, "alignment.fa"),
                                     ("weights", weights, "model.safetensors"),
-                                    ("config", config, "config.json")):
+                                    ("config", config, "config.json"),
+                                    ("asr_alignment", asr_alignment, "asr_alignment.fa"),
+                                    ("asr_tree", asr_tree, "asr_tree.nwk")):
             shutil.copyfile(origin, inputs / target)
         hashes = {"alignment": sha256_file(inputs / "alignment.fa"),
                   "weights": sha256_file(inputs / "model.safetensors"),
-                  "config": sha256_file(inputs / "config.json")}
-        # Recheck the staged bytes, not just the original path before copying.
-        staged_selection = select_benchmark_inputs(inputs / "alignment.fa", focal_taxon, max_genotypes)
-        if staged_selection != selection:
+                  "config": sha256_file(inputs / "config.json"),
+                  "asr_alignment": sha256_file(inputs / "asr_alignment.fa"),
+                  "asr_tree": sha256_file(inputs / "asr_tree.nwk")}
+        if read_codon_alignment(inputs / "alignment.fa") != rows or read_codon_alignment(inputs / "asr_alignment.fa") != asr_rows:
             raise BenchmarkRunError("Alignment changed while staging the benchmark")
-        write_json(output / "selection.json", selection)
         source_manifest = snapshot_sources(output / "source")
         write_json(output / "source_manifest.json", source_manifest)
         runtime_config = json.loads((RUNTIME / "runtime.json").read_text())
@@ -305,7 +320,7 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
             image = build_image(context, digest, output / "build.log")
         write_json(output / "runtime_image.json", image)
         source_digest = source_manifest["source_snapshot_sha256"]
-        protocol = _protocol(focal_taxon, hashes, max_genotypes, source_digest, image["Id"])
+        protocol = _protocol(focal_taxon, hashes, max_genotypes, source_digest, image["Id"], asr_node)
         write_json(output / "protocol.json", protocol)
         write_json(inputs / "protocol.json", protocol)
         write_json(output / "execution_manifest.json", {
@@ -314,13 +329,42 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
             "runtime_image_id": image["Id"], "runtime_config_sha256": sha256_file(output / "runtime_config.json"),
             "requirements_sha256": sha256_file(output / "requirements.lock"),
             "docker_version": docker_version, "input_hashes": hashes,
-            "blinding": "Offline allowlisted inference image; alignment/checkpoint/config/protocol inputs only; no reference or evaluator access",
+            "blinding": "Offline allowlisted inference image; declared alignment/tree/checkpoint/config/protocol/reconstruction inputs only; no reference or evaluator access",
             "scorer_semantics": {
                 "softmax-repaired": "Existing appended-row placement and remaining-unit alternatives retained",
                 "dphi-product": "Diagnostic baseline; existing nonpositive-increment blocking retained",
             },
         })
         write_json(output / "isolation_check.json", check_isolation(image["Id"], inputs, methods))
+        # This deterministic preparation container sees only declared inputs.
+        preparation = docker_command(image["Id"], inputs, methods, "python", "-m", "epistaeon.benchmark_prepare",
+                                     "--protocol", "/inputs/protocol.json", "--output", "/outputs/asr")
+        with (output / "asr_stdout.log").open("w") as out, (output / "asr_stderr.log").open("w") as err:
+            prepared = _run_container(preparation, stdout=out, stderr=err)
+        write_json(output / "asr_execution.json", {"command": preparation, "exit_code": prepared.returncode})
+        if prepared.returncode:
+            raise BenchmarkRunError("SLAC preparation failed; inspect asr_stderr.log and methods/asr logs")
+        shutil.move(str(methods / "asr"), str(output / "asr"))
+        selection = json.loads((output / "asr/selection.json").read_text())
+        write_json(output / "selection.json", selection)
+        shutil.copyfile(output / "asr/reconstruction.json", inputs / "reconstruction.json")
+        protocol["reconstruction_sha256"] = sha256_file(inputs / "reconstruction.json")
+        # Retain the exact protocol used for preparation, then freeze the derived
+        # reconstruction hash before any checkpoint inference starts.
+        shutil.copyfile(output / "protocol.json", output / "preparation_protocol.json")
+        write_json(output / "protocol.json", protocol)
+        write_json(inputs / "protocol.json", protocol)
+        execution = json.loads((output / "execution_manifest.json").read_text())
+        execution["protocol_sha256"] = sha256_file(output / "protocol.json")
+        execution["reconstruction_sha256"] = protocol["reconstruction_sha256"]
+        write_json(output / "execution_manifest.json", execution)
+        if not selection["budget_ok"]:
+            run_status.update(status="preflight_failed", error=selection["budget_error"])
+            for scorer in SCORERS:
+                write_json(methods / scorer / "status.json", {"schema_version": "2.0", "scorer": scorer,
+                           "status": "failed", "exit_code": None, "reason": "exact_budget_exceeded",
+                           "analysis_executed": False})
+            raise BenchmarkInputError(selection["budget_error"])
         # No truth is available here. No scorer's outcome can change settings
         # or decide whether another scorer is run.
         for scorer in SCORERS:
@@ -368,7 +412,7 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
         run_status.update(status="completed" if not failed else "completed_with_failures", failed_methods=failed)
     except (Exception, KeyboardInterrupt) as exc:
         failure = exc
-        run_status.update(status="interrupted" if isinstance(exc, KeyboardInterrupt) else "setup_or_execution_failed",
+        run_status.update(status="preflight_failed" if run_status["status"] == "preflight_failed" else "interrupted" if isinstance(exc, KeyboardInterrupt) else "setup_or_execution_failed",
                           error=str(exc))
         if isinstance(exc, ContainerCleanupUnconfirmed):
             run_status.update(
@@ -403,7 +447,8 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
 def cmd_benchmark_run(args):
     try:
         output = run_benchmark(args.alignment, args.focal_taxon, args.weights,
-                               args.output, args.max_genotypes)
+                               args.output, args.max_genotypes, asr_tree=args.asr_tree,
+                               asr_node=args.asr_node, asr_alignment=args.asr_alignment)
     except (BenchmarkRunError, BenchmarkInputError, OSError, subprocess.TimeoutExpired) as exc:
         print(f"benchmark-run: {exc}", file=sys.stderr)
         return 2

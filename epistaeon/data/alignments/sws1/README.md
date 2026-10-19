@@ -131,9 +131,10 @@ These checks do not run or evaluate the `epistaeon` model.
 For selecting the seven focal units in an extant-only run with
 `--focal-taxon Homo_sapiens`, use `--sites sites_human.txt`; `sites_columns.txt`
 is the equivalent explicit `c<N>` codon-column list. These files do not supply
-an ancestral row or impose an ancestral codon. Without `--ancestor`, the CLI
-infers its own plurality states and must report that background rather than
-calling it the published experimental ancestor. Keep all seven substitutions
+an ancestral row or impose an ancestral codon. Without `--ancestor`, provide `--asr-tree`, `--asr-node`, and (when needed)
+`--asr-alignment` for SLAC reconstruction. The verified ASR outgroup inputs live
+in `validation/sws1_slac/inputs/`. Reconstructed states remain point estimates,
+with their node and provenance reported independently of the paper truth. Keep all seven substitutions
 separate: the historical stage sets denote unresolved chronology, not mutations
 that occurred simultaneously.
 

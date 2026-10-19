@@ -120,7 +120,7 @@ def _benchmark_endpoints(rows, focal_taxon, selection):
         substitutions=[Substitution(e["column0"], e["ancestral"], e["derived"], e["name"])
                        for e in events],
         reference_name=focal_taxon, residue_number=residue_number,
-        plurality_support={e["column0"]: e["plurality_support"] for e in events},
+        plurality_support={e["column0"]: e["plurality_support"] for e in events if "plurality_support" in e},
         classes={e["column0"]: "nonsynonymous" for e in events},
     )
     full = list(ends.ancestral_codons)
@@ -133,14 +133,27 @@ def _benchmark_endpoints(rows, focal_taxon, selection):
 
 def cmd_order(args: argparse.Namespace) -> int:
     benchmark_selection = None
+    reconstruction = getattr(args, "_benchmark_reconstruction", None)
+    asr_options = [getattr(args, key, None) for key in ("asr_tree", "asr_node", "asr_alignment", "hyphy")]
+    if args.ancestor and any(asr_options):
+        raise SystemExit("--ancestor conflicts with ASR arguments")
+    if not getattr(args, "_benchmark_profile", False) and not args.ancestor:
+        from .ancestral import AncestralError, reconstruct
+        if not getattr(args, "asr_tree", None) or not getattr(args, "asr_node", None):
+            raise SystemExit("Without --ancestor, --asr-tree and --asr-node are required for SLAC; no plurality fallback")
+        try:
+            reconstruction = reconstruct(args.alignment, args.focal_taxon, args.asr_tree, args.asr_node,
+                                         f"{args.output}/asr", args.asr_alignment, args.hyphy)
+        except AncestralError as exc:
+            raise SystemExit(str(exc)) from exc
     if getattr(args, "_benchmark_profile", False):
         from .benchmark_inputs import BenchmarkInputError, select_benchmark_inputs
         if args.sites or args.blocks or args.ancestor or args.max_species is not None:
             raise SystemExit("benchmark profile forbids sites, blocks, ancestor, and taxon downsampling")
         try:
-            benchmark_selection = select_benchmark_inputs(
-                args.alignment, args.focal_taxon, args.max_genotypes
-            )
+            benchmark_selection = getattr(args, "_benchmark_selection", None)
+            if benchmark_selection is None:
+                benchmark_selection = select_benchmark_inputs(args.alignment, args.focal_taxon, args.max_genotypes)
         except BenchmarkInputError as exc:
             raise SystemExit(str(exc)) from exc
     import numpy as np
@@ -172,10 +185,12 @@ def cmd_order(args: argparse.Namespace) -> int:
     rows = ctx.rows()
     ends = (_benchmark_endpoints(rows, ctx.derived_name, benchmark_selection)
             if benchmark_selection is not None
-            else derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name))
+            else derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name,
+                                  inferred_codons=reconstruction["codons"] if reconstruction else None))
     if args.sites:
         columns = resolve_positions(open(args.sites).read().split(), ends)
-        ends = derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name, columns=columns)
+        ends = derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name, columns=columns,
+                                inferred_codons=reconstruction["codons"] if reconstruction else None)
     subs = ends.substitutions
     if not subs:
         raise SystemExit(
@@ -212,7 +227,7 @@ def cmd_order(args: argparse.Namespace) -> int:
                 blocks.append([i])
                 names.append(sub.name())
     lattice = Lattice(ends.ancestral_protein, subs, blocks=blocks, block_names=names)
-    source = ctx.ancestor_name or "column plurality"
+    source = ctx.ancestor_name or (f"SLAC node {reconstruction['node']}" if reconstruction else "legacy column plurality")
     counts = ends.class_counts()
     breakdown = ", ".join(f"{n} {k}" for k, n in sorted(counts.items()))
     print(f"[*] {lattice.n_substitutions} codon substitutions from {source} to "
@@ -244,17 +259,21 @@ def cmd_order(args: argparse.Namespace) -> int:
         "mode": mode,
         "t_sel": args.t_sel,
     }
+    if reconstruction is not None:
+        provenance["ancestral_states"] = f"HyPhy SLAC joint maximum-likelihood reconstruction of internal node {reconstruction['node']}"
+        provenance["ancestral_reconstruction"] = {key: reconstruction[key] for key in ("method", "node", "descendant_taxa")}
+        provenance["ancestral_reconstruction"]["hyphy_version"] = reconstruction["provenance"]["hyphy_version"]
     if benchmark_selection is not None:
         provenance["input_profile"] = {
-            "name": "blinded-benchmark-v1", "event_policy": "resolved_nonsynonymous",
+            "name": "blinded-benchmark-slac-v2" if reconstruction else "blinded-benchmark-v1", "event_policy": "resolved_nonsynonymous",
             "fixed_background": "focal", "all_alignment_taxa_retained": True,
             "selection_file": "selection.json",
             "classification_counts": benchmark_selection["classification_counts"],
             "full_mask_reproduces_focal": benchmark_selection["full_mask_reproduces_focal"],
         }
         provenance["ancestral_states"] = (
-            "nonfocal plurality residue/codon at selected resolved nonsynonymous "
-            "columns; every excluded column is frozen at its focal codon"
+            ("SLAC ancestral codon" if reconstruction else "nonfocal plurality residue/codon") +
+            " at selected resolved nonsynonymous columns; every excluded column is frozen at its focal codon"
         )
         provenance["substitution_unit"] = "resolved nonsynonymous codon change"
         provenance["diagnostic_baseline"] = args.scorer == "dphi-product"
@@ -457,7 +476,9 @@ def cmd_order(args: argparse.Namespace) -> int:
             "context within the genotype.",
         ],
     }
-    if not ctx.ancestor_name:
+    if reconstruction is not None:
+        payload["caveats"].append("Starting states are SLAC joint-ML point estimates; residue posterior uncertainty was not computed.")
+    elif not ctx.ancestor_name:
         payload["caveats"].append(
             ("No --ancestor row was given, so the selected starting residues are the "
              "plurality residues in their alignment columns. That is a consensus, "
@@ -510,9 +531,11 @@ def build_parser() -> argparse.ArgumentParser:
                    dest="focal_taxon", metavar="NAME",
                    help="alignment row holding the derived (end-point) sequence")
     o.add_argument("--ancestor", default=None, metavar="NAME",
-                   help="alignment row holding the ancestral sequence; omit to take "
-                        "each ancestral state from its column's plurality residue "
-                        "and anchor phi at the [ROOT] embedding")
+                   help="ancestral alignment row; otherwise require --asr-tree and --asr-node for SLAC, with [ROOT] anchoring")
+    o.add_argument("--asr-tree", help="Newick tree used only for SLAC reconstruction, not genotype distances")
+    o.add_argument("--asr-node", help="named internal SLAC ancestral node containing the focal taxon")
+    o.add_argument("--asr-alignment", help="optional column-identical ASR alignment with extra outgroups")
+    o.add_argument("--hyphy", help="existing HyPhy 2.5.96 executable; defaults to PATH")
     o.add_argument("--scorer", default="potts-metropolis",
                    choices=["potts-metropolis", "typicality-gate", "softmax-repaired", "dphi-product"])
     o.add_argument("--mode", default="auto", choices=["auto", "exact", "sample"])
@@ -550,6 +573,9 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("benchmark-run", help="run all scorers in an isolated, truth-blind runtime")
     run.add_argument("--alignment", required=True)
     run.add_argument("--focal-taxon", required=True)
+    run.add_argument("--asr-tree", required=True)
+    run.add_argument("--asr-node", required=True)
+    run.add_argument("--asr-alignment", help="optional aligned outgroups; scoring taxa remain unchanged")
     run.add_argument("--weights", required=True, help="local .safetensors checkpoint; config.json must be beside it")
     run.add_argument("--max-genotypes", type=int, default=4096,
                      help="exact genotype ceiling; never subsamples sites or switches to sampling")

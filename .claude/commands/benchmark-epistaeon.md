@@ -3,17 +3,19 @@ description: Run a blinded, sealed epistaeon scorer benchmark, evaluate it separ
 ---
 
 Read `epistaeon/validation/BLINDED_BENCHMARK.md`. Use the requested alignment,
-focal taxon, local checkpoint, and a new run directory. Default to the documented
+focal taxon, local checkpoint, ASR tree, named internal ASR node, optional
+column-identical ASR outgroup alignment, and a new run directory. Default to the documented
 SWS1/Homo_sapiens example when the user has not supplied a different case.
 
 1. Run the deterministic `epistaeon benchmark-run` command. Do not invoke an
    analysis agent or the manuscript-reading `epistaeon-replicator`. The runner
-   accepts no truth reference, expected sites, blocks, ancestor or expected
-   order. Do not manually derive or pass a site list. Keep empirical references,
+   accepts no truth reference, expected sites, blocks, supplied ancestor sequence
+   or expected order. SLAC reconstruction happens inside its isolated runtime. Do not manually derive or pass a site list. Keep empirical references,
    papers, repository documentation and agent histories outside its container.
 2. Require a valid seal, frozen protocol and all four method-status artifacts
-   before evaluation. `completed_with_failures` is evaluable: preserve failed
-   methods explicitly. If setup fails or required artifacts are missing, report
+   before evaluation. `completed_with_failures` and a sealed `preflight_failed`
+   exact-budget rejection are evaluable: preserve failed or unrun methods
+   explicitly without assigning order accuracy. If setup fails or required artifacts are missing, report
    the recorded failure. Do not fall back to an unisolated run, sampling or fewer
    sites. A failure is not permission to change settings against the known answer.
 3. Only after sealing, run `epistaeon benchmark-evaluate --run <sealed-run>

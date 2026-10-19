@@ -230,3 +230,35 @@ def test_one_unit_is_valid_for_every_existing_scorer(frozen, monkeypatch, scorer
     payload = json.loads((output / "order.json").read_text())
     assert payload["accessible"]
     assert payload["map_order"] == ["S1P"]
+
+
+@pytest.mark.parametrize("scorer", SCORERS)
+def test_slac_v2_uses_frozen_ancestor_for_every_scorer(frozen, monkeypatch, scorer):
+    protocol, path = frozen
+    directory = path.parent
+    asr_paths = {"asr_alignment": str(directory / "asr.fa"), "asr_tree": str(directory / "asr.nwk")}
+    monkeypatch.setattr(worker, "ASR_PATHS", asr_paths)
+    Path(asr_paths["asr_alignment"]).write_text(Path(protocol["alignment"]).read_text())
+    Path(asr_paths["asr_tree"]).write_text("(focal,other,duplicate)Anc;")
+    reconstruction = {"method": "hyphy-slac", "node": "Anc", "codons": ["AGC", "TGC", "AAA"],
+                      "amino_acid_states": ["S", "C", "K"], "descendant_taxa": ["focal", "other", "duplicate"],
+                      "provenance": {"hyphy_version": "HYPHY 2.5.96(MP)"}}
+    rpath = directory / "reconstruction.json"
+    rpath.write_text(json.dumps(reconstruction))
+    protocol.update(schema_version="2.0", ancestral_method="hyphy-slac", asr_node="Anc",
+                    reconstruction_sha256=sha256_file(rpath), **asr_paths)
+    protocol["input_hashes"].update({key: sha256_file(value) for key, value in asr_paths.items()})
+    path.write_text(json.dumps(protocol))
+    _fake_engine(monkeypatch)
+    output = worker.OUTPUT_ROOT / scorer
+    assert worker.run_worker(path, scorer, output) == 0
+    payload = json.loads((output / "order.json").read_text())
+    assert "SLAC" in payload["provenance"]["ancestral_states"]
+    assert payload["provenance"]["input_profile"]["name"] == "blinded-benchmark-slac-v2"
+    assert "plurality_support" not in payload["provenance"]
+    assert json.loads((output / "selection.json").read_text())["starting_codons"] == ["AGC", "TGC", "AAG"]
+    # Tampering with the staged ancestor is rejected before any inference call.
+    rpath.write_text(json.dumps(dict(reconstruction, node="other")))
+    monkeypatch.setattr(worker, "_configure_determinism", lambda: pytest.fail("model imported"))
+    with pytest.raises(BenchmarkInputError, match="SHA-256"):
+        worker.run_worker(path, scorer, worker.OUTPUT_ROOT / "tampered")

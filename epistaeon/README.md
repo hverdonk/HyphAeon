@@ -1,7 +1,7 @@
 # epistaeon
 
 Infers **the order in which substitutions arrived** along one phylogenetic
-branch, and whether some had to come before others. Given an ancestral and a
+branch, and whether some had to come before others. Given a reconstructed ancestor and a
 derived row of a codon alignment, it enumerates the orderings of the codon
 substitutions between them, scores each intermediate genotype with the
 hyphaeon model, and reports which orderings pass only through plausible
@@ -37,10 +37,11 @@ python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
 
 ## Blinded benchmark
 
-`benchmark-run` runs all four scorers in an offline Docker container with only
-extant alignment data, the focal taxon and a local checkpoint/configuration.
-It selects nonsynonymous plurality-to-focal changes automatically and seals its
-outputs before a separate command can read the empirical reference:
+`benchmark-run` reconstructs an ancestor with HyPhy SLAC and runs all four
+scorers in offline Docker containers with declared alignments, an ASR tree/node
+and a local checkpoint/configuration. It selects resolved nonsynonymous changes
+automatically and seals its outputs before a separate command reads the
+empirical reference:
 
 ```bash
 # From the repository root; Docker must be running.
@@ -48,6 +49,9 @@ export PYTHONPATH=aeon-core/src:hyphaeon/src:epistaeon/src
 python3 -m epistaeon.cli benchmark-run \
   --alignment epistaeon/data/alignments/sws1/SWS1.codonified.fa \
   --focal-taxon Homo_sapiens --weights epistaeon/data/model/model.safetensors \
+  --asr-alignment epistaeon/validation/sws1_slac/inputs/SWS1.outgroups.codon.fa \
+  --asr-tree epistaeon/validation/sws1_slac/inputs/species_scaffold.nwk \
+  --asr-node Boreoeutheria \
   --output epistaeon/validation/runs/sws1-001
 python3 -m epistaeon.cli benchmark-evaluate \
   --run epistaeon/validation/runs/sws1-001 \
@@ -58,8 +62,15 @@ python3 -m epistaeon.cli benchmark-evaluate \
 Use a new run path and a sibling `config.json` beside the checkpoint. See the
 [blinded benchmark workflow](validation/BLINDED_BENCHMARK.md) for pinned runtime
 settings, artifact contracts, coverage metrics and the read-only evaluator agent.
-The current SWS1 plurality input covers no empirically ordered pair, so it cannot
-yet provide a historical-order accuracy score.
+SLAC recovers all seven SWS1 focal ancestral states, but its complete 28-unit
+selection needs 268,435,456 genotypes. The example saves and seals ASR artifacts
+then stops at the unchanged exact-inference limit before checkpoint inference.
+The evaluator reports unrun methods without order-accuracy scores.
+
+For native `order`, supply `--asr-tree` and `--asr-node` whenever `--ancestor`
+is omitted. `--asr-alignment` can add aligned outgroups without changing the
+scoring taxa. The existing HyPhy 2.5.96 on PATH is used; `--hyphy` overrides it.
+Missing or incompatible HyPhy is an error, with no plurality fallback.
 
 ---
 
@@ -213,7 +224,7 @@ are equal.
 | `data/README.md` | Full structure audit and contact-mapping fitness report |
 | `data/model/` | Model checkpoint (gitignored; see `AGENTS.md` for the fetch) |
 | `src/epistaeon/` | The engine: `lattice`, `scoring`, `trajectory`, `background`, `timing`, `cli` |
-| `tests/` | 33 tests, incl. exact-DP-vs-brute-force and the inert-scorer regression |
+| `tests/` | Endpoint, SLAC, inference, scorer and isolated benchmark verification |
 | `validation/` | Blinded benchmark workflow and separate replication harness |
 | `benchmark_runtime/` | Pinned Docker image definition and dependency hashlock |
 | `scripts/` | Reproduces every number in `data/README.md` |

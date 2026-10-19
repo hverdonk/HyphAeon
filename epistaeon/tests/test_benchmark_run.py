@@ -11,11 +11,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from epistaeon import benchmark_run as runner
 from epistaeon.benchmark_artifacts import SCORERS, sha256_file, verify_seal, write_json
-from epistaeon.benchmark_inputs import BenchmarkInputError
+from epistaeon.benchmark_inputs import BenchmarkInputError, read_codon_alignment, select_reconstructed, residue_of
 from epistaeon.benchmark_worker import validate_protocol
 
 
 IMAGE = "sha256:" + "a" * 64
+
+
+def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
+    tree = Path(alignment).parent / "asr_tree.nwk"
+    tree.write_text("(focus,other1,other2)Anc;")
+    return runner.run_benchmark(alignment, focal_taxon, weights, output, max_genotypes,
+                                asr_tree=tree, asr_node="Anc")
 
 
 def inputs(tmp_path):
@@ -42,13 +49,23 @@ def mock_runtime(monkeypatch, failed=None):
     def run(command, **kwargs):
         if command[:3] == ["docker", "rm", "--force"]:
             return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
-        commands.append(command)
-        scorer = command[command.index("--scorer") + 1]
-        # The bind spec is CSV (quoted paths with commas are supported).
         import csv
         specs = [command[i + 1] for i, item in enumerate(command) if item == "--mount"]
         output_spec = next(spec for spec in specs if "dst=/outputs" in spec)
         source = next(field[4:] for field in next(csv.reader([output_spec])) if field.startswith("src="))
+        if "epistaeon.benchmark_prepare" in command:
+            rows = read_codon_alignment(Path(source).parent / "inputs/alignment.fa")
+            codons = rows["other1"]
+            r = {"method": "hyphy-slac", "node": "Anc", "codons": codons,
+                 "amino_acid_states": [residue_of(c) for c in codons], "descendant_taxa": list(rows),
+                 "provenance": {"hyphy_version": "HYPHY 2.5.96(MP)"}}
+            method = Path(source) / "asr"
+            write_json(method / "reconstruction.json", r)
+            protocol = json.loads((Path(source).parent / "inputs/protocol.json").read_text())
+            write_json(method / "selection.json", select_reconstructed(rows, "focus", r, protocol["max_genotypes"]))
+            return subprocess.CompletedProcess(command, 0)
+        commands.append(command)
+        scorer = command[command.index("--scorer") + 1]
         method = Path(source) / scorer
         method.mkdir()
         selection = json.loads((Path(source).parent / "selection.json").read_text())
@@ -73,7 +90,7 @@ def mock_runtime(monkeypatch, failed=None):
 def test_all_four_methods_frozen_and_sealed(tmp_path, monkeypatch):
     alignment, weights = inputs(tmp_path)
     commands = mock_runtime(monkeypatch)
-    output = runner.run_benchmark(alignment, "focus", weights, tmp_path / "run")
+    output = run_benchmark(alignment, "focus", weights, tmp_path / "run")
     seal = verify_seal(output)
     protocol = json.loads((output / "protocol.json").read_text())
     validate_protocol(protocol)
@@ -96,7 +113,7 @@ def test_all_four_methods_frozen_and_sealed(tmp_path, monkeypatch):
 def test_failed_method_does_not_skip_other_methods(tmp_path, monkeypatch):
     alignment, weights = inputs(tmp_path)
     commands = mock_runtime(monkeypatch, failed="typicality-gate")
-    output = runner.run_benchmark(alignment, "focus", weights, tmp_path / "run")
+    output = run_benchmark(alignment, "focus", weights, tmp_path / "run")
     assert len(commands) == 4
     status = json.loads((output / "run_status.json").read_text())
     assert status["status"] == "completed_with_failures"
@@ -104,19 +121,27 @@ def test_failed_method_does_not_skip_other_methods(tmp_path, monkeypatch):
     verify_seal(output)
 
 
-def test_budget_failure_precedes_docker_and_output_creation(tmp_path, monkeypatch):
+def test_budget_failure_retains_complete_selection_and_runs_no_scorers(tmp_path, monkeypatch):
     alignment, weights = inputs(tmp_path)
-    monkeypatch.setattr(runner, "require_docker", lambda: pytest.fail("Docker reached before preflight"))
-    with pytest.raises(BenchmarkInputError, match="no sites are dropped"):
-        runner.run_benchmark(alignment, "focus", weights, tmp_path / "run", max_genotypes=2)
-    assert not (tmp_path / "run").exists()
+    commands = mock_runtime(monkeypatch)
+    with pytest.raises(runner.BenchmarkRunError, match="no sites are dropped"):
+        run_benchmark(alignment, "focus", weights, tmp_path / "run", max_genotypes=2)
+    assert commands == []
+    output = tmp_path / "run"
+    verify_seal(output)
+    selection = json.loads((output / "selection.json").read_text())
+    assert selection["n_units"] == 2 and not selection["budget_ok"]
+    assert (output / "asr/reconstruction.json").is_file()
+    assert json.loads((output / "run_status.json").read_text())["status"] == "preflight_failed"
+    for scorer in SCORERS:
+        assert not (output / "methods" / scorer / "order.json").exists()
 
 
 def test_docker_unavailable_has_no_fallback_or_output(tmp_path, monkeypatch):
     alignment, weights = inputs(tmp_path)
     monkeypatch.setattr(runner.shutil, "which", lambda _: None)
     with pytest.raises(runner.BenchmarkRunError, match="no unisolated fallback"):
-        runner.run_benchmark(alignment, "focus", weights, tmp_path / "run")
+        run_benchmark(alignment, "focus", weights, tmp_path / "run")
     assert not (tmp_path / "run").exists()
 
 
@@ -126,7 +151,7 @@ def test_existing_output_is_never_reused(tmp_path, monkeypatch):
     output.mkdir()
     monkeypatch.setattr(runner, "require_docker", lambda: pytest.fail("Docker reached"))
     with pytest.raises(runner.BenchmarkRunError, match="already exists"):
-        runner.run_benchmark(alignment, "focus", weights, output)
+        run_benchmark(alignment, "focus", weights, output)
 
 
 def test_setup_failure_seals_partial_artifacts(tmp_path, monkeypatch):
@@ -138,7 +163,7 @@ def test_setup_failure_seals_partial_artifacts(tmp_path, monkeypatch):
 
     monkeypatch.setattr(runner, "build_image", fail)
     with pytest.raises(runner.BenchmarkRunError, match="Partial artifacts are sealed"):
-        runner.run_benchmark(alignment, "focus", weights, tmp_path / "run")
+        run_benchmark(alignment, "focus", weights, tmp_path / "run")
     output = tmp_path / "run"
     verify_seal(output)
     assert json.loads((output / "run_status.json").read_text())["status"] == "setup_or_execution_failed"
@@ -153,6 +178,8 @@ def _interrupt_first_worker(monkeypatch, cleanup_failure=None, already_absent=Fa
     commands = []
 
     def interrupted(command, **kwargs):
+        if "epistaeon.benchmark_prepare" in command:
+            return ordinary_run(command, **kwargs)
         commands.append(command)
         if command[:2] == ["docker", "run"]:
             ordinary_run(command, **kwargs)
@@ -180,7 +207,7 @@ def test_interruption_cleanup_preserves_logs_command_timing_and_seal(
     commands = _interrupt_first_worker(monkeypatch, already_absent=already_absent)
     output = tmp_path / "run"
     with pytest.raises(runner.BenchmarkRunError, match="Partial artifacts are sealed"):
-        runner.run_benchmark(alignment, "focus", weights, output)
+        run_benchmark(alignment, "focus", weights, output)
     assert len(commands) == 2  # interrupted first method, then forced cleanup
     command, cleanup = commands
     assert cleanup == ["docker", "rm", "--force", command[command.index("--name") + 1]]
@@ -211,7 +238,7 @@ def test_unconfirmed_cleanup_preserves_failure_but_never_seals(
     commands = _interrupt_first_worker(monkeypatch, cleanup_failure=cleanup_failure)
     output = tmp_path / "run"
     with pytest.raises(runner.ContainerCleanupUnconfirmed, match="Artifacts are unsealed") as error:
-        runner.run_benchmark(alignment, "focus", weights, output)
+        run_benchmark(alignment, "focus", weights, output)
     assert str(output) in str(error.value)
     assert not (output / "seal.json").exists()
     with pytest.raises(ValueError, match="Cannot read benchmark seal"):
@@ -251,7 +278,7 @@ def test_nonzero_worker_exit_confirms_cleanup_and_preserves_normal_failure(
         return ordinary_run(command, **kwargs)
 
     monkeypatch.setattr(runner, "_run", run)
-    output = runner.run_benchmark(alignment, "focus", weights, tmp_path / "run")
+    output = run_benchmark(alignment, "focus", weights, tmp_path / "run")
     assert len(commands) == 4
     assert cleanups == [["docker", "rm", "--force", commands[0][commands[0].index("--name") + 1]]]
     method = output / "methods" / SCORERS[0]
@@ -277,7 +304,7 @@ def test_nonzero_docker_exit_with_unconfirmed_cleanup_remains_unsealed(tmp_path,
     monkeypatch.setattr(runner, "_run", run)
     output = tmp_path / "run"
     with pytest.raises(runner.ContainerCleanupUnconfirmed, match="Artifacts are unsealed") as error:
-        runner.run_benchmark(alignment, "focus", weights, output)
+        run_benchmark(alignment, "focus", weights, output)
     assert error.value.docker_exit_code == 2
     assert len(commands) == 1
     assert not (output / "seal.json").exists()
@@ -311,7 +338,7 @@ def test_isolation_probe_interruption_also_requires_confirmed_cleanup(tmp_path, 
     monkeypatch.setattr(runner, "_run", interrupted)
     output = tmp_path / "run"
     with pytest.raises(runner.ContainerCleanupUnconfirmed):
-        runner.run_benchmark(alignment, "focus", weights, output)
+        run_benchmark(alignment, "focus", weights, output)
     assert len(commands) == 2
     assert "--scorer" not in commands[0]  # probe failed before a worker was started
     assert not (output / "seal.json").exists()

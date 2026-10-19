@@ -53,11 +53,11 @@ def _payload(predictions=None, probabilities=None, order=None, uniform=False, ac
     }
 
 
-def _run(tmp_path, payload=None, reference=None, statuses=None):
+def _run(tmp_path, payload=None, reference=None, statuses=None, protocol=None):
     run_dir = tmp_path / "run"
     reference_path = tmp_path / "truth.json"
     write_json(run_dir / "protocol.json", {"schema_version": "1.0", "scorers": SCORERS,
-                                           "focal_taxon": "focus"})
+                                           "focal_taxon": "focus", **(protocol or {})})
     write_json(reference_path, _reference() if reference is None else reference)
     for scorer in SCORERS:
         status = {"scorer": scorer, "status": "completed", "exit_code": 0}
@@ -80,6 +80,7 @@ def _evaluate(tmp_path, **kwargs):
 
 def test_known_partial_order_metrics_and_candidates(tmp_path):
     report = _evaluate(tmp_path)
+    assert report["analysis_protocol"]["ancestral_method"] == "nonfocal-plurality"
     assert report["empirical_order"]["ordered_pairs"] == [["A", "C"], ["B", "C"]]
     assert report["empirical_order"]["historical_candidates"] == [["A", "B", "C"], ["B", "A", "C"]]
     assert len(report["methods"]) == 4
@@ -99,6 +100,16 @@ def test_known_partial_order_metrics_and_candidates(tmp_path):
     manifest = json.loads((tmp_path / "evaluation" / "evaluation_manifest.json").read_text())
     for filename, digest in manifest["outputs"].items():
         assert sha256_file(tmp_path / "evaluation" / filename) == digest
+
+
+def test_slac_protocol_is_reported_separately_and_unrun_methods_remain_unscored(tmp_path):
+    report = _evaluate(tmp_path, protocol={"schema_version": "2.0", "ancestral_method": "hyphy-slac", "asr_node": "Anc"},
+                       statuses={scorer: {"status": "failed", "exit_code": None,
+                                          "analysis_executed": False, "reason": "exact_budget_exceeded"}
+                                 for scorer in SCORERS})
+    assert report["analysis_protocol"] == {"schema_version": "2.0", "ancestral_method": "hyphy-slac", "asr_node": "Anc"}
+    for method in report["methods"]:
+        assert method["historical_order"] == {"status": "not_testable", "reason": "analysis_failed"}
 
 
 def test_reversed_direction_and_unmatched_events_are_not_false_positives(tmp_path):

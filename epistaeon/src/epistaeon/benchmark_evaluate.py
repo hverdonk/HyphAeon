@@ -394,8 +394,10 @@ def evaluate_run(run_dir: Path, reference_path: Path, output_dir: Path) -> dict[
     reference = _read_json(reference_path)
     protocol = _read_json(run_dir / "protocol.json")
     scorers = protocol.get("scorers")
-    if protocol.get("schema_version") != "1.0" or scorers != list(SCORERS):
-        raise ValueError("Protocol must use schema 1.0 and the four frozen scorers in order")
+    if protocol.get("schema_version") not in {"1.0", "2.0"} or scorers != list(SCORERS):
+        raise ValueError("Protocol must use schema 1.0 or 2.0 and the four frozen scorers in order")
+    if protocol["schema_version"] == "2.0" and protocol.get("ancestral_method") != "hyphy-slac":
+        raise ValueError("Protocol 2.0 requires hyphy-slac ancestry")
     alignment = reference.get("alignment", {})
     if not isinstance(alignment, dict):
         raise ValueError("Reference alignment metadata must be an object")
@@ -424,6 +426,11 @@ def evaluate_run(run_dir: Path, reference_path: Path, output_dir: Path) -> dict[
     report = {
         "schema_version": "1.0", "study_id": reference.get("study_id"),
         "evaluation_type": "phylogenetic_branch_precedence",
+        "analysis_protocol": {
+            "schema_version": protocol["schema_version"],
+            "ancestral_method": "nonfocal-plurality" if protocol["schema_version"] == "1.0" else "hyphy-slac",
+            "asr_node": protocol.get("asr_node"),
+        },
         "reference_sha256": reference_hash, "run_seal_sha256": seal_hash,
         "source_evidence": reference.get("sources", []),
         "empirical_order": {

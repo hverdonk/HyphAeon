@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from epistaeon.benchmark_artifacts import SCORERS, sha256_file, verify_seal, write_json
 from epistaeon.benchmark_evaluate import evaluate_run
-from epistaeon.benchmark_run import run_benchmark
+from epistaeon.benchmark_run import run_benchmark, BenchmarkRunError
 
 
 pytestmark = pytest.mark.skipif(os.environ.get("EPISTAEON_DOCKER_TEST") != "1",
@@ -67,7 +67,9 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
     synthetic_alignment(alignment)
     weights = ROOT / "epistaeon/data/model/model.safetensors"
     assert weights.is_file(), "Integration requires the local checkpoint; no downloads or native fallback"
-    runs = [run_benchmark(alignment, "focus", weights, tmp_path / f"run_{index}")
+    tree = tmp_path / "tree.nwk"
+    tree.write_text("(background_0,background_1,background_2,(background_3,background_4,focus)Anc)Root;")
+    runs = [run_benchmark(alignment, "focus", weights, tmp_path / f"run_{index}", asr_tree=tree, asr_node="Anc")
             for index in range(2)]
     for run in runs:
         verify_seal(run)
@@ -105,3 +107,29 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
     after = {p.relative_to(runs[0]).as_posix(): sha256_file(p)
              for p in runs[0].rglob("*") if p.is_file()}
     assert before == after
+
+
+def test_sws1_reconstruction_is_sealed_before_budget_rejection(tmp_path):
+    alignment = ROOT / "epistaeon/data/alignments/sws1/SWS1.codonified.fa"
+    data = ROOT / "epistaeon/validation/sws1_slac/inputs"
+    output = tmp_path / "sws1"
+    with pytest.raises(BenchmarkRunError, match="268435456"):
+        run_benchmark(alignment, "Homo_sapiens", ROOT / "epistaeon/data/model/model.safetensors", output,
+                      asr_alignment=data / "SWS1.outgroups.codon.fa", asr_tree=data / "species_scaffold.nwk",
+                      asr_node="Boreoeutheria")
+    verify_seal(output)
+    assert json.loads((output / "run_status.json").read_text())["status"] == "preflight_failed"
+    selection = json.loads((output / "selection.json").read_text())
+    assert selection["n_units"] == 28 and selection["n_genotypes"] == 268435456
+    assert (output / "asr/ancestor.codon.fa").is_file()
+    for scorer in SCORERS:
+        status = json.loads((output / "methods" / scorer / "status.json").read_text())
+        assert status["analysis_executed"] is False
+        assert not (output / "methods" / scorer / "order.json").exists()
+    # Truth enters only after the isolated preparation output has been sealed.
+    from epistaeon.benchmark_evaluate import _reference_order
+    truth = _reference_order(json.loads((ROOT / "epistaeon/data/substitution_reference/sws1.json").read_text()))
+    keys = {(e["column0"], e["ancestral"], e["derived"]) for e in selection["selected"]}
+    assert len(truth["keys"]) == 7 and set(truth["keys"]) <= keys
+    report = evaluate_run(output, ROOT / "epistaeon/data/substitution_reference/sws1.json", tmp_path / "evaluation")
+    assert all(method["historical_order"]["status"] == "not_testable" for method in report["methods"])

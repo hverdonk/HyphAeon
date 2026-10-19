@@ -164,7 +164,7 @@ python3 -m epistaeon.cli order \
   -o out/
 ```
 
-**Both endpoints are rows of the alignment**, named not supplied as FASTA.
+**Explicit endpoints are rows of the alignment**; otherwise SLAC supplies the ancestor.
 `--focal-taxon` (aliases `--descendant`, `--derived`) names the derived row;
 `--ancestor` names the ancestral one. Nothing is realigned, so no numbering
 mapping is involved. `--max-species` **keeps both endpoints** whatever Faith's
@@ -177,14 +177,15 @@ identical row that was kept. `--ancestor` need only be *in* the alignment: it
 supplies codons, and if it is not an analysed taxon it simply is not part of
 the background (`provenance.ancestor_in_background`).
 
-**Omit `--ancestor`** and each ancestral state becomes the **plurality residue
-of its alignment column** over the other rows, with φ anchored at the model's
-`[ROOT]` embedding instead of an ancestral sequence. That is a consensus, not a
-reconstruction: it can differ from the real ancestor at any column, so check
-`provenance.plurality_support` before reading the result as history. To use a
-reconstruction such as AncGR1, add it to the alignment as a row and name it.
+**Omit `--ancestor`** and provide `--asr-tree` and `--asr-node` to reconstruct
+ancestral codons with HyPhy SLAC 2.5.96. `--asr-alignment` optionally supplies
+column-identical outgroups while preserving the scoring alignment. Existing
+HyPhy on PATH is reused; `--hyphy` overrides native discovery. No plurality
+fallback remains. The inferred ancestor does not become another model taxon;
+phi retains its [ROOT] anchor. Explicit ancestral rows remain supported.
 
-**`order` requires `--use-tn93`**, and refuses a tree. Each genotype's
+**`order` requires `--use-tn93`**, and refuses `--tree` for genotype distances.
+The separate `--asr-tree` is used only for ancestral reconstruction. Each genotype's
 distances are recomputed from its sequence, and **a tree has no branch for a
 sequence that is not in it** — that alone rules out the tree path, whatever the
 scale.
@@ -375,9 +376,8 @@ Check these before believing anything:
 - **`discrimination.degenerate_uniform`** — if true, every ordering had equal
   weight and the scorer told you nothing. Compare `map_prob_normalised` against
   `uniform_baseline` (= 1/n!) every time.
-- **`provenance.ancestral_states`** and **`plurality_support`** — whether the
-  ancestral background is a real row or a per-column consensus, and how thin
-  that consensus is. A support near 0.5 is a coin toss, not an ancestor.
+- **`provenance.ancestral_states`** and **`plurality_support`** — whether ancestry came from an explicit row or a SLAC joint-ML node.
+  `plurality_support` applies only to archived v1 results.
 - **`provenance.host_row`** and **`ancestor_in_background`** — which row every
   genotype replaces, and whether the ancestor is also one of the analysed taxa.
 - **`provenance.forward_passes`** — one per distinct genotype; the run's cost.

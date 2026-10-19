@@ -1,4 +1,4 @@
-"""Truth-free, standard-library preflight for the frozen benchmark profile.
+"""Truth-free selection for SLAC benchmarks and archived plurality v1 runs.
 
 This module deliberately imports no numerical/model code. The input itself is
 the sole authority for which amino-acid changes enter the benchmark.
@@ -181,7 +181,64 @@ def select_from_rows(rows, focal_taxon, max_genotypes=4096):
 
 
 def select_benchmark_inputs(alignment, focal_taxon, max_genotypes=4096):
-    """Public host/worker preflight, before any checkpoint is imported."""
+    """Legacy protocol 1.0 selection, retained for archived-run compatibility."""
     selection = select_from_rows(read_codon_alignment(alignment), focal_taxon, max_genotypes)
     selection["alignment_sha256"] = sha256_file(alignment)
     return selection
+
+
+def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096):
+    """Select every resolved SLAC-to-focal AA change, without filtering to budget.
+
+    Budget diagnostics accompany the complete set so even a rejected run can
+    preserve its reconstructed ancestor and complete candidate selection.
+    """
+    if type(max_genotypes) is not int or max_genotypes < 1:
+        raise BenchmarkInputError("max_genotypes must be a positive integer")
+    if focal_taxon not in rows:
+        raise BenchmarkInputError("focal taxon must be an exact FASTA row name")
+    codons = reconstruction.get("codons")
+    focal = rows[focal_taxon]
+    if reconstruction.get("method") != "hyphy-slac" or not isinstance(codons, list) or len(codons) != len(focal):
+        raise BenchmarkInputError("A column-matched SLAC reconstruction is required")
+    states = reconstruction.get("amino_acid_states")
+    if not isinstance(states, list) or len(states) != len(focal):
+        raise BenchmarkInputError("SLAC amino-acid state arrays must match the alignment")
+    selected, columns, starting, counts = [], [], list(focal), Counter()
+    position = 0
+    for col, (source, target, state) in enumerate(zip(codons, focal, states)):
+        if not isinstance(source, str) or len(source) != 3:
+            raise BenchmarkInputError("Invalid reconstructed codon")
+        a, d = residue_of(source), residue_of(target)
+        if d != "-":
+            position += 1
+        unresolved = (len(state) != 1 or (a == "-" and source != "---")
+                      or (d == "-" and target != "---"))
+        kind = ("unresolved" if unresolved else "unchanged" if source == target else
+                "indel" if a == "-" or d == "-" else "synonymous" if a == d else "nonsynonymous")
+        entry = {"column0": col, "column1": col + 1, "residue_number": position if d != "-" else None,
+                 "ancestral": a, "derived": d, "ancestral_codon": source, "derived_codon": target,
+                 "ancestral_amino_acid_states": state, "class": kind, "selected": kind == "nonsynonymous"}
+        counts[kind] += 1
+        columns.append(entry)
+        if entry["selected"]:
+            starting[col] = source
+            selected.append(dict(entry, unit=len(selected), name=f"{a}{position}{d}"))
+    n = len(selected)
+    genotypes = 1 << n
+    error = ("No resolved nonsynonymous substitutions" if not n else
+             f"exact inference supports at most {EXACT_UNIT_LIMIT} units; found {n} ({genotypes} genotypes); no sites are dropped" if n > EXACT_UNIT_LIMIT else
+             f"exact inference needs {genotypes} genotypes, above max_genotypes {max_genotypes}; no sites are dropped" if genotypes > max_genotypes else None)
+    full = list(starting)
+    for event in selected:
+        full[event["column0"]] = event["derived_codon"]
+    if full != focal:
+        raise BenchmarkInputError("Full mask does not reproduce the focal sequence")
+    return {"schema_version": "2.0", "ancestral_method": "hyphy-slac", "asr_node": reconstruction["node"],
+            "focal_taxon": focal_taxon, "taxa": list(rows), "n_taxa": len(rows), "n_codons": len(focal),
+            "event_policy": "resolved_nonsynonymous", "fixed_background": "focal", "n_units": n,
+            "n_genotypes": genotypes, "max_genotypes": max_genotypes, "budget_ok": error is None,
+            "budget_error": error, "selected": selected, "columns": columns,
+            "selected_columns0": [event["column0"] for event in selected],
+            "classification_counts": dict(sorted(counts.items())), "ancestral_codons": codons,
+            "starting_codons": starting, "focal_codons": focal, "full_mask_reproduces_focal": True}

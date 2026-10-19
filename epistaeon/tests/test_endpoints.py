@@ -83,29 +83,23 @@ def test_deletion_is_an_indel_not_a_substitution_to_gap():
     assert ends.derived_codons[deletion.index] == GAP_CODON
 
 
-def test_without_an_ancestor_states_come_from_column_plurality():
-    # two rows carry S at column 2, one carries D; the derived row is excluded
-    rows = _rows(der=DER, a="AAA" + "AGC" + "TGC", b="AAA" + "AGT" + "TGC",
-                 c="AAA" + "GAC" + "TGC")
-    ends = derive_endpoints(rows, "der")
+def test_reconstructed_codons_supply_states_without_becoming_a_taxon():
+    rows = _rows(der=DER, a=OTHER)
+    ends = derive_endpoints(rows, "der", inferred_codons=codons_of(ANC, 3))
     assert ends.reference_name == "der"
-    # the deletion is named by its column: the derived row, which numbers
-    # positions here, has no residue at it
     assert [s.name() for s in ends.substitutions] == ["S2P", "C@c3del"]
-    # S in 2 of the 3 non-derived rows, and the codon is the commoner of AGC/AGT
-    assert ends.plurality_support[1] == pytest.approx(2 / 3)
-    assert residue_of(ends.ancestral_codons[1]) == "S"
+    assert ends.plurality_support == {}
+    assert list(rows) == ["der", "a"]
 
 
-def test_plurality_prefers_a_residue_over_a_gap_on_a_tie():
-    rows = _rows(der="AAA", a="AGC", b="---")
-    ends = derive_endpoints(rows, "der")
-    assert residue_of(ends.ancestral_codons[0]) == "S"
+def test_missing_reconstruction_has_no_plurality_fallback():
+    with pytest.raises(SystemExit, match="SLAC reconstruction"):
+        derive_endpoints(_rows(der=DER, a=OTHER), "der")
 
 
-def test_plurality_needs_another_row():
-    with pytest.raises(SystemExit, match="at least one row"):
-        derive_endpoints(_rows(der=DER), "der")
+def test_reconstructed_codons_must_match_columns():
+    with pytest.raises(SystemExit, match="match the alignment"):
+        derive_endpoints(_rows(der=DER), "der", inferred_codons=["AAA"])
 
 
 def test_columns_restrict_which_differences_count():

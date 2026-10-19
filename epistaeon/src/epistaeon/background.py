@@ -3,11 +3,10 @@ epistaeon/background.py
 -----------------------
 Endpoints and latent embeddings for hypothetical genotypes.
 
-Both endpoints are rows of the alignment. The derived endpoint is the
-`--focal-taxon` row. The ancestral endpoint is the `--ancestor` row when one is
-named; otherwise each column starts from the commonest codon of its plurality
-residue among the other rows, and phi is anchored at the model's [ROOT] token,
-because there is no ancestral sequence to embed.
+The derived endpoint is the `--focal-taxon` alignment row. The ancestral
+endpoint is an explicit `--ancestor` row or codons reconstructed by HyPhy SLAC
+at a supplied internal node. Reconstructed ancestors are not added as taxa.
+With inferred ancestry, phi retains the fixed model [ROOT] anchor.
 
 A substitution is a change of codon, so synonymous changes are ordered
 alongside the rest and applying every unit reproduces the derived row exactly,
@@ -113,53 +112,35 @@ class Endpoints:
         return dict(Counter(self.classes.values()))
 
 
-def _plurality(codons: Sequence[str]) -> Tuple[str, str, float]:
-    """(residue, codon, support) of the most common residue in a column.
-
-    Ties go to a residue over a gap, then alphabetically, so the choice is
-    deterministic. The codon is the commonest one encoding that residue.
-    """
-    residues = Counter(residue_of(c) for c in codons)
-    best = sorted(residues.items(), key=lambda kv: (-kv[1], kv[0] == GAP, kv[0]))[0][0]
-    if best == GAP:
-        codon = GAP_CODON
-    else:
-        codon = Counter(c for c in codons if residue_of(c) == best).most_common(1)[0][0]
-    return best, codon, residues[best] / max(1, len(codons))
-
-
 def derive_endpoints(
     rows: Dict[str, List[str]],
     derived: str,
     ancestor: Optional[str] = None,
     columns: Optional[Iterable[int]] = None,
+    inferred_codons: Optional[List[str]] = None,
 ) -> Endpoints:
     """Substitutions between the ancestral and derived rows.
 
     A substitution is any column whose codon differs, synonymous changes
     included, so applying every unit reproduces the derived row exactly.
 
-    `rows` maps taxon -> codons per column. Without an ancestor, the ancestral
-    state of each column is the commonest codon of the plurality residue across
-    every row except the derived one. `columns` (0-based) restricts which
+    `rows` maps taxon -> codons per column. Without an ancestor row, provide
+    column-matched inferred_codons from the shared SLAC adapter. `columns` (0-based) restricts which
     columns may differ.
     """
     der = rows[derived]
     n = len(der)
     wanted = None if columns is None else set(columns)
-    others = [t for t in rows if t != derived]
 
     if ancestor is not None:
         anc = list(rows[ancestor])
         support: Dict[int, float] = {}
     else:
-        if not others:
-            raise SystemExit("inferring ancestral states needs at least one row besides the derived one")
-        anc, support = [], {}
-        for col in range(n):
-            _res, codon, frac = _plurality([rows[t][col] for t in others])
-            anc.append(codon)
-            support[col] = frac
+        if inferred_codons is None:
+            raise SystemExit("An ancestral row or a HyPhy SLAC reconstruction is required; plurality inference is no longer used")
+        if len(inferred_codons) != n:
+            raise SystemExit("SLAC ancestral codons must match the alignment columns")
+        anc, support = list(inferred_codons), {}
 
     reference = rows[ancestor] if ancestor is not None else der
     residue_number: Dict[int, int] = {}
@@ -288,8 +269,8 @@ class Context:
         """Codons per column for the context taxa and both endpoint rows.
 
         An endpoint that is not one of the context taxa is included anyway: it
-        contributes its codons without joining the background, and it is left
-        out of the plurality vote.
+        contributes its codons without joining the background. SLAC inference is
+        performed separately using its declared alignment.
         """
         wanted = list(self.taxa)
         for name in (self.derived_name, self.ancestor_name):
