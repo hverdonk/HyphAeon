@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from epistaeon import ancestral
-from epistaeon.benchmark_inputs import read_codon_alignment, select_reconstructed
+from epistaeon.benchmark_inputs import read_codon_alignment, read_substitution_panel, select_reconstructed
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -174,6 +174,14 @@ def test_real_sws1_slac_and_complete_budget_diagnostics(tmp_path):
     assert s["n_units"] == 28 and s["n_genotypes"] == 268435456
     assert not s["budget_ok"] and "at most 22" in s["budget_error"]
     assert s["full_mask_reproduces_focal"]
+    panel = read_substitution_panel(ROOT / "data/alignments/sws1/substitution_panel.json", original, "Homo_sapiens")
+    restricted = select_reconstructed(read_codon_alignment(original), "Homo_sapiens", r, panel=panel)
+    assert restricted["unrestricted_nonsynonymous_units"] == 28
+    assert restricted["n_units"] == 7 and restricted["n_genotypes"] == 128
+    assert restricted["budget_ok"] and restricted["unselected_panel_columns0"] == []
+    assert restricted["full_mask_reproduces_focal"]
+    assert all(c == restricted["focal_codons"][col]
+               for col, c in enumerate(restricted["starting_codons"]) if col not in panel["columns0"])
     # Empirical reference enters only after reconstruction and candidate selection.
     reference = json.loads((ROOT / "data/substitution_reference/sws1.json").read_text())
     from epistaeon.benchmark_evaluate import _reference_order
@@ -181,3 +189,4 @@ def test_real_sws1_slac_and_complete_budget_diagnostics(tmp_path):
     keys = {(e["column0"], e["ancestral"], e["derived"]) for e in s["selected"]}
     assert set(truth["keys"]) <= keys
     assert len(truth["keys"]) == 7 and len(truth["pairs"]) == 18
+    assert {(e["column0"], e["ancestral"], e["derived"]) for e in restricted["selected"]} == set(truth["keys"])

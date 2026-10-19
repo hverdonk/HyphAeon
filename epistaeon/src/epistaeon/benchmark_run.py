@@ -20,7 +20,7 @@ import time
 from .benchmark_artifacts import (
     SCORERS, canonical_digest, seal_run, sha256_file, utc_now, write_json,
 )
-from .benchmark_inputs import BenchmarkInputError, read_codon_alignment
+from .benchmark_inputs import BenchmarkInputError, read_codon_alignment, read_substitution_panel
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -211,6 +211,7 @@ import importlib.metadata, json, os, pathlib, shutil, socket
 p = pathlib.Path('/inputs')
 expected = {'alignment.fa', 'config.json', 'model.safetensors', 'protocol.json', 'asr_alignment.fa', 'asr_tree.nwk'}
 if (p/'reconstruction.json').exists(): expected.add('reconstruction.json')
+if (p/'substitution_panel.json').exists(): expected.add('substitution_panel.json')
 assert {x.name for x in p.iterdir()} == expected
 assert shutil.which('hyphy') is not None
 assert all(not x.is_symlink() and x.is_file() for x in p.iterdir())
@@ -244,22 +245,25 @@ def check_isolation(image_id, inputs, outputs):
     return json.loads(result.stdout)
 
 
-def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id, asr_node):
-    return {
-        "schema_version": "2.0", "focal_taxon": focal_taxon,
+def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id, asr_node, panel=False):
+    protocol = {
+        "schema_version": "3.0" if panel else "2.0", "focal_taxon": focal_taxon,
         "ancestral_method": "hyphy-slac", "asr_node": asr_node,
         "asr_alignment": "/inputs/asr_alignment.fa", "asr_tree": "/inputs/asr_tree.nwk",
         "scorers": list(SCORERS), "seed": 0, "mode": "exact",
         "max_genotypes": max_genotypes, "temperature": 0.5, "alpha": 1.0,
         "anchor": "root-token", "viability_floor": None, "device": "cpu", "threads": 1,
-        "event_policy": "resolved_nonsynonymous", "fixed_background": "focal",
+        "event_policy": "panel_resolved_nonsynonymous" if panel else "resolved_nonsynonymous", "fixed_background": "focal",
         "alignment": "/inputs/alignment.fa", "weights": "/inputs/model.safetensors",
         "config": "/inputs/config.json", "input_hashes": hashes,
         "source_snapshot_sha256": source_digest, "runtime_image_id": image_id,
     }
+    if panel:
+        protocol["substitution_panel"] = "/inputs/substitution_panel.json"
+    return protocol
 
 
-def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *, asr_tree=None, asr_node=None, asr_alignment=None):
+def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *, asr_tree=None, asr_node=None, asr_alignment=None, substitution_panel=None):
     alignment = _regular_file(alignment, "Alignment")
     weights = _regular_file(weights, "Checkpoint")
     if weights.suffix != ".safetensors":
@@ -280,6 +284,9 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
         raise BenchmarkInputError("ASR alignment must contain identical sequences for every scoring taxon")
     if type(max_genotypes) is not int or max_genotypes < 1:
         raise BenchmarkInputError("max_genotypes must be a positive integer")
+    if substitution_panel is not None:
+        substitution_panel = _regular_file(substitution_panel, "Substitution panel")
+        read_substitution_panel(substitution_panel, alignment, focal_taxon)
     output = Path(output).expanduser()
     if output.exists() or output.is_symlink():
         raise BenchmarkRunError("Output already exists; each frozen benchmark needs a new directory")
@@ -306,6 +313,10 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
                   "config": sha256_file(inputs / "config.json"),
                   "asr_alignment": sha256_file(inputs / "asr_alignment.fa"),
                   "asr_tree": sha256_file(inputs / "asr_tree.nwk")}
+        if substitution_panel is not None:
+            shutil.copyfile(substitution_panel, inputs / "substitution_panel.json")
+            read_substitution_panel(inputs / "substitution_panel.json", inputs / "alignment.fa", focal_taxon)
+            hashes["substitution_panel"] = sha256_file(inputs / "substitution_panel.json")
         if read_codon_alignment(inputs / "alignment.fa") != rows or read_codon_alignment(inputs / "asr_alignment.fa") != asr_rows:
             raise BenchmarkRunError("Alignment changed while staging the benchmark")
         source_manifest = snapshot_sources(output / "source")
@@ -320,7 +331,8 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
             image = build_image(context, digest, output / "build.log")
         write_json(output / "runtime_image.json", image)
         source_digest = source_manifest["source_snapshot_sha256"]
-        protocol = _protocol(focal_taxon, hashes, max_genotypes, source_digest, image["Id"], asr_node)
+        protocol = _protocol(focal_taxon, hashes, max_genotypes, source_digest, image["Id"], asr_node,
+                             panel=substitution_panel is not None)
         write_json(output / "protocol.json", protocol)
         write_json(inputs / "protocol.json", protocol)
         write_json(output / "execution_manifest.json", {
@@ -329,7 +341,7 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
             "runtime_image_id": image["Id"], "runtime_config_sha256": sha256_file(output / "runtime_config.json"),
             "requirements_sha256": sha256_file(output / "requirements.lock"),
             "docker_version": docker_version, "input_hashes": hashes,
-            "blinding": "Offline allowlisted inference image; declared alignment/tree/checkpoint/config/protocol/reconstruction inputs only; no reference or evaluator access",
+            "blinding": "Offline allowlisted inference image; declared alignment/tree/checkpoint/config/protocol/reconstruction and optional column-only panel inputs; no empirical order or evaluator access",
             "scorer_semantics": {
                 "softmax-repaired": "Existing appended-row placement and remaining-unit alternatives retained",
                 "dphi-product": "Diagnostic baseline; existing nonpositive-increment blocking retained",
@@ -448,7 +460,8 @@ def cmd_benchmark_run(args):
     try:
         output = run_benchmark(args.alignment, args.focal_taxon, args.weights,
                                args.output, args.max_genotypes, asr_tree=args.asr_tree,
-                               asr_node=args.asr_node, asr_alignment=args.asr_alignment)
+                               asr_node=args.asr_node, asr_alignment=args.asr_alignment,
+                               substitution_panel=args.substitution_panel)
     except (BenchmarkRunError, BenchmarkInputError, OSError, subprocess.TimeoutExpired) as exc:
         print(f"benchmark-run: {exc}", file=sys.stderr)
         return 2

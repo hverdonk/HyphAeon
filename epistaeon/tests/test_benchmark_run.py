@@ -11,18 +11,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from epistaeon import benchmark_run as runner
 from epistaeon.benchmark_artifacts import SCORERS, sha256_file, verify_seal, write_json
-from epistaeon.benchmark_inputs import BenchmarkInputError, read_codon_alignment, select_reconstructed, residue_of
+from epistaeon.benchmark_inputs import BenchmarkInputError, read_codon_alignment, read_substitution_panel, select_reconstructed, residue_of
 from epistaeon.benchmark_worker import validate_protocol
 
 
 IMAGE = "sha256:" + "a" * 64
 
 
-def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096):
+def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, **kwargs):
     tree = Path(alignment).parent / "asr_tree.nwk"
     tree.write_text("(focus,other1,other2)Anc;")
     return runner.run_benchmark(alignment, focal_taxon, weights, output, max_genotypes,
-                                asr_tree=tree, asr_node="Anc")
+                                asr_tree=tree, asr_node="Anc", **kwargs)
 
 
 def inputs(tmp_path):
@@ -62,7 +62,10 @@ def mock_runtime(monkeypatch, failed=None):
             method = Path(source) / "asr"
             write_json(method / "reconstruction.json", r)
             protocol = json.loads((Path(source).parent / "inputs/protocol.json").read_text())
-            write_json(method / "selection.json", select_reconstructed(rows, "focus", r, protocol["max_genotypes"]))
+            panel = (read_substitution_panel(Path(source).parent / "inputs/substitution_panel.json",
+                                            Path(source).parent / "inputs/alignment.fa", "focus")
+                     if protocol["schema_version"] == "3.0" else None)
+            write_json(method / "selection.json", select_reconstructed(rows, "focus", r, protocol["max_genotypes"], panel=panel))
             return subprocess.CompletedProcess(command, 0)
         commands.append(command)
         scorer = command[command.index("--scorer") + 1]
@@ -78,7 +81,7 @@ def mock_runtime(monkeypatch, failed=None):
             write_json(method / "order.json", {
                 "substitutions": [dict(unit=e["unit"], name=e["name"], members=[e]) for e in selected],
                 "accessible": True, "map_order": names,
-                "before_matrix": {"names": names, "matrix": [[0, .5], [.5, 0]]},
+                "before_matrix": {"names": names, "matrix": [[0 if i == j else .5 for j in range(len(names))] for i in range(len(names))]},
                 "discrimination": {"degenerate_uniform": True},
             })
         return subprocess.CompletedProcess(command, 2 if scorer == failed else 0)
@@ -119,6 +122,25 @@ def test_failed_method_does_not_skip_other_methods(tmp_path, monkeypatch):
     assert status["status"] == "completed_with_failures"
     assert status["failed_methods"] == ["typicality-gate"]
     verify_seal(output)
+
+
+def test_panel_is_staged_hashed_and_frozen_before_all_scorers(tmp_path, monkeypatch):
+    alignment, weights = inputs(tmp_path)
+    panel_path = tmp_path / "panel.json"
+    write_json(panel_path, {"schema_version": "1.0", "alignment_sha256": sha256_file(alignment),
+                            "focal_taxon": "focus", "columns0": [0]})
+    commands = mock_runtime(monkeypatch)
+    output = run_benchmark(alignment, "focus", weights, tmp_path / "run", substitution_panel=panel_path)
+    verify_seal(output)
+    protocol = json.loads((output / "protocol.json").read_text())
+    validate_protocol(protocol)
+    assert protocol["schema_version"] == "3.0"
+    assert protocol["input_hashes"]["substitution_panel"] == sha256_file(panel_path)
+    assert len(commands) == 4
+    selection = json.loads((output / "selection.json").read_text())
+    assert selection["selected_columns0"] == [0]
+    assert selection["unrestricted_nonsynonymous_units"] == 2
+    assert selection["starting_codons"] == ["GCT", "AGT", "GCC"]
 
 
 def test_budget_failure_retains_complete_selection_and_runs_no_scorers(tmp_path, monkeypatch):

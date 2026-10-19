@@ -265,7 +265,9 @@ def cmd_order(args: argparse.Namespace) -> int:
         provenance["ancestral_reconstruction"]["hyphy_version"] = reconstruction["provenance"]["hyphy_version"]
     if benchmark_selection is not None:
         provenance["input_profile"] = {
-            "name": "blinded-benchmark-slac-v2" if reconstruction else "blinded-benchmark-v1", "event_policy": "resolved_nonsynonymous",
+            "name": ("blinded-benchmark-panel-v3" if benchmark_selection.get("schema_version") == "3.0" else
+                     "blinded-benchmark-slac-v2" if reconstruction else "blinded-benchmark-v1"),
+            "event_policy": benchmark_selection["event_policy"],
             "fixed_background": "focal", "all_alignment_taxa_retained": True,
             "selection_file": "selection.json",
             "classification_counts": benchmark_selection["classification_counts"],
@@ -277,6 +279,9 @@ def cmd_order(args: argparse.Namespace) -> int:
         )
         provenance["substitution_unit"] = "resolved nonsynonymous codon change"
         provenance["diagnostic_baseline"] = args.scorer == "dphi-product"
+        if "panel_columns0" in benchmark_selection:
+            provenance["input_profile"]["panel_columns0"] = benchmark_selection["panel_columns0"]
+            provenance["input_profile"]["unrestricted_nonsynonymous_units"] = benchmark_selection["unrestricted_nonsynonymous_units"]
     if ends.plurality_support:
         provenance["plurality_support"] = {
             lattice.unit_name(u): min(
@@ -576,6 +581,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--asr-tree", required=True)
     run.add_argument("--asr-node", required=True)
     run.add_argument("--asr-alignment", help="optional aligned outgroups; scoring taxa remain unchanged")
+    run.add_argument("--substitution-panel", required=True,
+                     help="alignment-bound manuscript codon-column panel JSON; contains no empirical substitution order")
     run.add_argument("--weights", required=True, help="local .safetensors checkpoint; config.json must be beside it")
     run.add_argument("--max-genotypes", type=int, default=4096,
                      help="exact genotype ceiling; never subsamples sites or switches to sampling")

@@ -394,10 +394,12 @@ def evaluate_run(run_dir: Path, reference_path: Path, output_dir: Path) -> dict[
     reference = _read_json(reference_path)
     protocol = _read_json(run_dir / "protocol.json")
     scorers = protocol.get("scorers")
-    if protocol.get("schema_version") not in {"1.0", "2.0"} or scorers != list(SCORERS):
-        raise ValueError("Protocol must use schema 1.0 or 2.0 and the four frozen scorers in order")
-    if protocol["schema_version"] == "2.0" and protocol.get("ancestral_method") != "hyphy-slac":
-        raise ValueError("Protocol 2.0 requires hyphy-slac ancestry")
+    if protocol.get("schema_version") not in {"1.0", "2.0", "3.0"} or scorers != list(SCORERS):
+        raise ValueError("Protocol must use schema 1.0, 2.0 or 3.0 and the four frozen scorers in order")
+    if protocol["schema_version"] in {"2.0", "3.0"} and protocol.get("ancestral_method") != "hyphy-slac":
+        raise ValueError("SLAC protocols require hyphy-slac ancestry")
+    if protocol["schema_version"] == "3.0" and protocol.get("event_policy") != "panel_resolved_nonsynonymous":
+        raise ValueError("Protocol 3.0 requires a manuscript substitution panel")
     alignment = reference.get("alignment", {})
     if not isinstance(alignment, dict):
         raise ValueError("Reference alignment metadata must be an object")
@@ -451,6 +453,13 @@ def evaluate_run(run_dir: Path, reference_path: Path, output_dir: Path) -> dict[
             "These assessments do not establish checkpoint training-data provenance.",
         ],
     }
+    if protocol["schema_version"] == "3.0":
+        report["analysis_protocol"].update(event_policy=protocol["event_policy"],
+                                            substitution_panel_sha256=protocol["input_hashes"]["substitution_panel"])
+        report["limitations"].append(
+            "Manuscript sites were supplied in advance; this tests ordering within that panel, not site discovery. "
+            "Excluded columns are fixed at focal codons, so the starting background is not the full SLAC ancestor or the assayed ancestral construct."
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
     write_json(output_dir / "evaluation.json", report)
     for method in methods:

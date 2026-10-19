@@ -5,15 +5,15 @@ import json
 from pathlib import Path
 
 from .ancestral import AncestralError, reconstruct
-from .benchmark_inputs import BenchmarkInputError, read_codon_alignment, select_reconstructed, sha256_file
+from .benchmark_inputs import BenchmarkInputError, read_codon_alignment, read_substitution_panel, select_reconstructed, sha256_file
 from .benchmark_worker import validate_protocol
 
 
 def prepare(protocol_path, output):
     protocol = json.loads(Path(protocol_path).read_text())
     validate_protocol(protocol)
-    if protocol["schema_version"] != "2.0":
-        raise BenchmarkInputError("New benchmark preparation requires SLAC protocol 2.0")
+    if protocol["schema_version"] not in {"2.0", "3.0"}:
+        raise BenchmarkInputError("Benchmark preparation requires SLAC protocol 2.0 or 3.0")
     output = Path(output)
     if not output.is_absolute() or output.is_symlink() or Path("/outputs") not in output.resolve().parents:
         raise BenchmarkInputError("Preparation output must be a real subdirectory of /outputs")
@@ -21,10 +21,12 @@ def prepare(protocol_path, output):
         path = Path(protocol[name])
         if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:
             raise BenchmarkInputError(f"Preparation input hash mismatch: {name}")
+    panel = (read_substitution_panel(protocol["substitution_panel"], protocol["alignment"], protocol["focal_taxon"])
+             if protocol["schema_version"] == "3.0" else None)
     reconstruction = reconstruct(protocol["alignment"], protocol["focal_taxon"], protocol["asr_tree"],
                                  protocol["asr_node"], output, protocol["asr_alignment"])
     selection = select_reconstructed(read_codon_alignment(protocol["alignment"]), protocol["focal_taxon"],
-                                     reconstruction, protocol["max_genotypes"])
+                                     reconstruction, protocol["max_genotypes"], panel=panel)
     (output / "selection.json").write_text(json.dumps(selection, indent=2, sort_keys=True) + "\n")
     return 0
 

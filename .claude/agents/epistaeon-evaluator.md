@@ -67,3 +67,12 @@ Protocol 2.0 uses SLAC. Its complete SWS1 selection has 28 nonsynonymous units
 and covers seven empirical events and 18 ordered relationships, but exceeds the
 exact budget. When scoring did not run, report the budget failure and unavailable
 accuracy; never interpret reconstructed input coverage as scorer performance.
+
+Protocol 3.0 restricts SLAC candidates to a frozen manuscript column panel.
+For SWS1 it selects seven units (128 genotypes), with seven target events and
+18 ordered pairs covered when reconstruction matches the verified inputs.
+This is an ordering benchmark conditional on supplied sites, not a test of
+epistatic-site discovery. All excluded columns retain human codons, so the
+background differs from the paper's ancestral experimental construct. Report
+actual covered directions, blocked paths, uniformity and metrics from artifacts;
+do not assume that input coverage establishes correct inferred order.

@@ -4,13 +4,17 @@ description: Run a blinded, sealed epistaeon scorer benchmark, evaluate it separ
 
 Read `epistaeon/validation/BLINDED_BENCHMARK.md`. Use the requested alignment,
 focal taxon, local checkpoint, ASR tree, named internal ASR node, optional
-column-identical ASR outgroup alignment, and a new run directory. Default to the documented
+column-identical ASR outgroup alignment, the required manuscript substitution
+panel, and a new run directory. Default to the documented
 SWS1/Homo_sapiens example when the user has not supplied a different case.
 
 1. Run the deterministic `epistaeon benchmark-run` command. Do not invoke an
    analysis agent or the manuscript-reading `epistaeon-replicator`. The runner
-   accepts no truth reference, expected sites, blocks, supplied ancestor sequence
-   or expected order. SLAC reconstruction happens inside its isolated runtime. Do not manually derive or pass a site list. Keep empirical references,
+   accepts an alignment-bound column-only `--substitution-panel`, but no truth
+   reference, blocks, supplied ancestor sequence or expected order. For SWS1 use
+   `epistaeon/data/alignments/sws1/substitution_panel.json`. Freeze this scope
+   before inference; do not change it after inspecting model results. SLAC
+   reconstruction happens inside its isolated runtime. Keep empirical references,
    papers, repository documentation and agent histories outside its container.
 2. Require a valid seal, frozen protocol and all four method-status artifacts
    before evaluation. `completed_with_failures` and a sealed `preflight_failed`
@@ -29,6 +33,8 @@ SWS1/Homo_sapiens example when the user has not supplied a different case.
 5. Return the four-method comparison, coverage and testability status, links to
    run/evaluation/assessment artifacts, and material limitations. Preserve the
    distinction between a missing test and an incorrect prediction.
+   State that protocol 3.0 tests ordering within manuscript-supplied sites,
+   not site discovery; excluded columns retain focal codons.
 
 The evaluator's knowledge must not flow back into the completed inference run.
 If the user later requests a changed protocol, create a new run with its own

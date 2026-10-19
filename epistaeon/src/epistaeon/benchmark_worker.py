@@ -13,7 +13,7 @@ import re
 
 from .benchmark_inputs import (
     BenchmarkInputError, SCORERS, select_benchmark_inputs, sha256_file,
-    read_codon_alignment, select_reconstructed,
+    read_codon_alignment, select_reconstructed, read_substitution_panel,
 )
 
 
@@ -23,6 +23,7 @@ INPUT_PATHS = {
     "config": "/inputs/config.json",
 }
 ASR_PATHS = {"asr_alignment": "/inputs/asr_alignment.fa", "asr_tree": "/inputs/asr_tree.nwk"}
+PANEL_PATH = "/inputs/substitution_panel.json"
 OUTPUT_ROOT = Path("/outputs")
 _REQUIRED = {
     "schema_version", "focal_taxon", "scorers", "seed", "mode",
@@ -37,8 +38,11 @@ def validate_protocol(protocol):
     """Reject unknown fields and any departure from the benchmark profile."""
     if not isinstance(protocol, dict):
         raise BenchmarkInputError("protocol must be a JSON object")
-    v2 = protocol.get("schema_version") == "2.0"
+    v3 = protocol.get("schema_version") == "3.0"
+    v2 = protocol.get("schema_version") in {"2.0", "3.0"}
     asr_keys = {"ancestral_method", "asr_alignment", "asr_tree", "asr_node"} if v2 else set()
+    if v3:
+        asr_keys.add("substitution_panel")
     missing = (_REQUIRED | asr_keys) - protocol.keys()
     extra = protocol.keys() - (_REQUIRED | asr_keys | _OPTIONAL | ({"reconstruction_sha256"} if v2 else set()))
     if missing or extra:
@@ -46,10 +50,10 @@ def validate_protocol(protocol):
             f"invalid protocol fields: missing={sorted(missing)}, unknown={sorted(extra)}"
         )
     fixed = {
-        "schema_version": "2.0" if v2 else "1.0", "scorers": list(SCORERS), "seed": 0,
+        "schema_version": protocol["schema_version"] if v2 else "1.0", "scorers": list(SCORERS), "seed": 0,
         "mode": "exact", "temperature": 0.5, "alpha": 1.0,
         "anchor": "root-token", "viability_floor": None, "device": "cpu",
-        "threads": 1, "event_policy": "resolved_nonsynonymous",
+        "threads": 1, "event_policy": "panel_resolved_nonsynonymous" if v3 else "resolved_nonsynonymous",
         "fixed_background": "focal", **INPUT_PATHS,
     }
     paths = dict(INPUT_PATHS)
@@ -60,6 +64,9 @@ def validate_protocol(protocol):
             raise BenchmarkInputError("asr_node must be a nonempty internal-node name")
         if "reconstruction_sha256" in protocol and not re.fullmatch(r"[0-9a-f]{64}", str(protocol["reconstruction_sha256"])):
             raise BenchmarkInputError("invalid reconstruction SHA-256")
+    if v3:
+        paths["substitution_panel"] = PANEL_PATH
+        fixed["substitution_panel"] = PANEL_PATH
     for key, expected in fixed.items():
         value = protocol[key]
         wrong_type = ((type(expected) is int and type(value) is not int)
@@ -89,22 +96,26 @@ def preflight_protocol(protocol):
     """Check actual bytes and the exact-inference budget before model imports."""
     validate_protocol(protocol)
     paths = dict(INPUT_PATHS)
-    if protocol["schema_version"] == "2.0":
+    if protocol["schema_version"] in {"2.0", "3.0"}:
         paths.update(asr_alignment=protocol["asr_alignment"], asr_tree=protocol["asr_tree"])
+    if protocol["schema_version"] == "3.0":
+        paths["substitution_panel"] = PANEL_PATH
     for key, fixed_path in paths.items():
         path = Path(fixed_path)
         if path.is_symlink() or not path.is_file():
             raise BenchmarkInputError(f"{key} must be a regular input file: {path}")
         if sha256_file(path) != protocol["input_hashes"][key]:
             raise BenchmarkInputError(f"{key} input SHA-256 does not match frozen protocol")
-    if protocol["schema_version"] == "2.0":
+    if protocol["schema_version"] in {"2.0", "3.0"}:
         path = Path(INPUT_PATHS["alignment"]).parent / "reconstruction.json"
         if path.is_symlink() or not path.is_file() or sha256_file(path) != protocol.get("reconstruction_sha256"):
             raise BenchmarkInputError("SLAC reconstruction SHA-256 does not match the frozen protocol")
         reconstruction = json.loads(path.read_text())
         if reconstruction.get("node") != protocol["asr_node"]:
             raise BenchmarkInputError("SLAC reconstruction node differs from the protocol")
-        selection = select_reconstructed(read_codon_alignment(protocol["alignment"]), protocol["focal_taxon"], reconstruction, protocol["max_genotypes"])
+        panel = (read_substitution_panel(protocol["substitution_panel"], protocol["alignment"], protocol["focal_taxon"])
+                 if protocol["schema_version"] == "3.0" else None)
+        selection = select_reconstructed(read_codon_alignment(protocol["alignment"]), protocol["focal_taxon"], reconstruction, protocol["max_genotypes"], panel=panel)
         if not selection["budget_ok"]:
             raise BenchmarkInputError(selection["budget_error"])
         return selection
@@ -131,7 +142,7 @@ def _configure_determinism():
 
 
 def order_namespace(protocol, scorer, output):
-    """Construct fixed engine arguments without accepting site/order hints."""
+    """Construct fixed engine arguments; the panel carries no ordering hints."""
     validate_protocol(protocol)
     if scorer not in SCORERS:
         raise BenchmarkInputError(f"unknown benchmark scorer {scorer!r}")
@@ -162,7 +173,7 @@ def run_worker(protocol_path, scorer, output):
         json.dumps(selection, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     namespace = order_namespace(protocol, scorer, output)
-    if protocol["schema_version"] == "2.0":
+    if protocol["schema_version"] in {"2.0", "3.0"}:
         namespace._benchmark_selection = selection
         namespace._benchmark_reconstruction = json.loads((Path(protocol["alignment"]).parent / "reconstruction.json").read_text())
     _configure_determinism()

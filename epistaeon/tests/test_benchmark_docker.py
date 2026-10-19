@@ -69,7 +69,10 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
     assert weights.is_file(), "Integration requires the local checkpoint; no downloads or native fallback"
     tree = tmp_path / "tree.nwk"
     tree.write_text("(background_0,background_1,background_2,(background_3,background_4,focus)Anc)Root;")
-    runs = [run_benchmark(alignment, "focus", weights, tmp_path / f"run_{index}", asr_tree=tree, asr_node="Anc")
+    panel = tmp_path / "panel.json"
+    write_json(panel, {"schema_version": "1.0", "alignment_sha256": sha256_file(alignment),
+                        "focal_taxon": "focus", "columns0": [8, 49]})
+    runs = [run_benchmark(alignment, "focus", weights, tmp_path / f"run_{index}", asr_tree=tree, asr_node="Anc", substitution_panel=panel)
             for index in range(2)]
     for run in runs:
         verify_seal(run)
@@ -77,6 +80,7 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
         isolation = json.loads((run / "isolation_check.json").read_text())
         assert isolation["status"] == "pass"
         assert isolation["active_network_interfaces"] == ["lo"]
+        assert "substitution_panel.json" in isolation["input_files"]
         selection = json.loads((run / "selection.json").read_text())
         assert selection["n_units"] == 2
         assert selection["n_genotypes"] == 4
@@ -107,6 +111,28 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
     after = {p.relative_to(runs[0]).as_posix(): sha256_file(p)
              for p in runs[0].rglob("*") if p.is_file()}
     assert before == after
+
+
+def test_sws1_manuscript_panel_runs_all_four_scorers(tmp_path):
+    alignment = ROOT / "epistaeon/data/alignments/sws1/SWS1.codonified.fa"
+    data = ROOT / "epistaeon/validation/sws1_slac/inputs"
+    output = run_benchmark(alignment, "Homo_sapiens", ROOT / "epistaeon/data/model/model.safetensors", tmp_path / "sws1_panel",
+                           asr_alignment=data / "SWS1.outgroups.codon.fa", asr_tree=data / "species_scaffold.nwk",
+                           asr_node="Boreoeutheria", substitution_panel=alignment.parent / "substitution_panel.json")
+    verify_seal(output)
+    selection = json.loads((output / "selection.json").read_text())
+    assert selection["unrestricted_nonsynonymous_units"] == 28
+    assert selection["n_units"] == 7 and selection["n_genotypes"] == 128
+    assert selection["full_mask_reproduces_focal"] and selection["unselected_panel_columns0"] == []
+    assert json.loads((output / "run_status.json").read_text())["status"] == "completed"
+    for scorer in SCORERS:
+        assert json.loads((output / "methods" / scorer / "selection.json").read_text()) == selection
+    # The reference and its historical order are first read after sealing.
+    report = evaluate_run(output, ROOT / "epistaeon/data/substitution_reference/sws1.json", tmp_path / "evaluation")
+    for method in report["methods"]:
+        assert method["coverage"]["covered_target_event_count"] == 7
+        assert method["coverage"]["covered_ordered_pair_count"] == 18
+    assert report["analysis_protocol"]["schema_version"] == "3.0"
 
 
 def test_sws1_reconstruction_is_sealed_before_budget_rejection(tmp_path):

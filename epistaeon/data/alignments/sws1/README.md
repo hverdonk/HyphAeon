@@ -87,6 +87,16 @@ positions identify homologous locations, not experimentally measured SWS1
 contacts. `human_coordinate_map.tsv` additionally maps all alignment columns
 to the historical human sequence.
 
+`substitution_panel.json` binds these seven alignment columns to this exact
+alignment (SHA-256) and `Homo_sapiens`. Its ascending `columns0` list is a set
+of site coordinates, not a historical order. It contains no expected ancestral
+residues, substitution directions or order constraints. Use it with
+`benchmark-run --substitution-panel` to select resolved SLAC-to-human changes
+at the manuscript sites: seven units and 128 genotypes for the verified SLAC
+inputs. The other 21 nonsynonymous differences stay fixed at human codons.
+Selection is audited against the source-qualified reference in tests, while
+the inference container receives only this column-only panel.
+
 ## Files and reproduction
 
 - `raw/`: original EMBL/GenBank records, including companion exon records.

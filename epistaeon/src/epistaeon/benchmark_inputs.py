@@ -6,6 +6,8 @@ the sole authority for which amino-acid changes enter the benchmark.
 
 from collections import Counter
 import hashlib
+import json
+import re
 
 
 SCORERS = (
@@ -37,6 +39,45 @@ def sha256_file(path):
 def residue_of(codon):
     aa = CODON_TO_AA.get(codon.upper(), "-")
     return "-" if aa == "*" else aa
+
+
+def validate_substitution_panel(panel, n_codons, focal_taxon, alignment_sha256=None):
+    """Accept only an alignment-bound, unordered site panel, never order truth."""
+    fields = {"schema_version", "alignment_sha256", "focal_taxon", "columns0"}
+    if not isinstance(panel, dict) or set(panel) != fields:
+        raise BenchmarkInputError("Substitution panel must contain only schema_version, alignment_sha256, focal_taxon, columns0")
+    if panel["schema_version"] != "1.0" or panel["focal_taxon"] != focal_taxon:
+        raise BenchmarkInputError("Substitution panel schema or focal taxon mismatch")
+    digest = panel["alignment_sha256"]
+    if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise BenchmarkInputError("Substitution panel requires an alignment SHA-256")
+    if alignment_sha256 is not None and digest != alignment_sha256:
+        raise BenchmarkInputError("Substitution panel alignment SHA-256 mismatch")
+    columns = panel["columns0"]
+    if (not isinstance(columns, list) or not columns
+            or any(type(col) is not int or not 0 <= col < n_codons for col in columns)
+            or columns != sorted(set(columns))):
+        raise BenchmarkInputError("Panel columns0 must be unique, ascending, in-range codon columns")
+    return panel
+
+
+def read_substitution_panel(path, alignment, focal_taxon):
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise BenchmarkInputError(f"Duplicate substitution panel key: {key}")
+            result[key] = value
+        return result
+    with open(path, encoding="utf-8") as handle:
+        try:
+            panel = json.load(handle, object_pairs_hook=unique)
+        except json.JSONDecodeError as exc:
+            raise BenchmarkInputError("Substitution panel must be valid JSON") from exc
+    rows = read_codon_alignment(alignment)
+    if focal_taxon not in rows:
+        raise BenchmarkInputError("Panel focal taxon is absent from the alignment")
+    return validate_substitution_panel(panel, len(rows[focal_taxon]), focal_taxon, sha256_file(alignment))
 
 
 def read_codon_alignment(path):
@@ -187,8 +228,8 @@ def select_benchmark_inputs(alignment, focal_taxon, max_genotypes=4096):
     return selection
 
 
-def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096):
-    """Select every resolved SLAC-to-focal AA change, without filtering to budget.
+def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096, panel=None):
+    """Select resolved SLAC-to-focal AA changes within an optional frozen panel.
 
     Budget diagnostics accompany the complete set so even a rejected run can
     preserve its reconstructed ancestor and complete candidate selection.
@@ -199,6 +240,10 @@ def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096):
         raise BenchmarkInputError("focal taxon must be an exact FASTA row name")
     codons = reconstruction.get("codons")
     focal = rows[focal_taxon]
+    panel_columns = None
+    if panel is not None:
+        validate_substitution_panel(panel, len(focal), focal_taxon)
+        panel_columns = set(panel["columns0"])
     if reconstruction.get("method") != "hyphy-slac" or not isinstance(codons, list) or len(codons) != len(focal):
         raise BenchmarkInputError("A column-matched SLAC reconstruction is required")
     states = reconstruction.get("amino_acid_states")
@@ -218,7 +263,12 @@ def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096):
                 "indel" if a == "-" or d == "-" else "synonymous" if a == d else "nonsynonymous")
         entry = {"column0": col, "column1": col + 1, "residue_number": position if d != "-" else None,
                  "ancestral": a, "derived": d, "ancestral_codon": source, "derived_codon": target,
-                 "ancestral_amino_acid_states": state, "class": kind, "selected": kind == "nonsynonymous"}
+                 "ancestral_amino_acid_states": state, "class": kind,
+                 "selected": kind == "nonsynonymous" and (panel_columns is None or col in panel_columns)}
+        if panel_columns is not None:
+            entry["panel_member"] = col in panel_columns
+            entry["exclusion_reason"] = (None if entry["selected"] else
+                                         "outside_substitution_panel" if col not in panel_columns else kind)
         counts[kind] += 1
         columns.append(entry)
         if entry["selected"]:
@@ -234,11 +284,16 @@ def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096):
         full[event["column0"]] = event["derived_codon"]
     if full != focal:
         raise BenchmarkInputError("Full mask does not reproduce the focal sequence")
-    return {"schema_version": "2.0", "ancestral_method": "hyphy-slac", "asr_node": reconstruction["node"],
+    result = {"schema_version": "3.0" if panel is not None else "2.0", "ancestral_method": "hyphy-slac", "asr_node": reconstruction["node"],
             "focal_taxon": focal_taxon, "taxa": list(rows), "n_taxa": len(rows), "n_codons": len(focal),
-            "event_policy": "resolved_nonsynonymous", "fixed_background": "focal", "n_units": n,
+            "event_policy": "panel_resolved_nonsynonymous" if panel is not None else "resolved_nonsynonymous", "fixed_background": "focal", "n_units": n,
             "n_genotypes": genotypes, "max_genotypes": max_genotypes, "budget_ok": error is None,
             "budget_error": error, "selected": selected, "columns": columns,
             "selected_columns0": [event["column0"] for event in selected],
             "classification_counts": dict(sorted(counts.items())), "ancestral_codons": codons,
             "starting_codons": starting, "focal_codons": focal, "full_mask_reproduces_focal": True}
+    if panel is not None:
+        result.update(panel_columns0=panel["columns0"],
+                      unselected_panel_columns0=sorted(panel_columns - {e["column0"] for e in selected}),
+                      unrestricted_nonsynonymous_units=counts["nonsynonymous"])
+    return result

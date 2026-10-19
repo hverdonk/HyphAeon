@@ -40,7 +40,7 @@ python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
 `benchmark-run` reconstructs an ancestor with HyPhy SLAC and runs all four
 scorers in offline Docker containers with declared alignments, an ASR tree/node
 and a local checkpoint/configuration. It selects resolved nonsynonymous changes
-automatically and seals its outputs before a separate command reads the
+within a required manuscript site panel and seals its outputs before a separate command reads the
 empirical reference:
 
 ```bash
@@ -52,6 +52,7 @@ python3 -m epistaeon.cli benchmark-run \
   --asr-alignment epistaeon/validation/sws1_slac/inputs/SWS1.outgroups.codon.fa \
   --asr-tree epistaeon/validation/sws1_slac/inputs/species_scaffold.nwk \
   --asr-node Boreoeutheria \
+  --substitution-panel epistaeon/data/alignments/sws1/substitution_panel.json \
   --output epistaeon/validation/runs/sws1-001
 python3 -m epistaeon.cli benchmark-evaluate \
   --run epistaeon/validation/runs/sws1-001 \
@@ -62,10 +63,14 @@ python3 -m epistaeon.cli benchmark-evaluate \
 Use a new run path and a sibling `config.json` beside the checkpoint. See the
 [blinded benchmark workflow](validation/BLINDED_BENCHMARK.md) for pinned runtime
 settings, artifact contracts, coverage metrics and the read-only evaluator agent.
-SLAC recovers all seven SWS1 focal ancestral states, but its complete 28-unit
-selection needs 268,435,456 genotypes. The example saves and seals ASR artifacts
-then stops at the unchanged exact-inference limit before checkpoint inference.
-The evaluator reports unrun methods without order-accuracy scores.
+SLAC identifies 28 nonsynonymous differences. The manuscript panel selects
+the seven reported substitutions, requiring **128 genotypes**, within the
+unchanged 4,096-genotype budget. Its JSON contains only alignment columns,
+the focal taxon and the alignment hash; empirical order remains evaluator-only.
+Excluded columns retain human codons, so this tests ordering within a supplied
+site panel on a human background, rather than discovery of epistatic sites or
+the original experimental ancestral construct. Legacy unrestricted SLAC runs
+remain protocol 2.0; manuscript-panel runs use protocol 3.0.
 
 For native `order`, supply `--asr-tree` and `--asr-node` whenever `--ancestor`
 is omitted. `--asr-alignment` can add aligned outgroups without changing the

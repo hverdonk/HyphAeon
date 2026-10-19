@@ -2,9 +2,10 @@
 
 The benchmark separates prediction from empirical evaluation. A deterministic
 container reconstructs an ancestor with HyPhy SLAC and runs inference with the
-alignment, ASR tree/node, local checkpoint, checkpoint configuration and frozen
+alignment, ASR tree/node, a manuscript site panel, local checkpoint, checkpoint configuration and frozen
 settings. Only after its outputs are sealed
-does a separate evaluator read the empirical substitution reference. No
+does a separate evaluator read empirical ordering constraints. The supplied
+site panel declares the tested scope, not the expected order. No
 language-model agent participates in inference. The read-only evaluator agent
 interprets completed results; it cannot run or modify the analysis.
 
@@ -26,12 +27,14 @@ python3 -m epistaeon.cli benchmark-run \
   --asr-alignment epistaeon/validation/sws1_slac/inputs/SWS1.outgroups.codon.fa \
   --asr-tree epistaeon/validation/sws1_slac/inputs/species_scaffold.nwk \
   --asr-node Boreoeutheria \
+  --substitution-panel epistaeon/data/alignments/sws1/substitution_panel.json \
   --weights epistaeon/data/model/model.safetensors \
   --output epistaeon/validation/runs/sws1-001
 ```
 
-`benchmark-run` accepts no reference, manuscript, expected sites, blocks,
-supplied ancestral sequence or expected order. The output directory must not
+`benchmark-run` requires an alignment-bound `--substitution-panel`, but accepts
+no reference, manuscript, blocks, supplied ancestral sequence or expected
+order. The output directory must not
 exist. It reconstructs once, freezes that result, and supplies identical
 starting states to all four scoring methods. It records commands, logs, status, elapsed time,
 input/source/runtime hashes, selected substitutions, starting codons, MAP order,
@@ -100,7 +103,7 @@ requires a new run directory and a new frozen protocol.
 
 ## Fixed inference profile
 
-New runs use protocol **2.0**, with HyPhy **2.5.96** SLAC joint maximum-likelihood
+New CLI runs use protocol **3.0**, with HyPhy **2.5.96** SLAC joint maximum-likelihood
 codons at the named internal node. `--asr-tree` and `--asr-node` are required.
 `--asr-alignment` defaults to the scoring alignment; an augmented alignment can
 add outgroups but must preserve every original scoring row and codon column
@@ -115,9 +118,32 @@ probabilities; unresolved state sets remain in the reconstruction artifacts.
 The inferred ancestor never becomes an additional scoring taxon. All original
 scoring taxa are retained, independently of extra ASR outgroups.
 
-The benchmark selects all resolved nonsynonymous SLAC-to-focal differences.
-It excludes synonymous, indel and
-unresolved differences, without using empirical sites or order. Excluded
+The benchmark selects resolved nonsynonymous SLAC-to-focal differences only
+inside the frozen manuscript panel. Its JSON has exactly four fields:
+
+```json
+{
+  "schema_version": "1.0",
+  "alignment_sha256": "1408e963d098b03b0dcf7dd060debbd142016a5fecc1117684bcb86ce2fcc74d",
+  "focal_taxon": "Homo_sapiens",
+  "columns0": [44, 47, 50, 84, 91, 112, 116]
+}
+```
+
+Columns are zero-based codon columns, unique and ascending by coordinate; their
+list order is not evolutionary order. The panel is checked against the exact
+alignment bytes and focal taxon. Unknown fields, expected residues, directions
+and historical order constraints are rejected. The SWS1 panel uses the reviewed
+source-site crosswalk for F46T, F49L, T52F, F86L, T93P, A114G and S118T, matching
+`sites_columns.txt`. Those labels and the full empirical reference are not
+inputs to the runner. SLAC still determines every source codon, and the focal
+alignment determines every target codon. Missing, unresolved, synonymous or
+unchanged panel sites remain unselected and are diagnosed; reference residues
+are never substituted to force empirical coverage. Scope must be fixed before
+inference and cannot be changed in response to model predictions.
+
+It excludes out-of-panel, synonymous, indel and
+unresolved differences, without using expected residues or order. Excluded
 columns retain the focal taxon's codons, so applying all selected substitutions
 reproduces the complete focal nucleotide sequence exactly. For SWS1 these are
 human codons. This benchmark policy does not change the existing `order`
@@ -126,10 +152,15 @@ command's default treatment of synonymous changes and endpoint backgrounds.
 Settings are CPU, one numerical thread, seed `0`, all alignment taxa,
 temperature `0.5`, alpha `1`, `[ROOT]`-token anchoring, no viability floor and
 exact inference. The default maximum is 4,096 genotypes (`2^n` for `n` units).
-There is also an unchanged hard limit of 22 units. The SWS1 inputs above select
-**28 units**, requiring **268,435,456 genotypes**. This example therefore saves
-and seals the reconstruction and selection, then stops before loading the
-checkpoint. No automatic sampling, empirical filtering or site reduction occurs.
+There is also an unchanged hard limit of 22 units. SLAC identifies **28**
+nonsynonymous SWS1 candidates, but the manuscript panel selects **seven units**,
+requiring **128 genotypes**. The remaining 21 candidates retain focal codons.
+`selection.json` preserves all 28 candidates' classifications, panel membership
+and exclusion reasons, plus `unrestricted_nonsynonymous_units`, selected and
+unselected panel columns, and the complete reconstructed ancestor. No panel
+sites are silently dropped to fit a budget, and no automatic sampling occurs.
+Historical protocol 2.0 selected all 28 candidates and stopped at the exact
+budget with 268,435,456 genotypes; those runs retain their original meaning.
 
 Native `order` also requires `--asr-tree` and `--asr-node` when `--ancestor` is
 absent, and accepts `--asr-alignment` and an executable override `--hyphy`.
@@ -184,7 +215,7 @@ PyTorch is the official `2.5.1+cpu` CPython 3.11 Linux wheel. The base image is
 moving tag. An ARM host needs Docker's amd64 emulation support. Missing Docker
 or runtime prerequisites stop execution; there is no unisolated fallback.
 
-The preparation protocol freezes alignment, ASR alignment/tree, checkpoint,
+The preparation protocol freezes alignment, ASR alignment/tree, manuscript panel, checkpoint,
 configuration and source hashes before reconstruction, and records the built
 runtime image ID. The scoring protocol additionally freezes the reconstructed
 sequence artifact. `execution_manifest.json` also records the build
@@ -217,17 +248,23 @@ MAP ties. The projected MAP is compared with the eight historical candidates
 only when all seven empirical substitutions are covered and MAP comparison is
 meaningful.
 
-For the SWS1 SLAC inputs, the complete selected candidate set represents **7/7
-target events and all 18 ordered relationships**. Because the full 28-unit run
-exceeds the budget, no method executes and evaluation reports
-`not_testable: analysis_failed`, with no historical-order score. Candidate-set
-coverage can be verified after sealing; it is not an inferred order.
+For the SWS1 panel and SLAC inputs, the seven selected units represent **7/7
+target events and all 18 ordered relationships**, so all four methods can run
+within the default exact budget. Coverage is checked after sealing; it does not
+imply a correct order or discriminate among methods. Uniform and blocked
+predictions retain their existing interpretations. Protocol 3.0 tests ordering
+conditional on manuscript-supplied sites, not discovery of epistatic sites.
+The hybrid starting background uses focal codons outside the panel, so it is
+not the full reconstructed ancestor or the original experimental construct.
+
+Archived protocol **2.0** SLAC runs selected all 28 units. Their budget failure
+still yields `not_testable: analysis_failed`, with no historical-order score.
 
 Archived protocol **1.0** runs retain their original plurality semantics and
 artifacts. Their SWS1 fixtures select 10 units and cover **2/7 target events and
 0/18 ordered pairs**, yielding `not_testable: insufficient_order_coverage`.
-The evaluator accepts both protocol versions and never relabels legacy runs as
-SLAC. These acceptance values live only in tests and evaluator documentation;
+The evaluator accepts all three protocol versions and never relabels legacy runs as
+SLAC or panel-filtered. These acceptance values live only in tests and evaluator documentation;
 they must never guide inference selection.
 
 Yokoyama's eight favored paths summarize phylogenetic/parsimony history, not the
@@ -260,7 +297,8 @@ changes, verifies isolation and seals, and compares numerical predictions with
 absolute tolerance `1e-7` and relative tolerance `1e-6`. It creates empirical
 truth only after both analyses are sealed and verifies that evaluating changed
 truth leaves every analysis artifact unchanged. This integration test does not
-claim a full SWS1 inference run. A second Docker test reconstructs SWS1, verifies
-the sealed 28-unit budget failure, and checks all seven empirical events only
-after sealing. Native adapter tests also reconstruct the supplied SWS1 inputs.
+claim the synthetic data establish SWS1 accuracy. A SWS1 panel Docker test runs
+all four methods on seven units and checks 7/7 events and 18 ordered pairs only
+after sealing. A separate legacy test verifies the unrestricted 28-unit budget
+failure. Native adapter tests also reconstruct the supplied SWS1 inputs.
 Legacy fixtures continue to check protocol 1.0 coverage independently.
