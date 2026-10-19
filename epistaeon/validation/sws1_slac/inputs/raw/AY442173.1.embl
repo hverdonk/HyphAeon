@@ -1,0 +1,81 @@
+ID   AY442173; SV 1; linear; mRNA; STD; MAM; 1041 BP.
+XX
+AC   AY442173;
+XX
+DT   15-NOV-2003 (Rel. 77, Created)
+DT   15-NOV-2003 (Rel. 77, Last updated, Version 1)
+XX
+DE   Sminthopsis crassicaudata short wave sensitive opsin 1 mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Sminthopsis crassicaudata (fat-tailed dunnart)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Metatheria; Dasyuromorphia; Dasyuridae; Sminthopsis.
+XX
+RN   [1]
+RP   1-1041
+RA   Hunt D.M., Cowing J.A., Arrese C., Shand J.;
+RT   "Shortwave sensitive (SWS1) visual pigment opsin from the fat-tailed
+RT   dunnart, Sminthopsis crassicaudata";
+RL   Unpublished.
+XX
+RN   [2]
+RP   1-1041
+RA   Hunt D.M., Cowing J.A., Arrese C., Shand J.;
+RT   ;
+RL   Submitted (17-OCT-2003) to the INSDC.
+RL   Institute of Ophthalmology, University College London, Bath Street, London
+RL   EC1V 9EL, UK
+XX
+DR   MD5; 1efd7fe1a25e598d837a6a193df1d65c.
+DR   EuropePMC; PMC1664589; 17107620.
+DR   EuropePMC; PMC2602665; 18426754.
+DR   EuropePMC; PMC6313163.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1041
+FT                   /organism="Sminthopsis crassicaudata"
+FT                   /mol_type="mRNA"
+FT                   /db_xref="taxon:9301"
+FT   CDS             1..1041
+FT                   /codon_start=1
+FT                   /product="short wave sensitive opsin 1"
+FT                   /note="SWS1 visual pigment opsin"
+FT                   /db_xref="GOA:Q6T2D8"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q6T2D8"
+FT                   /protein_id="AAR14685.1"
+FT                   /translation="MSGDEEFYLFKNISLVGPWDGPQYHLAPAWAFHFQTAFMGFVFFA
+FT                   GTSLNGVVLIATLRYKKLRQPLNYILVNISLAGFIFCVFSVFTVFVSSSQGYFVFGRHV
+FT                   CAMEGFLGSVAGLVTGWSLAFLAFERFIVICKPFGNFRFNSKHAMMVVLATWIIGIGVS
+FT                   IPPFFGWSRYIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIVPLSLICFSYSQLL
+FT                   GALRAVAAQQQESATTQKAEREVSRMVVVMVGSFCLCYVPYAAMAMYMVNNRNHGLDLR
+FT                   LVTIPAFFSKSACVYNPIIYCFMNKQFHACIMEMICKKPMTDDSETTSSQKTEVSTVSS
+FT                   SQVGPS"
+XX
+SQ   Sequence 1041 BP; 196 A; 307 C; 247 G; 291 T; 0 other;
+     atgtcagggg atgaggagtt ctacctgttt aaaaacatct ctctcgtagg accgtgggat        60
+     ggcccccagt accaccttgc tcctgcctgg gccttccact tccagacggc tttcatgggc       120
+     tttgtcttct tcgctgggac atccctcaac ggcgtggtgc tcattgccac acttcgctat       180
+     aagaagctgc gccagccgct caactacatc ttggtcaaca tctctttggc cggcttcatc       240
+     ttctgtgtct tctccgtctt cacggtcttc gtctctagct cccaaggcta cttcgtcttt       300
+     ggccgccatg tctgtgcgat ggagggtttc ctgggctctg tggcaggttt ggtgacgggc       360
+     tggtcactgg ccttccttgc ttttgagcgc ttcattgtca tctgcaaacc ttttggcaac       420
+     ttccgcttca attccaagca cgcaatgatg gtggtcctgg ctacttggat cattggcatt       480
+     ggcgtttcca tcccaccctt ctttggctgg agtcggtata ttcccgaagg cctacagtgc       540
+     tcctgtggcc ctgactggta cacagtaggc acaaaatacc gcagtgaata ctacacttgg       600
+     ttcctcttca ttttctgttt cattgtgcct ctctccctca tctgcttctc ctactcccag       660
+     ctgctgggag ccctccgagc cgttgcggcc cagcaacaag agtcagccac cacgcagaag       720
+     gcagagcggg aggtgagtcg catggtggtg gtgatggtgg gctccttctg cctttgctac       780
+     gtgccctacg ctgccatggc catgtacatg gtcaacaata gaaaccatgg gctggaccta       840
+     cggcttgtca ccatccctgc cttcttctct aagagtgctt gcgtctacaa ccccatcatc       900
+     tactgcttca tgaacaagca gttccatgcc tgcatcatgg agatgatatg taaaaagcca       960
+     atgacagatg attctgaaac caccagctct cagaaaactg aagtctccac tgtttcctcc      1020
+     agccaagtgg ggcctagtta a                                                1041
+//

@@ -1,0 +1,31 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "inference_protocol.json": "153a620a9e274b56dab2933b481d2e311a9413530ba06d824edd23294e97da31",
+    "inputs/SWS1.outgroups.codon.fa": "ed24bec57c99aa2318ec2b92e41017de84bbd47489d6cef0311d8c21bd29b7cb",
+    "inputs/SWS1.outgroups.protein.fa": "fdbdbb82e66012a83624df34a2ae77c3e835efffefaea39d376b157083712857",
+    "inputs/mafft.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inputs/outgroup_downloads.json": "f056b6b7e42a7de9e5d224b4c69d639ec8b73bcfc474a3476b6882070c61926e",
+    "inputs/outgroups.cds.fa": "370632bb010ddbe9093e587961f60207f481860ed3396b8d5c0c59db8ba8adc6",
+    "inputs/outgroups.protein.fa": "f145ffe504968fad9b1d8f15f0f35d30bbbbd9ffd58d486bcc171d100d4a9045",
+    "inputs/outgroups.protein.fa.map": "cabe0e0d674136bc8a4a18b3313f6857d97581effa02ad26a0cd5de47dac3ddc",
+    "inputs/preparation.json": "ac785bb12545c6ce07772dfac7756535b36b4cbd02eba308549a4ac21ddf0820",
+    "inputs/raw/AY286017.1.embl": "965aa872354dc9f1a0e80ede072a03f553b3d2309050e85d19fd94edccdaa155",
+    "inputs/raw/AY442173.1.embl": "38debf8a10771bc40d5c8eff1fc73ae88bb5013e95595c0018a176449245a0af",
+    "inputs/raw/AY686753.1.embl": "a255192342ba7cae430091b35c55faea98da59c4c5be9c7e1191427d41fefc65",
+    "inputs/species_scaffold.nwk": "2f4cf952177abaff27352d07e2cba5adce9c43d930a02a83e9fb2e7e8c05e494",
+    "results/Boreoeutheria.codon.fa": "da54186a8e2f968cd15d84bd84417aea1507f9ddc2392a5205f42a1274b8bac9",
+    "results/Boreoeutheria.protein.fa": "41ba7c169f82c519aa1c9e21a1ad4646987c9c07bb45e75a3b8e773bb9f16694",
+    "results/ancestors.codon.fa": "3984897005544143c3e8f7addab1c59af6463a0ccd5f368e97bce7cb1bbd7266",
+    "results/ancestors.protein.fa": "58b2bb4bd3a34596b6e3597c4300b5286ae4727e16fe8d949526f5ac21c68911",
+    "results/inference_script.py": "64c1441a5887f5899ab08d739469513408b1870040c29ecf3556951fed68b42d",
+    "results/postprocessing_script.py": "04dfafdde4665ef37520137e4e449f8874fc53dda2c8b4c74430ece4eba7147b",
+    "results/selected_node.json": "dfc0c87d697ed2430d02c2d97e4887372791dcad563fdabd7bc02ad21b1b3217",
+    "results/sequence_export.json": "cc4c842b82db7f86028e6d63c0eef885bf5d2799f1c00c1d19a8adf4c1b1137d",
+    "results/slac.json": "054e678e3b5b1b5fa93f1f967602f65c90b57757fff12bb72ceb9220a54e754d",
+    "results/status.json": "dd6c0d58fd521f3af8bd2453d1153becb74675d48b8a9a69cda7c4eee39504ff",
+    "results/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/stdout.log": "4c42a39372d5b28816e9034642016efbc7134d920985a274ee1ea1f97ef15f42"
+  },
+  "scope": "Inference protocol, all input and result files; empirical evaluation occurs separately"
+}

@@ -1,0 +1,228 @@
+{
+  "alignment_length_aa": 347,
+  "ancestor_protein": "MSGQEDFYLFENISSVGPWDGPQYHIAPVWAFHLQAAFMGFVFFVGTPLNAIVLVATLRYKKLRQPLNYILVNISLGGFLFCIFSVFTVFISSCQGYFVFGRHVCALEAFLGSVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALMVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIVPLSLICFSYSQLLGALRAVAAQQQESATTQKAEREVSRMVVVMVGSFCLCYVPYAALAMYMVNNRNHGLDLRLVTIPAFFSKSSCVYNPIIYCFMNKQFRACILETVCGKPMSDESDVSSSAQKTEVSSVSSSQVSPS",
+  "ancestral_nucleotide_sequence_available": false,
+  "caveats": [
+    "The paper assays a chimeric construct with anole termini; it does not publish a fully natural terminal sequence in S4.",
+    "No ancestral codons are provided by the reviewed original source; do not backtranslate the protein into supposed true ancestral DNA.",
+    "The282aa non-red core is the available direct paper-protein comparison target.",
+    "Paper source numbering is bovine-rhodopsin homolog numbering and differs from displayed protein index, historical human index and codon-alignment column.",
+    "The original author multispecies alignment and ancestral posterior probabilities remain unavailable."
+  ],
+  "figure_blocks": [
+    "MSGQEDFYLFENISSVGPWDGPQYHIAPVWAFHLQAAFMGFVFFVGTPLNAIVLV",
+    "ATLRYKKLRQPLNYILVNISLGGFLFCIFSVFTVFISSCQGYFVFGRHVC",
+    "ALEAFLGSVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALMVVLAT",
+    "WTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIF",
+    "CFIVPLSLICFSYSQLLGALRAVAAQQQESATTQKAEREVSRMVVVMVGS",
+    "FCLCYVPYAALAMYMVNNRNHGLDLRLVTIPAFFSKSSCVYNPIIYCFMN",
+    "KQFRACILETVCGKPMSDESDVSSSAQKTEVSSVSSSQVSPS"
+  ],
+  "focal_sites": [
+    {
+      "ancestor_state": "F",
+      "benchmark_alignment_codon_column_1based": 45,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 43,
+      "human_state": "T",
+      "paper_protein_position_1based": 41,
+      "paper_source_position": 46,
+      "substitution": "F46T"
+    },
+    {
+      "ancestor_state": "F",
+      "benchmark_alignment_codon_column_1based": 48,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 46,
+      "human_state": "L",
+      "paper_protein_position_1based": 44,
+      "paper_source_position": 49,
+      "substitution": "F49L"
+    },
+    {
+      "ancestor_state": "T",
+      "benchmark_alignment_codon_column_1based": 51,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 49,
+      "human_state": "F",
+      "paper_protein_position_1based": 47,
+      "paper_source_position": 52,
+      "substitution": "T52F"
+    },
+    {
+      "ancestor_state": "F",
+      "benchmark_alignment_codon_column_1based": 85,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 83,
+      "human_state": "L",
+      "paper_protein_position_1based": 81,
+      "paper_source_position": 86,
+      "substitution": "F86L"
+    },
+    {
+      "ancestor_state": "T",
+      "benchmark_alignment_codon_column_1based": 92,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 90,
+      "human_state": "P",
+      "paper_protein_position_1based": 88,
+      "paper_source_position": 93,
+      "substitution": "T93P"
+    },
+    {
+      "ancestor_state": "A",
+      "benchmark_alignment_codon_column_1based": 113,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 111,
+      "human_state": "G",
+      "paper_protein_position_1based": 109,
+      "paper_source_position": 114,
+      "substitution": "A114G"
+    },
+    {
+      "ancestor_state": "S",
+      "benchmark_alignment_codon_column_1based": 117,
+      "complete_unambiguous_codon_in_all_15_taxa": true,
+      "historical_human_cds_position_1based": 115,
+      "human_state": "T",
+      "paper_protein_position_1based": 113,
+      "paper_source_position": 118,
+      "substitution": "S118T"
+    }
+  ],
+  "full_natural_ancestral_protein_available": false,
+  "human_coordinate_bridge": {
+    "benchmark_alignment_core_ranges_1based": [
+      [
+        30,
+        311
+      ]
+    ],
+    "coordinate_table": "epistaeon/data/alignments/sws1/human_coordinate_map.tsv",
+    "historical_human_core_ranges_1based": [
+      [
+        28,
+        309
+      ]
+    ],
+    "method": "Exact unique match of the full282aa S4-human non-red core to historical accession-derived Homo_sapiens protein, followed by existing human-to-codon-column table. No alignment of engineered termini and no prediction-dependent mapping.",
+    "reference_human_protein": "epistaeon/data/alignments/sws1/SWS1.protein.fa"
+  },
+  "paper_human_protein": "MSGQEDFYLFENISSVGPWDGPQYHIAPVWAFYLQAAFMGTVFLIGFPLNAMVLVATLRYKKLRQPLNYILVNVSFGGFLLCIFSVFPVFVASCNGYFVFGRHVCALEGFLGTVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALTVVLATWTIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSESYTWFLFIFCFIVPLSLICFSYTQLLRALKAVAAQQQESATTQKAEREVSRMVVVMVGSFCVCYVPYAAFAMYMVNNRNHGLDLRLVTIPSFFSKSACIYNPIIYCFMNKQFRACILETVCGKPMSDESDVSSSAQKTEVSSVSSSQVSPS",
+  "pigment_g_protein": "MSGQEDFYLFENISSVGPWDGPQYHIAPVWAFYLQAAFMGFVFFVGTPLNAIVLVATLRYKKLRQPLNYILVNVSLGGFLLCIFSVFTVFIASCHGYFVFGRHVCALEAFLGSVAGLVTGWSLAFLAFERYIVICKPFGNFRFSSKHALMVVVATWIIGIGVSIPPFFGWSRFIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIVPLSLICFSYSQLLRALRAVAAQQQESATTQKAEREVSHMVVVMVGSFCLCYVPYAALAMYMVNNRNHGLDLRLVTIPAFFSKSSCVYNPIIYCFMNKQFRACILETVCGKPMSDESDVSSSAQKTEVSSVSSSQVSPS",
+  "rooting_context": {
+    "benchmark_panel": "15 extant boreoeutherians:14 Euarchontoglires and1Laurasiatherian Bos_taurus; reversible ML cannot determine the root without an external rooting constraint.",
+    "paper_listed_SWS1_outgroups": [
+      {
+        "accession": "AY686753",
+        "group": "Afrotheria",
+        "paper_species": "Loxodonta africana"
+      },
+      {
+        "accession": "AY286017",
+        "group": "Marsupialia",
+        "paper_species": "Macropus eugenii"
+      },
+      {
+        "accession": "AY442173",
+        "group": "Marsupialia",
+        "paper_species": "Sminthopsis crassicaudata"
+      }
+    ],
+    "source_grounded_rooting": "Use separately preserved ASR-only SWS1 outgroup augmentation; root placental taxa with the two marsupials, identify MRCA of the original boreoeutherian panel with elephant external to it. Do not equate the inferred unrooted15taxon ML tree center with AncBoreotheria."
+  },
+  "schema_version": 1,
+  "scope": "Evaluation-only source transcription. Full rows are the terminal-standardized S4 constructs; natural-ancestor comparison is restricted to non-red core. Never use these truth residues to select ASR settings or as inference inputs.",
+  "source_files": [
+    {
+      "local_path": "epistaeon/data/experimental/sws1_2014_S4_Fig.eps",
+      "sha256": "8650a3243a7c627685b73828157f9947f99344aafc0d458b085855501f65ef95",
+      "url": "https://ndownloader.figshare.com/files/1847637"
+    },
+    {
+      "local_path": "epistaeon/data/experimental/sws1_2014_yokoyama.html",
+      "sha256": "59613762c17d826d6fe2d4f4a99e518c4601bd3e8a840b1a455d1a17abb93367",
+      "url": "https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004884"
+    }
+  ],
+  "study": {
+    "doi": "10.1371/journal.pgen.1004884",
+    "natural_node_identity": "Boreoeutherian SWS1 ancestor; ancestor of Euarchontoglires and Laurasiatheria, not the primate or mammalian root",
+    "source_figure": "S4 Fig",
+    "source_label": "AncBoreotheria S1"
+  },
+  "terminal_mask": {
+    "basis": "Red residue/dot coloring in original S4 Fig, manually inspected after rendering at450dpi",
+    "bounds_caveat": "Methods prose and sequential indices in the displayed protein are not interchangeable. Use actual S4 color-defined mask; do not treat engineered anole terminal residues as inferred natural Boreoeutherian states.",
+    "comparable_core_length_aa": 282,
+    "comparable_core_ranges_1based": [
+      [
+        26,
+        307
+      ]
+    ],
+    "engineered_ranges_1based": [
+      [
+        1,
+        25
+      ],
+      [
+        308,
+        347
+      ]
+    ],
+    "engineered_residues_count": 65,
+    "methods_prose_verbatim_bounds": {
+      "C_terminus": "sites 313\u2013348",
+      "N_terminus": "sites 1\u201330"
+    }
+  },
+  "transcription": {
+    "S4_human_core_exactly_matches_extant_accession_core": true,
+    "human_non_dot_replacements": {
+      "109": "G",
+      "113": "T",
+      "150": "T",
+      "197": "S",
+      "219": "T",
+      "223": "R",
+      "226": "K",
+      "258": "V",
+      "266": "F",
+      "287": "S",
+      "293": "A",
+      "295": "I",
+      "33": "Y",
+      "41": "T",
+      "44": "L",
+      "45": "I",
+      "47": "F",
+      "52": "M",
+      "74": "V",
+      "76": "F",
+      "81": "L",
+      "88": "P",
+      "91": "V",
+      "92": "A",
+      "95": "N"
+    },
+    "indels_in_S4_three_row_alignment": 0,
+    "method": "Direct visual transcription of ancestral row and every non-dot replacement in the two lower S4 rows; dots expanded to ancestral identity. OCR used as a secondary visual aid; no inferred ASR sequence used.",
+    "observed_ancestor_human_differences": 25,
+    "observed_ancestor_pigment_g_differences": 9,
+    "pigment_g_non_dot_replacements": {
+      "153": "V",
+      "157": "I",
+      "223": "R",
+      "247": "H",
+      "33": "Y",
+      "74": "V",
+      "81": "L",
+      "92": "A",
+      "95": "H"
+    },
+    "reported_ancestor_human_differences": 25,
+    "reported_ancestor_pigment_g_differences": 9,
+    "seven_focal_states_match_existing_crosswalk": true
+  }
+}

@@ -1,0 +1,11 @@
+# Direct runtime dependencies. Re-resolve only as an explicit protocol revision.
+torch @ https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp311-cp311-linux_x86_64.whl
+numpy==1.26.4
+scipy==1.14.1
+biopython==1.85
+pandas==2.2.3
+huggingface-hub==0.30.2
+safetensors==0.5.3
+networkx==3.4.2
+matplotlib==3.10.1
+tn93==1.2.2

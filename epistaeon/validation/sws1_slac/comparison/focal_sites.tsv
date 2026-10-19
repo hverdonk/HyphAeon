@@ -1,0 +1,8 @@
+substitution	paper_source_position_1based	paper_protein_position_1based	human_cds_position_1based	alignment_column_1based	paper_ancestor	paper_human	reconstructed_ancestor	reconstructed_codon	status
+F46T	46	41	43	45	F	T	F	TTT	match
+F49L	49	44	46	48	F	L	F	TTT	match
+T52F	52	47	49	51	T	F	T	ACA	match
+F86L	86	81	83	85	F	L	F	TTC	match
+T93P	93	88	90	92	T	P	T	ACT	match
+A114G	114	109	111	113	A	G	A	GCC	match
+S118T	118	113	115	117	S	T	S	TCT	match

@@ -9,17 +9,12 @@ import json
 import sys
 from typing import Dict, List, Optional
 
-import numpy as np
-
 from . import __version__
-from .io import write_json, write_matrix_csv
-from .lattice import Lattice
-from .timing import TimingNotSupported, absolute_timing, relative_positions
-from .trajectory import EXACT_UNIT_LIMIT, infer
 
 
 def _build_scorer(name, ctx, lattice, genotypes, anchor_name, args, provenance):
     """Assemble the requested scorer from model-derived quantities."""
+    import numpy as np
     from . import scoring as S
     from .background import AppendedGenotypeRows, extant_embeddings, root_token_embedding
 
@@ -105,7 +100,54 @@ def _discrimination(res) -> Dict[str, object]:
     return out
 
 
+def _benchmark_endpoints(rows, focal_taxon, selection):
+    """Convert truth-free preflight into endpoints with a focal fixed background."""
+    from .background import Endpoints, residue_of
+    from .lattice import Substitution
+
+    if list(rows) != selection["taxa"] or rows[focal_taxon] != selection["focal_codons"]:
+        raise SystemExit("loaded benchmark taxa/sequence differ from the preflight input")
+    residue_number, number = {}, 0
+    for col, codon in enumerate(rows[focal_taxon]):
+        if residue_of(codon) != "-":
+            number += 1
+            residue_number[col] = number
+    events = selection["selected"]
+    ends = Endpoints(
+        ancestral_codons=list(selection["starting_codons"]),
+        derived_codons={e["column0"]: e["derived_codon"] for e in events},
+        ancestral_protein="".join(residue_of(c) for c in selection["starting_codons"]),
+        substitutions=[Substitution(e["column0"], e["ancestral"], e["derived"], e["name"])
+                       for e in events],
+        reference_name=focal_taxon, residue_number=residue_number,
+        plurality_support={e["column0"]: e["plurality_support"] for e in events},
+        classes={e["column0"]: "nonsynonymous" for e in events},
+    )
+    full = list(ends.ancestral_codons)
+    for col, codon in ends.derived_codons.items():
+        full[col] = codon
+    if full != rows[focal_taxon]:
+        raise SystemExit("benchmark full mask fails to reconstruct the focal sequence")
+    return ends
+
+
 def cmd_order(args: argparse.Namespace) -> int:
+    benchmark_selection = None
+    if getattr(args, "_benchmark_profile", False):
+        from .benchmark_inputs import BenchmarkInputError, select_benchmark_inputs
+        if args.sites or args.blocks or args.ancestor or args.max_species is not None:
+            raise SystemExit("benchmark profile forbids sites, blocks, ancestor, and taxon downsampling")
+        try:
+            benchmark_selection = select_benchmark_inputs(
+                args.alignment, args.focal_taxon, args.max_genotypes
+            )
+        except BenchmarkInputError as exc:
+            raise SystemExit(str(exc)) from exc
+    import numpy as np
+    from .io import write_json, write_matrix_csv
+    from .lattice import Lattice
+    from .timing import TimingNotSupported, absolute_timing, relative_positions
+    from .trajectory import EXACT_UNIT_LIMIT, infer
     from .background import AppendedGenotypeRows, GenotypeRows, derive_endpoints, load_context, resolve_positions
 
     if args.anchor == "ancestral-sequence" and args.ancestor is None:
@@ -121,13 +163,16 @@ def cmd_order(args: argparse.Namespace) -> int:
         ancestor_taxon=args.ancestor,
         weights=args.weights, variant=args.variant, cpu=args.cpu,
         max_species=args.max_species, use_tn93=args.use_tn93,
+        **({"prune_duplicates": False} if benchmark_selection is not None else {}),
     )
 
     # Positions are numbered within the reference row, so --sites and --blocks
     # can only be resolved once the endpoints exist; derive them unrestricted
     # first, then again with the requested columns.
     rows = ctx.rows()
-    ends = derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name)
+    ends = (_benchmark_endpoints(rows, ctx.derived_name, benchmark_selection)
+            if benchmark_selection is not None
+            else derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name))
     if args.sites:
         columns = resolve_positions(open(args.sites).read().split(), ends)
         ends = derive_endpoints(rows, ctx.derived_name, ctx.ancestor_name, columns=columns)
@@ -199,6 +244,20 @@ def cmd_order(args: argparse.Namespace) -> int:
         "mode": mode,
         "t_sel": args.t_sel,
     }
+    if benchmark_selection is not None:
+        provenance["input_profile"] = {
+            "name": "blinded-benchmark-v1", "event_policy": "resolved_nonsynonymous",
+            "fixed_background": "focal", "all_alignment_taxa_retained": True,
+            "selection_file": "selection.json",
+            "classification_counts": benchmark_selection["classification_counts"],
+            "full_mask_reproduces_focal": benchmark_selection["full_mask_reproduces_focal"],
+        }
+        provenance["ancestral_states"] = (
+            "nonfocal plurality residue/codon at selected resolved nonsynonymous "
+            "columns; every excluded column is frozen at its focal codon"
+        )
+        provenance["substitution_unit"] = "resolved nonsynonymous codon change"
+        provenance["diagnostic_baseline"] = args.scorer == "dphi-product"
     if ends.plurality_support:
         provenance["plurality_support"] = {
             lattice.unit_name(u): min(
@@ -400,8 +459,11 @@ def cmd_order(args: argparse.Namespace) -> int:
     }
     if not ctx.ancestor_name:
         payload["caveats"].append(
-            "No --ancestor row was given, so each ancestral state is the "
-            "plurality residue in that alignment column. That is a consensus, "
+            ("No --ancestor row was given, so the selected starting residues are the "
+             "plurality residues in their alignment columns. That is a consensus, "
+             if benchmark_selection is not None else
+             "No --ancestor row was given, so each ancestral state is the "
+             "plurality residue in that alignment column. That is a consensus, ") +
             "not an ancestral reconstruction, and it can differ from the real "
             "ancestor at any column; see provenance.plurality_support."
         )
@@ -484,7 +546,32 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--use-tn93", action="store_true")
     o.add_argument("-o", "--output", default="epistaeon_out")
     o.set_defaults(func=cmd_order)
+
+    run = sub.add_parser("benchmark-run", help="run all scorers in an isolated, truth-blind runtime")
+    run.add_argument("--alignment", required=True)
+    run.add_argument("--focal-taxon", required=True)
+    run.add_argument("--weights", required=True, help="local .safetensors checkpoint; config.json must be beside it")
+    run.add_argument("--max-genotypes", type=int, default=4096,
+                     help="exact genotype ceiling; never subsamples sites or switches to sampling")
+    run.add_argument("-o", "--output", required=True, help="new run directory; existing artifacts are never overwritten")
+    run.set_defaults(func=cmd_benchmark_run)
+
+    evaluate = sub.add_parser("benchmark-evaluate", help="evaluate sealed predictions with an empirical reference")
+    evaluate.add_argument("--run", required=True, help="sealed benchmark run directory")
+    evaluate.add_argument("--reference", required=True, help="source-qualified empirical reference JSON")
+    evaluate.add_argument("-o", "--output", required=True, help="separate evaluation directory")
+    evaluate.set_defaults(func=cmd_benchmark_evaluate)
     return p
+
+
+def cmd_benchmark_run(args):
+    from .benchmark_run import cmd_benchmark_run as run
+    return run(args)
+
+
+def cmd_benchmark_evaluate(args):
+    from .benchmark_evaluate import cmd_benchmark_evaluate as evaluate
+    return evaluate(args)
 
 
 def main(argv: Optional[List[str]] = None) -> int:

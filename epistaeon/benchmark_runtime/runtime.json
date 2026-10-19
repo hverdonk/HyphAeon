@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "platform": "linux/amd64",
+  "python_version": "3.11.11",
+  "base_image": "python:3.11.11-slim-bookworm@sha256:a8e0a3090316aed0b11037aac613aef32fb1747dcc1dcb5c0f6c727a0113a07f",
+  "base_image_index_digest": "sha256:081075da77b2b55c23c088251026fb69a7b2bf92471e491ff5fd75c192fd38e5",
+  "base_image_manifest_digest": "sha256:a8e0a3090316aed0b11037aac613aef32fb1747dcc1dcb5c0f6c727a0113a07f",
+  "base_image_registry": "https://registry-1.docker.io/v2/library/python/manifests/3.11.11-slim-bookworm",
+  "requirements_file": "requirements.lock",
+  "direct_requirements_file": "requirements.in",
+  "resolver": {
+    "name": "uv",
+    "version": "0.6.17",
+    "python_version": "3.11",
+    "python_platform": "x86_64-manylinux_2_28",
+    "exclude_newer": "2025-05-01",
+    "index": "https://pypi.org/simple",
+    "only_binary": true,
+    "generate_hashes": true
+  },
+  "torch": {
+    "version": "2.5.1+cpu",
+    "wheel_url": "https://download.pytorch.org/whl/cpu/torch-2.5.1%2Bcpu-cp311-cp311-linux_x86_64.whl",
+    "sha256": "07d7c9e069123d5af08b0cf0013d74f680b2d8be7d9e2cf561a52c90c55d9409"
+  },
+  "tn93": {
+    "implementation": "python package: tn93.tn93.TN93",
+    "version": "1.2.2",
+    "external_binary_allowed": false,
+    "wheel_sha256": "1585ded0cbf2457fd93bf1ccde450b03edcf9deaf123cead30300177fabe19fc"
+  },
+  "worker_module": "epistaeon.benchmark_worker",
+  "environment": {
+    "PYTHONHASHSEED": "0",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+  },
+  "isolation": {
+    "network": "none",
+    "read_only_rootfs": true,
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "inputs_read_only": true,
+    "mounts": [
+      "/inputs",
+      "/outputs"
+    ],
+    "tmpfs": "/tmp"
+  },
+  "source_policy": "Only explicitly allowlisted production Python modules; no documentation, empirical references, experimental files, tests or agent histories."
+}

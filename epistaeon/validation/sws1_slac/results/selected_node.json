@@ -1,0 +1,12 @@
+{
+  "codon_columns": 350,
+  "codon_fasta": "results/Boreoeutheria.codon.fa",
+  "identified_by": "Internal node subtending exactly the 15 original Boreoeutherian taxa in the frozen species-scaffold topology; elephant and two marsupials are outside",
+  "input_alignment": "inputs/SWS1.outgroups.codon.fa",
+  "input_tree": "inputs/species_scaffold.nwk",
+  "label": "Boreoeutheria",
+  "method": "SLAC joint maximum-likelihood codon ancestral reconstruction",
+  "node_id": "Boreoeutheria",
+  "protein_fasta": "results/Boreoeutheria.protein.fa",
+  "uncertainty": "Joint ML point estimate; no per-residue posterior probabilities computed; samples=0"
+}

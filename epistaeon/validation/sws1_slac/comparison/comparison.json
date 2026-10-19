@@ -1,0 +1,232 @@
+{
+  "analysis": "Evaluation-only comparison of frozen HyPhy SLAC point ASR",
+  "comparison_script_sha256": "15ecc98f9faa14858cb8d09cc1d9beeea367509b52adeb33d7839545fb5e91a5",
+  "coordinate_bridge": {
+    "alignment_core_mapped_column_range_1based": [
+      30,
+      311
+    ],
+    "human_core_range_1based": [
+      28,
+      309
+    ],
+    "mapped_paper_positions": 282,
+    "method": "Unique exact match of the complete S4-human non-engineered core to the ungapped input Homo_sapiens; human residues then map through actual input gaps.",
+    "paper_core_range_1based": [
+      26,
+      307
+    ],
+    "unmapped_human_gap_positions": []
+  },
+  "focal_site_rows": [
+    {
+      "alignment_column_1based": 45,
+      "human_cds_position_1based": 43,
+      "paper_ancestor": "F",
+      "paper_human": "T",
+      "paper_protein_position_1based": 41,
+      "paper_source_position_1based": 46,
+      "reconstructed_ancestor": "F",
+      "reconstructed_codon": "TTT",
+      "status": "match",
+      "substitution": "F46T"
+    },
+    {
+      "alignment_column_1based": 48,
+      "human_cds_position_1based": 46,
+      "paper_ancestor": "F",
+      "paper_human": "L",
+      "paper_protein_position_1based": 44,
+      "paper_source_position_1based": 49,
+      "reconstructed_ancestor": "F",
+      "reconstructed_codon": "TTT",
+      "status": "match",
+      "substitution": "F49L"
+    },
+    {
+      "alignment_column_1based": 51,
+      "human_cds_position_1based": 49,
+      "paper_ancestor": "T",
+      "paper_human": "F",
+      "paper_protein_position_1based": 47,
+      "paper_source_position_1based": 52,
+      "reconstructed_ancestor": "T",
+      "reconstructed_codon": "ACA",
+      "status": "match",
+      "substitution": "T52F"
+    },
+    {
+      "alignment_column_1based": 85,
+      "human_cds_position_1based": 83,
+      "paper_ancestor": "F",
+      "paper_human": "L",
+      "paper_protein_position_1based": 81,
+      "paper_source_position_1based": 86,
+      "reconstructed_ancestor": "F",
+      "reconstructed_codon": "TTC",
+      "status": "match",
+      "substitution": "F86L"
+    },
+    {
+      "alignment_column_1based": 92,
+      "human_cds_position_1based": 90,
+      "paper_ancestor": "T",
+      "paper_human": "P",
+      "paper_protein_position_1based": 88,
+      "paper_source_position_1based": 93,
+      "reconstructed_ancestor": "T",
+      "reconstructed_codon": "ACT",
+      "status": "match",
+      "substitution": "T93P"
+    },
+    {
+      "alignment_column_1based": 113,
+      "human_cds_position_1based": 111,
+      "paper_ancestor": "A",
+      "paper_human": "G",
+      "paper_protein_position_1based": 109,
+      "paper_source_position_1based": 114,
+      "reconstructed_ancestor": "A",
+      "reconstructed_codon": "GCC",
+      "status": "match",
+      "substitution": "A114G"
+    },
+    {
+      "alignment_column_1based": 117,
+      "human_cds_position_1based": 115,
+      "paper_ancestor": "S",
+      "paper_human": "T",
+      "paper_protein_position_1based": 113,
+      "paper_source_position_1based": 118,
+      "reconstructed_ancestor": "S",
+      "reconstructed_codon": "TCT",
+      "status": "match",
+      "substitution": "S118T"
+    }
+  ],
+  "focal_sites": {
+    "disagreements": [],
+    "expected_residue_count": 7,
+    "identity_among_resolved": 1.0,
+    "matched_residue_count": 7,
+    "reference_gap_columns_excluded_from_amino_acid_identity": 0,
+    "resolved_reconstruction_count": 7,
+    "strict_match_fraction_all_expected_residues": 1.0,
+    "substitution_disagreement_count": 0,
+    "unresolved_or_unmapped": [],
+    "unresolved_or_unmapped_count": 0
+  },
+  "input_sha256": {
+    "alignment": "ed24bec57c99aa2318ec2b92e41017de84bbd47489d6cef0311d8c21bd29b7cb",
+    "ancestors_codon": "3984897005544143c3e8f7addab1c59af6463a0ccd5f368e97bce7cb1bbd7266",
+    "ancestors_protein": "58b2bb4bd3a34596b6e3597c4300b5286ae4727e16fe8d949526f5ac21c68911",
+    "inference_seal": "e1924f9135632ce77018517ab0327494c5b65fc2e3d576a912efef08ec1bc36a",
+    "paper_reference": "81d532d540030bcb5ce97b48ddb6bfa755d2cbba8d23ab637c00ef87331620ba",
+    "selected_node": "dfc0c87d697ed2430d02c2d97e4887372791dcad563fdabd7bc02ad21b1b3217",
+    "substitution_reference": "88754ebaf39cbcbba88419a981a098a6feb9c2fc399f7e71d4e661c2bfd82380"
+  },
+  "limitations": [
+    "S4 displays terminal-standardized assay chimeras; compare only its non-engineered core with a natural ASR.",
+    "Full natural ancestral termini and true ancestral codons are unavailable; no nucleotide-accuracy claim is possible.",
+    "The rebuilt taxon panel, alignment, phylogeny and SLAC reconstruction do not reproduce the original author analysis exactly.",
+    "Point-state agreement does not measure posterior uncertainty, substitution order or epistasis.",
+    "Prediction gaps, ambiguous states and unmapped insertions are reported as unavailable, separately from resolved substitutions."
+  ],
+  "mask": {
+    "basis": "Red residue/dot coloring in original S4 Fig, manually inspected after rendering at450dpi",
+    "engineered_ranges_1based": [
+      [
+        1,
+        25
+      ],
+      [
+        308,
+        347
+      ]
+    ],
+    "excluded_engineered_positions": 65,
+    "methods_prose_verbatim_bounds": {
+      "C_terminus": "sites 313\u2013348",
+      "N_terminus": "sites 1\u201330"
+    }
+  },
+  "node_id": "Boreoeutheria",
+  "paper_natural_core": {
+    "disagreements": [
+      {
+        "alignment_column_1based": 56,
+        "human_cds_position_1based": 54,
+        "paper_ancestor": "I",
+        "paper_human": "M",
+        "paper_protein_position_1based": 52,
+        "reconstructed_ancestor": "M",
+        "reconstructed_codon": "ATG",
+        "status": "substitution"
+      },
+      {
+        "alignment_column_1based": 78,
+        "human_cds_position_1based": 76,
+        "paper_ancestor": "I",
+        "paper_human": "V",
+        "paper_protein_position_1based": 74,
+        "reconstructed_ancestor": "V",
+        "reconstructed_codon": "GTG",
+        "status": "substitution"
+      },
+      {
+        "alignment_column_1based": 96,
+        "human_cds_position_1based": 94,
+        "paper_ancestor": "S",
+        "paper_human": "A",
+        "paper_protein_position_1based": 92,
+        "reconstructed_ancestor": "A",
+        "reconstructed_codon": "GCC",
+        "status": "substitution"
+      },
+      {
+        "alignment_column_1based": 297,
+        "human_cds_position_1based": 295,
+        "paper_ancestor": "S",
+        "paper_human": "A",
+        "paper_protein_position_1based": 293,
+        "reconstructed_ancestor": "A",
+        "reconstructed_codon": "GCT",
+        "status": "substitution"
+      }
+    ],
+    "expected_residue_count": 282,
+    "identity_among_resolved": 0.9858156028368794,
+    "matched_residue_count": 278,
+    "reference_gap_columns_excluded_from_amino_acid_identity": 0,
+    "resolved_reconstruction_count": 282,
+    "strict_match_fraction_all_expected_residues": 0.9858156028368794,
+    "substitution_disagreement_count": 4,
+    "unresolved_or_unmapped": [],
+    "unresolved_or_unmapped_count": 0
+  },
+  "schema_version": 1,
+  "selected_node": {
+    "codon_columns": 350,
+    "codon_fasta": "results/Boreoeutheria.codon.fa",
+    "identified_by": "Internal node subtending exactly the 15 original Boreoeutherian taxa in the frozen species-scaffold topology; elephant and two marsupials are outside",
+    "input_alignment": "inputs/SWS1.outgroups.codon.fa",
+    "input_tree": "inputs/species_scaffold.nwk",
+    "label": "Boreoeutheria",
+    "method": "SLAC joint maximum-likelihood codon ancestral reconstruction",
+    "node_id": "Boreoeutheria",
+    "protein_fasta": "results/Boreoeutheria.protein.fa",
+    "uncertainty": "Joint ML point estimate; no per-residue posterior probabilities computed; samples=0"
+  },
+  "source_evidence": [
+    {
+      "local_path": "epistaeon/data/experimental/sws1_2014_S4_Fig.eps",
+      "sha256": "8650a3243a7c627685b73828157f9947f99344aafc0d458b085855501f65ef95",
+      "url": "https://ndownloader.figshare.com/files/1847637"
+    },
+    {
+      "local_path": "epistaeon/data/experimental/sws1_2014_yokoyama.html",
+      "sha256": "59613762c17d826d6fe2d4f4a99e518c4601bd3e8a840b1a455d1a17abb93367",
+      "url": "https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004884"
+    }
+  ]
+}

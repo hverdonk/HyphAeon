@@ -1,0 +1,24 @@
+{
+  "evaluation_only": true,
+  "original_sources": [
+    {
+      "local_path": "epistaeon/data/experimental/sws1_2014_S4_Fig.eps",
+      "sha256": "8650a3243a7c627685b73828157f9947f99344aafc0d458b085855501f65ef95",
+      "url": "https://ndownloader.figshare.com/files/1847637"
+    },
+    {
+      "local_path": "epistaeon/data/experimental/sws1_2014_yokoyama.html",
+      "sha256": "59613762c17d826d6fe2d4f4a99e518c4601bd3e8a840b1a455d1a17abb93367",
+      "url": "https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1004884"
+    }
+  ],
+  "reference_files_sha256": {
+    "README.md": "1ae12113427e942a8a98d2143942fff08de33a21a4eabbfedb964bf5bc9d8950",
+    "paper_S4.core_positions.tsv": "6cd2e9c0a70d9c22399d5aa40355220002b18d86f244bb28c3286aa672d11001",
+    "paper_S4.dot_alignment.txt": "4e3c5bf9b41d3fe0cad8cc2ea3a8f008ca166cbbade2682bd3e9d233d9311d4a",
+    "paper_S4.protein.fa": "0f3684807ecaa870ed89470f29127806da8466058c4f207dcdf2d334ec26de6c",
+    "source_reference.json": "81d532d540030bcb5ce97b48ddb6bfa755d2cbba8d23ab637c00ef87331620ba",
+    "verify_source_reference.py": "6aff570b57d49684f457e7552af3185e193770dc8c7af48648c7903888b27d30"
+  },
+  "schema_version": 1
+}

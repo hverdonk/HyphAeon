@@ -1,0 +1,20 @@
+[
+  {
+    "accession": "AY686753.1",
+    "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AY686753.1?download=false",
+    "sha256": "a255192342ba7cae430091b35c55faea98da59c4c5be9c7e1191427d41fefc65",
+    "bytes": 4809
+  },
+  {
+    "accession": "AY286017.1",
+    "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AY286017.1?download=false",
+    "sha256": "965aa872354dc9f1a0e80ede072a03f553b3d2309050e85d19fd94edccdaa155",
+    "bytes": 4544
+  },
+  {
+    "accession": "AY442173.1",
+    "url": "https://www.ebi.ac.uk/ena/browser/api/embl/AY442173.1?download=false",
+    "sha256": "38debf8a10771bc40d5c8eff1fc73ae88bb5013e95595c0018a176449245a0af",
+    "bytes": 3867
+  }
+]

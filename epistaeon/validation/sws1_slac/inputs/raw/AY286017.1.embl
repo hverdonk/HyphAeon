@@ -1,0 +1,92 @@
+ID   AY286017; SV 1; linear; mRNA; STD; MAM; 1278 BP.
+XX
+AC   AY286017;
+XX
+DT   03-JUN-2003 (Rel. 76, Created)
+DT   01-DEC-2005 (Rel. 86, Last updated, Version 4)
+XX
+DE   Macropus eugenii short wave-sensitive opsin 1 (OPN1SW) mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Notamacropus eugenii (tammar wallaby)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Metatheria; Diprotodontia; Macropodidae; Notamacropus.
+XX
+RN   [1]
+RP   1-1278
+RX   DOI; 10.1093/molbev/msg181.
+RX   PUBMED; 12885969.
+RA   Deeb S.S., Wakefield M.J., Tada T., Marotte L., Yokoyama S.,
+RA   Marshall Graves J.A.;
+RT   "The cone visual pigments of an Australian marsupial, the tammar wallaby
+RT   (Macropus eugenii): sequence, spectral tuning, and evolution";
+RL   Mol. Biol. Evol. 20(10):1642-1649(2003).
+XX
+RN   [2]
+RP   1-1278
+RA   Deeb S.S., Wakefield M.J., Tada T., Marotte L., Yokoyama S., Graves J.A.M.;
+RT   ;
+RL   Submitted (28-APR-2003) to the INSDC.
+RL   RSBS, The Australian National University, Acton, ACT 0200, Australia
+XX
+DR   MD5; 3d598e8e16bbbcb210db95ce1d0e8f78.
+DR   EuropePMC; PMC1664589; 17107620.
+DR   EuropePMC; PMC2765098; 19805066.
+DR   EuropePMC; PMC4643761; 26601250.
+DR   EuropePMC; PMC6313163.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1278
+FT                   /organism="Notamacropus eugenii"
+FT                   /mol_type="mRNA"
+FT                   /country="Australia:Kangaroo Island"
+FT                   /db_xref="taxon:9315"
+FT   gene            1..1278
+FT                   /gene="OPN1SW"
+FT   CDS             23..1063
+FT                   /codon_start=1
+FT                   /gene="OPN1SW"
+FT                   /product="short wave-sensitive opsin 1"
+FT                   /note="cone pigments; photoreceptor"
+FT                   /db_xref="GOA:Q7YSA5"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q7YSA5"
+FT                   /protein_id="AAP37944.1"
+FT                   /translation="MSGDEEFYLFKNISSVGPWDGPQYHIAPAWAFHCQTVFMGFVFFA
+FT                   GTPLNAVVLIATFRYKKLRQPLNYILVNISLAGFIYCIFSVFTVFISSSQGYFIFGRHV
+FT                   CAMEGFLGSVAGLVTGWSLAFLAFERFIVICKPFGNFRFNSKHSMMVVLATWVIGIGVS
+FT                   IPPFFGWSRYIPEGLQCSCGPDWYTVGTKYRSEYYTWFLFILCFIMPLSLICFSYSQLL
+FT                   GALRAVAAQQQESATTQKAEREVSRMVVMMVGSFCLCYVPYAALAMYMVNNRNHGIDLR
+FT                   LVTIPAFFSKSSCVYNPIIYCFMNKQFHACIMEMVCRKPMTDDSEASSSQKTEVSTVSS
+FT                   SQVGPS"
+XX
+SQ   Sequence 1278 BP; 265 A; 339 C; 298 G; 376 T; 0 other;
+     ggggagacaa tccaggagca agatgtcagg ggacgaggag ttctacctgt tcaaaaacat        60
+     ctcatcagtg ggaccgtggg acggccctca gtaccacatt gctcctgcct gggcctttca       120
+     ctgtcagaca gttttcatgg gttttgtctt ctttgcaggg acaccactca atgctgtggt       180
+     gctgattgct acatttcgct ataagaaact gcgccagcca ctcaactata ttttggttaa       240
+     tatctccttg gctggtttca tctactgcat cttctcggtc ttcactgtct tcatctctag       300
+     ctcccaaggc tacttcatct ttggccgcca tgtttgtgct atggagggtt tcctgggctc       360
+     tgtggcaggt ctggtgacgg gctggtcatt ggccttcctt gcctttgagc gtttcattgt       420
+     catctgtaaa ccttttggca acttccgctt caactccaag cattcgatga tggtggtcct       480
+     ggccacttgg gtcattggca ttggtgtctc catcccaccg ttctttggct ggagccggta       540
+     tattcctgag ggtttacagt gctcctgtgg cccagactgg tacaccgtag gcacaaaata       600
+     ccgcagtgaa tactacactt ggttcctctt cattctgtgt tttatcatgc ctctctccct       660
+     catctgcttc tcctactccc agttgctggg agccctcaga gctgttgcag cccagcaaca       720
+     agagtcagcc acaacacaga aggcagaacg ggaagtgagt cgcatggtgg tgatgatggt       780
+     gggctccttc tgcctttgct atgtgcccta tgctgccctg gccatgtaca tggtcaacaa       840
+     tcggaaccat ggtattgacc taaggcttgt caccatccct gcctttttct ctaagagttc       900
+     ttgtgtctat aatcccatca tctattgctt catgaacaag cagttccacg cctgcatcat       960
+     ggagatggta tgtagaaagc caatgacaga cgactctgaa gcatccagct cccagaaaac      1020
+     tgaagtctcc actgtttcct ccagccaagt tggccctagt taagggatcc catagcggcc      1080
+     cttaacctga gaaacctgcc taggtgcaag ctatcaatcc gtttcctctg ctcaagactc      1140
+     ctacaaggtg gtggtcacat gtgaggaaga ttgcagtggg tgttctgtat cctttttctc      1200
+     atcttaatga gaagcaatgg ttaacagctc tccttgactt agttgccttc ctagactagt      1260
+     ggttatctag cctgagca                                                    1278
+//

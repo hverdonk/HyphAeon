@@ -308,6 +308,7 @@ def load_context(
     cpu: bool = False,
     max_species: Optional[int] = None,
     use_tn93: bool = False,
+    prune_duplicates: bool = True,
 ) -> Context:
     """Load alignment + distances + model and locate the endpoint rows."""
     # Patristic and TN93 distances are both substitutions per site, but they are
@@ -339,7 +340,7 @@ def load_context(
     # written, and Faith's PD picks divergent taxa, which drops exactly the
     # well-sampled ones (hg38 among them) that make natural focal taxa.
     c, a, d, z, _inv, taxa, L = load_alignment_and_tree(
-        alignment, tree, max_species=None, prune_duplicates=True, use_tn93=use_tn93
+        alignment, tree, max_species=None, prune_duplicates=prune_duplicates, use_tn93=use_tn93
     )
     raw = parse_alignment_sequences(alignment)
     seqs = {t: raw[t][: 3 * L].ljust(3 * L, "-") for t in raw}

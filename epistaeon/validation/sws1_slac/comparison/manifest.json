@@ -1,0 +1,19 @@
+{
+  "comparison_script_sha256": "15ecc98f9faa14858cb8d09cc1d9beeea367509b52adeb33d7839545fb5e91a5",
+  "input_sha256": {
+    "alignment": "ed24bec57c99aa2318ec2b92e41017de84bbd47489d6cef0311d8c21bd29b7cb",
+    "ancestors_codon": "3984897005544143c3e8f7addab1c59af6463a0ccd5f368e97bce7cb1bbd7266",
+    "ancestors_protein": "58b2bb4bd3a34596b6e3597c4300b5286ae4727e16fe8d949526f5ac21c68911",
+    "inference_seal": "e1924f9135632ce77018517ab0327494c5b65fc2e3d576a912efef08ec1bc36a",
+    "paper_reference": "81d532d540030bcb5ce97b48ddb6bfa755d2cbba8d23ab637c00ef87331620ba",
+    "selected_node": "dfc0c87d697ed2430d02c2d97e4887372791dcad563fdabd7bc02ad21b1b3217",
+    "substitution_reference": "88754ebaf39cbcbba88419a981a098a6feb9c2fc399f7e71d4e661c2bfd82380"
+  },
+  "outputs": {
+    "README.md": "f2c51c3d6b92c1ab3933220087dbde483dfbdfd025872b498b68ca574a9a143f",
+    "comparison.json": "ada4d5bba17287b541d38d175d2b17b16768725cfc4ed31cd7c4d90f534bbf3e",
+    "core_residues.tsv": "fb24078588d577c92ef2a9e9635e97ed48303836bf136d08b21d6c94dae66ee1",
+    "focal_sites.tsv": "b569bf5a9edba6ab8b633ed36ee046f9a3e3e2ceb8f73a128f9e9acc2a24b8d6"
+  },
+  "schema_version": 1
+}

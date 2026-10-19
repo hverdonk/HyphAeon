@@ -2,4 +2,6 @@ white_paper_mutational_order_timing_epistasis.pdf
 chronaeon_overleaf_20260918.pdf
 validation/reports/*.json
 !validation/reports/.gitkeep
+validation/runs/
+validation/evaluations/
 data/model/*.safetensors

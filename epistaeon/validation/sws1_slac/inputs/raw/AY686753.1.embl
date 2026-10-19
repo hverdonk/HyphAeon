@@ -1,0 +1,94 @@
+ID   AY686753; SV 1; linear; mRNA; STD; MAM; 1752 BP.
+XX
+AC   AY686753;
+XX
+DT   18-AUG-2004 (Rel. 80, Created)
+DT   28-MAY-2005 (Rel. 84, Last updated, Version 2)
+XX
+DE   Loxodonta africana SWS1 pigment mRNA, complete cds.
+XX
+KW   .
+XX
+OS   Loxodonta africana (African savanna elephant)
+OC   Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Mammalia;
+OC   Eutheria; Afrotheria; Proboscidea; Elephantidae; Loxodonta.
+XX
+RN   [1]
+RP   1-1752
+RX   DOI; 10.1534/genetics.104.039511.
+RX   PUBMED; 15781694.
+RA   Yokoyama S., Takenaka N., Agnew D.W., Shoshani J.;
+RT   "Elephants and human color-blind deuteranopes have identical sets of visual
+RT   pigments";
+RL   Genetics 170(1):335-344(2005).
+XX
+RN   [2]
+RP   1-1752
+RA   Yokoyama S.;
+RT   ;
+RL   Submitted (14-JUL-2004) to the INSDC.
+RL   Biology, Emory University, 1510 Clifton Road, Atlanta, GA 30322, USA
+XX
+DR   MD5; 92776d57da1454c91bd1f17d75801efb.
+DR   EuropePMC; PMC1449733; 15781694.
+DR   EuropePMC; PMC1664589; 17107620.
+DR   EuropePMC; PMC2765098; 19805066.
+XX
+FH   Key             Location/Qualifiers
+FH
+FT   source          1..1752
+FT                   /organism="Loxodonta africana"
+FT                   /mol_type="mRNA"
+FT                   /db_xref="taxon:9785"
+FT   CDS             8..1060
+FT                   /codon_start=1
+FT                   /product="SWS1 pigment"
+FT                   /note="SWS1 opsin"
+FT                   /db_xref="GOA:Q68J46"
+FT                   /db_xref="InterPro:IPR000276"
+FT                   /db_xref="InterPro:IPR001521"
+FT                   /db_xref="InterPro:IPR001760"
+FT                   /db_xref="InterPro:IPR017452"
+FT                   /db_xref="InterPro:IPR027430"
+FT                   /db_xref="UniProtKB/TrEMBL:Q68J46"
+FT                   /protein_id="AAT95414.1"
+FT                   /translation="MIKMSGEEEEFYLFKNISSVGPWGGPQYHIGPVWAFHLQAAFMAF
+FT                   VFFVGTPLNALVLVATLRYRKLRQPLNYILVNISLGGFLSCIFSVFIVFISSCKGYFIF
+FT                   GRYVCALEAFVGSVAGLVTGWSLAFLAFERYIVICKPFGNIRFSSKHALMVVLATWTIG
+FT                   IGVSIPPFFGWSRFLPEGLQCSCGPDWYTVGTKYRSEYYTWFLFIFCFIVPLSLICFSY
+FT                   SQLLGALRAVAAQQQESATTQKAEREVSRMVVVMVASFCLCYVPYAALAMYMVNNRNHG
+FT                   LDLRLVTIPAFFSKSACVYNPIIYCFMNKQFRGCIMEMVCGKSVADESDMSSSQKMEVS
+FT                   TVSSSQVGPN"
+XX
+SQ   Sequence 1752 BP; 422 A; 438 C; 377 G; 515 T; 0 other;
+     tcatcccatg atcaagatgt caggggagga ggaggagttt tatctgttca agaacatctc        60
+     ctcagtgggg ccttggggtg ggcctcagta ccacattggc cctgtctggg ccttccactt       120
+     acaagcagct ttcatggcct ttgtcttctt tgtagggaca ccactcaatg ccctagtgct       180
+     ggtggccaca cttcgttaca gaaagttgcg gcagccactc aactacatcc tggtcaacat       240
+     atccctgggg ggcttcctct cctgcatctt ctctgtcttc attgtcttca tctccagctg       300
+     taagggatac ttcatttttg gtcgctatgt ttgtgctttg gaggccttcg tgggctctgt       360
+     ggcaggtctg gtaacaggat ggtcactggc cttcttggcc tttgagcgct acattgtcat       420
+     ctgtaagcca ttcggcaaca tccgcttcag ctccaagcat gcactgatgg ttgtcctggc       480
+     tacttggacc attggtattg gcgtctccat cccacccttc tttggctgga gccggttcct       540
+     ccctgaaggc ctgcagtgtt cctgtggccc tgactggtac actgtgggca ccaaatatcg       600
+     cagcgagtac tacacctggt tcctcttcat cttctgcttc atcgtgcccc tttccctcat       660
+     atgcttctct tactcccagc tgctgggggc cctcagagct gttgcagctc agcagcagga       720
+     gtcagctacc acccagaagg ccgagcggga ggtgagccgc atggtggtgg tgatggtggc       780
+     atccttttgt ctttgttatg tgccctatgc tgccctggcc atgtacatgg tcaacaaccg       840
+     taaccacggg ctggacttaa ggcttgtcac cattcctgcc ttcttctcca agagtgcttg       900
+     tgtctataat cccatcatct actgcttcat gaataagcag tttcgaggct gcatcatgga       960
+     gatggtgtgt gggaagtccg tggcagatga atctgacatg tccagctccc agaaaatgga      1020
+     agtttctact gtctcttcta gccaagttgg ccccaactaa ggagcccgca ccggttcatt      1080
+     cgcagcaact agaattttac atttaagcaa gtttttattt cctctaaaac caaactatta      1140
+     ataaaacaca gaaaaaagga agcagagggg cggtttggga atcaagtttt cattttccta      1200
+     ttatttcctt cctgcccgta gagctactgc tcccagcttg gattacttca gaccactcaa      1260
+     aggccattta aacaatcatc agtttctact ccaaagtggc accattcaga gcacttggag      1320
+     aactgatctc tatacacaat gtaattataa agtaaggctg attttatttc agtgtacaga      1380
+     taaaacgtct tcagaaacat ttttttactt ctggaatctg ttctgagatg acagtattct      1440
+     gaattagaaa aaacttaaac cttagaaacg gtgagacata aaaacaaaaa cctttagtaa      1500
+     gccccaaaca tgagtttgaa agatttcttt atgccctctc tgccaatagt tgctggtctg      1560
+     ggcaggaaca gtcattcccc taagcccctg agccagcatg aattattcca gaagccctcc      1620
+     ccccagtgtg gctaaacctt agctgagtat ttcctaaagt taatagttta acttcctaca      1680
+     tgtactcgaa atgaatttgc accttttaat atttttatta aagtttatat gaaatgctta      1740
+     aaaaaaaaaa aa                                                          1752
+//

@@ -1,0 +1,85 @@
+{
+  "biopython_version": "1.85",
+  "computational_root": "Marsupial MRCA (degree three), distinct from the target Boreoeutheria node",
+  "mafft_command": [
+    "/usr/local/bin/mafft",
+    "--quiet",
+    "--amino",
+    "--globalpair",
+    "--thread",
+    "1",
+    "--inputorder",
+    "--add",
+    "/Users/hverdonk/hyphaeon/epistaeon/validation/sws1_slac/inputs/outgroups.protein.fa",
+    "--keeplength",
+    "--mapout",
+    "/Users/hverdonk/hyphaeon/epistaeon/data/alignments/sws1/SWS1.protein.aligned.fa"
+  ],
+  "mafft_version": "v7.526 (2024/Apr/26)",
+  "original_15_rows_preserved_exactly": true,
+  "original_350_columns_preserved_exactly": true,
+  "original_taxa": [
+    "Homo_sapiens",
+    "Pan_troglodytes",
+    "Gorilla_gorilla",
+    "Pongo_abelii",
+    "Nomascus_leucogenys",
+    "Macaca_fascicularis",
+    "Saimiri_boliviensis",
+    "Callithrix_jacchus",
+    "Cephalopachus_bancanus",
+    "Daubentonia_madagascariensis",
+    "Bos_taurus",
+    "Mus_musculus",
+    "Rattus_norvegicus",
+    "Sciurus_carolinensis",
+    "Cavia_porcellus"
+  ],
+  "outgroup_insertions_excluded_to_preserve_reference_columns": {
+    "Loxodonta_africana": [
+      {
+        "amino_acid": "G",
+        "codon": "GGG",
+        "source_residue": 6
+      }
+    ],
+    "Notamacropus_eugenii": [],
+    "Sminthopsis_crassicaudata": []
+  },
+  "outgroups": [
+    {
+      "accession": "AY686753.1",
+      "cds_location": "[7:1060](+)",
+      "record_organism": "Loxodonta africana (African savanna elephant)",
+      "record_sha256": "a255192342ba7cae430091b35c55faea98da59c4c5be9c7e1191427d41fefc65",
+      "source_protein_length": 350,
+      "taxon": "Loxodonta_africana",
+      "terminal_stop_removed": true
+    },
+    {
+      "accession": "AY286017.1",
+      "cds_location": "[22:1063](+)",
+      "record_organism": "Notamacropus eugenii (tammar wallaby)",
+      "record_sha256": "965aa872354dc9f1a0e80ede072a03f553b3d2309050e85d19fd94edccdaa155",
+      "source_protein_length": 346,
+      "taxon": "Notamacropus_eugenii",
+      "terminal_stop_removed": true
+    },
+    {
+      "accession": "AY442173.1",
+      "cds_location": "[0:1041](+)",
+      "record_organism": "Sminthopsis crassicaudata (fat-tailed dunnart)",
+      "record_sha256": "38debf8a10771bc40d5c8eff1fc73ae88bb5013e95595c0018a176449245a0af",
+      "source_protein_length": 346,
+      "taxon": "Sminthopsis_crassicaudata",
+      "terminal_stop_removed": true
+    }
+  ],
+  "sources": [
+    "https://doi.org/10.1371/journal.pgen.1004884",
+    "https://doi.org/10.1371/journal.pgen.1001342",
+    "https://mafft.cbrc.jp/alignment/software/addsequences.html"
+  ],
+  "target_node": "Boreoeutheria",
+  "tree_policy": "Fixed species scaffold; no topology search; rodent deep relationships left as a polytomy; branch lengths estimated by HyPhy"
+}

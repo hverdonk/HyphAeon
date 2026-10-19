@@ -34,6 +34,33 @@ python3 -m epistaeon.cli order --alignment <codon.fa> --use-tn93 \
   --weights data/model/model.safetensors --cpu -o out/
 ```
 
+
+## Blinded benchmark
+
+`benchmark-run` runs all four scorers in an offline Docker container with only
+extant alignment data, the focal taxon and a local checkpoint/configuration.
+It selects nonsynonymous plurality-to-focal changes automatically and seals its
+outputs before a separate command can read the empirical reference:
+
+```bash
+# From the repository root; Docker must be running.
+export PYTHONPATH=aeon-core/src:hyphaeon/src:epistaeon/src
+python3 -m epistaeon.cli benchmark-run \
+  --alignment epistaeon/data/alignments/sws1/SWS1.codonified.fa \
+  --focal-taxon Homo_sapiens --weights epistaeon/data/model/model.safetensors \
+  --output epistaeon/validation/runs/sws1-001
+python3 -m epistaeon.cli benchmark-evaluate \
+  --run epistaeon/validation/runs/sws1-001 \
+  --reference epistaeon/data/substitution_reference/sws1.json \
+  --output epistaeon/validation/evaluations/sws1-001
+```
+
+Use a new run path and a sibling `config.json` beside the checkpoint. See the
+[blinded benchmark workflow](validation/BLINDED_BENCHMARK.md) for pinned runtime
+settings, artifact contracts, coverage metrics and the read-only evaluator agent.
+The current SWS1 plurality input covers no empirically ordered pair, so it cannot
+yet provide a historical-order accuracy score.
+
 ---
 
 > # ⚠️ READ BEFORE RUNNING ANY STRUCTURAL ANALYSIS
@@ -187,7 +214,8 @@ are equal.
 | `data/model/` | Model checkpoint (gitignored; see `AGENTS.md` for the fetch) |
 | `src/epistaeon/` | The engine: `lattice`, `scoring`, `trajectory`, `background`, `timing`, `cli` |
 | `tests/` | 33 tests, incl. exact-DP-vs-brute-force and the inert-scorer regression |
-| `validation/` | Replication harness: replicator, adversary, summarizer |
+| `validation/` | Blinded benchmark workflow and separate replication harness |
+| `benchmark_runtime/` | Pinned Docker image definition and dependency hashlock |
 | `scripts/` | Reproduces every number in `data/README.md` |
 
 ## Scripts
