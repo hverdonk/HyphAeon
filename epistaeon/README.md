@@ -53,11 +53,12 @@ python3 -m epistaeon.cli benchmark-run \
   --asr-tree epistaeon/validation/sws1_slac/inputs/species_scaffold.nwk \
   --asr-node Boreoeutheria \
   --substitution-panel epistaeon/data/alignments/sws1/substitution_panel.json \
-  --output epistaeon/validation/runs/sws1-001
+  --fixed-background slac \
+  --output epistaeon/validation/runs/sws1-slac-background-001
 python3 -m epistaeon.cli benchmark-evaluate \
-  --run epistaeon/validation/runs/sws1-001 \
+  --run epistaeon/validation/runs/sws1-slac-background-001 \
   --reference epistaeon/data/substitution_reference/sws1.json \
-  --output epistaeon/validation/evaluations/sws1-001
+  --output epistaeon/validation/evaluations/sws1-slac-background-001
 ```
 
 Use a new run path and a sibling `config.json` beside the checkpoint. See the
@@ -67,10 +68,13 @@ SLAC identifies 28 nonsynonymous differences. The manuscript panel selects
 the seven reported substitutions, requiring **128 genotypes**, within the
 unchanged 4,096-genotype budget. Its JSON contains only alignment columns,
 the focal taxon and the alignment hash; empirical order remains evaluator-only.
-Excluded columns retain human codons, so this tests ordering within a supplied
-site panel on a human background, rather than discovery of epistatic sites or
-the original experimental ancestral construct. Legacy unrestricted SLAC runs
-remain protocol 2.0; manuscript-panel runs use protocol 3.0.
+By default, excluded columns retain SLAC codons: the start is the complete
+SLAC reconstruction, and the endpoint changes only the seven panel codons to
+human codons. It need not equal the full human sequence. This protocol 4.0
+tests ordering within supplied sites on a reconstructed background, not site
+discovery or an exact replication of the paper's ancestral construct.
+`--fixed-background focal` retains the previous human-background protocol 3.0;
+legacy unrestricted SLAC runs remain protocol 2.0. The exact budget is unchanged.
 
 For native `order`, supply `--asr-tree` and `--asr-node` whenever `--ancestor`
 is omitted. `--asr-alignment` can add aligned outgroups without changing the

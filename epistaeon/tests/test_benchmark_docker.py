@@ -62,7 +62,8 @@ def assert_numerically_equal(first, second):
         assert first == second
 
 
-def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
+@pytest.mark.parametrize("background", ["focal", "slac"])
+def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path, background):
     alignment = tmp_path / "synthetic.fa"
     synthetic_alignment(alignment)
     weights = ROOT / "epistaeon/data/model/model.safetensors"
@@ -71,8 +72,8 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
     tree.write_text("(background_0,background_1,background_2,(background_3,background_4,focus)Anc)Root;")
     panel = tmp_path / "panel.json"
     write_json(panel, {"schema_version": "1.0", "alignment_sha256": sha256_file(alignment),
-                        "focal_taxon": "focus", "columns0": [8, 49]})
-    runs = [run_benchmark(alignment, "focus", weights, tmp_path / f"run_{index}", asr_tree=tree, asr_node="Anc", substitution_panel=panel)
+                        "focal_taxon": "focus", "columns0": [8] if background == "slac" else [8, 49]})
+    runs = [run_benchmark(alignment, "focus", weights, tmp_path / f"run_{index}", asr_tree=tree, asr_node="Anc", substitution_panel=panel, fixed_background=background)
             for index in range(2)]
     for run in runs:
         verify_seal(run)
@@ -82,9 +83,13 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
         assert isolation["active_network_interfaces"] == ["lo"]
         assert "substitution_panel.json" in isolation["input_files"]
         selection = json.loads((run / "selection.json").read_text())
-        assert selection["n_units"] == 2
-        assert selection["n_genotypes"] == 4
-        assert selection["full_mask_reproduces_focal"] is True
+        assert selection["n_units"] == (1 if background == "slac" else 2)
+        assert selection["n_genotypes"] == (2 if background == "slac" else 4)
+        assert selection["full_mask_reproduces_focal"] is (background == "focal")
+        if background == "slac":
+            assert selection["starting_codons"] == selection["ancestral_codons"]
+            assert selection["full_mask_matches_panel"] and selection["full_mask_preserves_background"]
+            assert selection["endpoint_codons"][49] == "GGT"  # excluded nonsynonymous change remains ancestral
     for scorer in SCORERS:
         payloads = [json.loads((run / "methods" / scorer / "order.json").read_text()) for run in runs]
         assert_numerically_equal(payloads[0], payloads[1])
@@ -104,7 +109,7 @@ def test_real_four_scorer_run_repeatability_and_evaluation(tmp_path):
     before = {p.relative_to(runs[0]).as_posix(): sha256_file(p)
               for p in runs[0].rglob("*") if p.is_file()}
     report = evaluate_run(runs[0], reference, tmp_path / "evaluation")
-    assert all(method["coverage"]["covered_target_event_count"] == 2 for method in report["methods"])
+    assert all(method["coverage"]["covered_target_event_count"] == (1 if background == "slac" else 2) for method in report["methods"])
     truth["order_constraints"][0].update(prerequisites=["B"], dependent=["A"])
     write_json(reference, truth)
     evaluate_run(runs[0], reference, tmp_path / "changed_truth_evaluation")

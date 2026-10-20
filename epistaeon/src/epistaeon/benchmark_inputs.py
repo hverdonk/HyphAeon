@@ -228,7 +228,7 @@ def select_benchmark_inputs(alignment, focal_taxon, max_genotypes=4096):
     return selection
 
 
-def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096, panel=None):
+def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096, panel=None, fixed_background="focal"):
     """Select resolved SLAC-to-focal AA changes within an optional frozen panel.
 
     Budget diagnostics accompany the complete set so even a rejected run can
@@ -236,6 +236,8 @@ def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096, 
     """
     if type(max_genotypes) is not int or max_genotypes < 1:
         raise BenchmarkInputError("max_genotypes must be a positive integer")
+    if fixed_background not in {"focal", "slac"} or (fixed_background == "slac" and panel is None):
+        raise BenchmarkInputError("SLAC background requires a substitution panel; background must be focal or slac")
     if focal_taxon not in rows:
         raise BenchmarkInputError("focal taxon must be an exact FASTA row name")
     codons = reconstruction.get("codons")
@@ -249,7 +251,7 @@ def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096, 
     states = reconstruction.get("amino_acid_states")
     if not isinstance(states, list) or len(states) != len(focal):
         raise BenchmarkInputError("SLAC amino-acid state arrays must match the alignment")
-    selected, columns, starting, counts = [], [], list(focal), Counter()
+    selected, columns, starting, counts = [], [], list(codons if fixed_background == "slac" else focal), Counter()
     position = 0
     for col, (source, target, state) in enumerate(zip(codons, focal, states)):
         if not isinstance(source, str) or len(source) != 3:
@@ -282,18 +284,25 @@ def select_reconstructed(rows, focal_taxon, reconstruction, max_genotypes=4096, 
     full = list(starting)
     for event in selected:
         full[event["column0"]] = event["derived_codon"]
-    if full != focal:
+    if fixed_background == "focal" and full != focal:
         raise BenchmarkInputError("Full mask does not reproduce the focal sequence")
-    result = {"schema_version": "3.0" if panel is not None else "2.0", "ancestral_method": "hyphy-slac", "asr_node": reconstruction["node"],
+    panel_matches = panel_columns is not None and all(full[col] == focal[col] for col in panel_columns)
+    if fixed_background == "slac" and not panel_matches:
+        error = "Panel endpoint cannot match focal codons at unselected panel columns; no states are repaired"
+    result = {"schema_version": "4.0" if fixed_background == "slac" else "3.0" if panel is not None else "2.0", "ancestral_method": "hyphy-slac", "asr_node": reconstruction["node"],
             "focal_taxon": focal_taxon, "taxa": list(rows), "n_taxa": len(rows), "n_codons": len(focal),
-            "event_policy": "panel_resolved_nonsynonymous" if panel is not None else "resolved_nonsynonymous", "fixed_background": "focal", "n_units": n,
+            "event_policy": "panel_resolved_nonsynonymous" if panel is not None else "resolved_nonsynonymous", "fixed_background": fixed_background, "n_units": n,
             "n_genotypes": genotypes, "max_genotypes": max_genotypes, "budget_ok": error is None,
             "budget_error": error, "selected": selected, "columns": columns,
             "selected_columns0": [event["column0"] for event in selected],
             "classification_counts": dict(sorted(counts.items())), "ancestral_codons": codons,
-            "starting_codons": starting, "focal_codons": focal, "full_mask_reproduces_focal": True}
+            "starting_codons": starting, "focal_codons": focal, "full_mask_reproduces_focal": full == focal}
     if panel is not None:
         result.update(panel_columns0=panel["columns0"],
                       unselected_panel_columns0=sorted(panel_columns - {e["column0"] for e in selected}),
                       unrestricted_nonsynonymous_units=counts["nonsynonymous"])
+    if fixed_background == "slac":
+        result.update(endpoint_policy="panel_sites_match_focal", endpoint_codons=full,
+                      full_mask_matches_panel=panel_matches,
+                      full_mask_preserves_background=all(full[col] == codons[col] for col in range(len(full)) if col not in panel_columns))
     return result

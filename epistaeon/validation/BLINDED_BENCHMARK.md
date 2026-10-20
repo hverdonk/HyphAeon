@@ -28,6 +28,7 @@ python3 -m epistaeon.cli benchmark-run \
   --asr-tree epistaeon/validation/sws1_slac/inputs/species_scaffold.nwk \
   --asr-node Boreoeutheria \
   --substitution-panel epistaeon/data/alignments/sws1/substitution_panel.json \
+  --fixed-background slac \
   --weights epistaeon/data/model/model.safetensors \
   --output epistaeon/validation/runs/sws1-001
 ```
@@ -103,7 +104,7 @@ requires a new run directory and a new frozen protocol.
 
 ## Fixed inference profile
 
-New CLI runs use protocol **3.0**, with HyPhy **2.5.96** SLAC joint maximum-likelihood
+New CLI runs default to protocol **4.0** (`--fixed-background slac`), with HyPhy **2.5.96** SLAC joint maximum-likelihood
 codons at the named internal node. `--asr-tree` and `--asr-node` are required.
 `--asr-alignment` defaults to the scoring alignment; an augmented alignment can
 add outgroups but must preserve every original scoring row and codon column
@@ -142,19 +143,38 @@ unchanged panel sites remain unselected and are diagnosed; reference residues
 are never substituted to force empirical coverage. Scope must be fixed before
 inference and cannot be changed in response to model predictions.
 
-It excludes out-of-panel, synonymous, indel and
-unresolved differences, without using expected residues or order. Excluded
-columns retain the focal taxon's codons, so applying all selected substitutions
-reproduces the complete focal nucleotide sequence exactly. For SWS1 these are
-human codons. This benchmark policy does not change the existing `order`
-command's default treatment of synonymous changes and endpoint backgrounds.
+It excludes out-of-panel, synonymous, indel and unresolved differences from
+the selected units, without using expected residues or order. The start is
+the **complete SLAC codon sequence**, including unresolved states. All excluded
+columns remain at their SLAC codons for every genotype. Applying the selected
+changes produces the panel endpoint: human codons at the seven SWS1 panel
+sites, SLAC codons elsewhere. The endpoint generally is not the full human
+sequence. Panel sites that cannot reach focal codons with the selected resolved
+changes fail preflight; no ancestral or derived state is repaired from truth.
+
+`selection.json` records `endpoint_codons`, `endpoint_policy`,
+`full_mask_matches_panel`, `full_mask_preserves_background`, and whether the
+endpoint happens to reproduce the whole focal sequence. The preparation also
+exports `asr/benchmark_start.codon.fa` and `asr/benchmark_end.codon.fa`. All four
+scorers receive the same start and endpoint. Their existing row-placement and
+whole-sequence identity checks are unchanged: an endpoint that is not an
+existing taxon is embedded as a hypothetical genotype. [ROOT] anchoring is
+unchanged. This policy does not alter native `order` substitution selection.
+
+Explicit `--fixed-background focal` retains protocol **3.0**: excluded columns
+use focal codons, so the start is a hybrid and the full mask reproduces the
+whole focal sequence. Previously sealed protocol 3.0 runs keep that meaning.
+The Python `run_benchmark` API retains its legacy focal-background default for
+backward compatibility; pass `fixed_background="slac"` explicitly there. The
+CLI defaults to SLAC and records the choice in its frozen protocol.
 
 Settings are CPU, one numerical thread, seed `0`, all alignment taxa,
 temperature `0.5`, alpha `1`, `[ROOT]`-token anchoring, no viability floor and
 exact inference. The default maximum is 4,096 genotypes (`2^n` for `n` units).
 There is also an unchanged hard limit of 22 units. SLAC identifies **28**
 nonsynonymous SWS1 candidates, but the manuscript panel selects **seven units**,
-requiring **128 genotypes**. The remaining 21 candidates retain focal codons.
+requiring **128 genotypes**. The remaining 21 candidates retain SLAC codons
+under protocol 4.0 (focal codons under protocol 3.0).
 `selection.json` preserves all 28 candidates' classifications, panel membership
 and exclusion reasons, plus `unrestricted_nonsynonymous_units`, selected and
 unselected panel columns, and the complete reconstructed ancestor. No panel
@@ -254,8 +274,10 @@ within the default exact budget. Coverage is checked after sealing; it does not
 imply a correct order or discriminate among methods. Uniform and blocked
 predictions retain their existing interpretations. Protocol 3.0 tests ordering
 conditional on manuscript-supplied sites, not discovery of epistatic sites.
-The hybrid starting background uses focal codons outside the panel, so it is
-not the full reconstructed ancestor or the original experimental construct.
+Protocol 4.0 starts from the complete SLAC reconstruction, which still differs
+from the original experimental construct. Protocol 3.0 uses the hybrid starting
+background with focal codons outside the panel. Record the background and
+endpoint policy explicitly when comparing experiments.
 
 Archived protocol **2.0** SLAC runs selected all 28 units. Their budget failure
 still yields `not_testable: analysis_failed`, with no historical-order score.
@@ -263,7 +285,7 @@ still yields `not_testable: analysis_failed`, with no historical-order score.
 Archived protocol **1.0** runs retain their original plurality semantics and
 artifacts. Their SWS1 fixtures select 10 units and cover **2/7 target events and
 0/18 ordered pairs**, yielding `not_testable: insufficient_order_coverage`.
-The evaluator accepts all three protocol versions and never relabels legacy runs as
+The evaluator accepts all four protocol versions and never relabels legacy runs as
 SLAC or panel-filtered. These acceptance values live only in tests and evaluator documentation;
 they must never guide inference selection.
 

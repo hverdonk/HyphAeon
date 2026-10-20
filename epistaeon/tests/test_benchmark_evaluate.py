@@ -137,6 +137,15 @@ def test_only_unresolved_pairs_have_coverage_but_no_order_score(tmp_path):
     assert method["historical_order"]["map_inversions"] is None
 
 
+def test_one_unit_has_event_coverage_but_no_testable_order(tmp_path):
+    report = _evaluate(tmp_path, payload=_payload([(0, "A", "G")]))
+    for method in report["methods"]:
+        assert method["coverage"]["covered_target_event_count"] == 1
+        assert method["coverage"]["covered_ordered_pair_count"] == 0
+        assert method["historical_order"]["status"] == "not_testable"
+        assert method["historical_order"]["reason"] == "insufficient_order_coverage"
+
+
 @pytest.mark.parametrize("diagnostic_flag", [False, True])
 def test_uniform_predictions_get_baseline_but_no_map_credit(tmp_path, diagnostic_flag):
     matrix = [[0 if i == j else 0.5 for j in range(3)] for i in range(3)]

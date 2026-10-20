@@ -233,7 +233,7 @@ def test_one_unit_is_valid_for_every_existing_scorer(frozen, monkeypatch, scorer
 
 
 @pytest.mark.parametrize("scorer", SCORERS)
-@pytest.mark.parametrize("version", ["2.0", "3.0"])
+@pytest.mark.parametrize("version", ["2.0", "3.0", "4.0"])
 def test_slac_uses_frozen_ancestor_for_every_scorer(frozen, monkeypatch, scorer, version):
     protocol, path = frozen
     directory = path.parent
@@ -249,22 +249,29 @@ def test_slac_uses_frozen_ancestor_for_every_scorer(frozen, monkeypatch, scorer,
     protocol.update(schema_version="2.0", ancestral_method="hyphy-slac", asr_node="Anc",
                     reconstruction_sha256=sha256_file(rpath), **asr_paths)
     protocol["input_hashes"].update({key: sha256_file(value) for key, value in asr_paths.items()})
-    if version == "3.0":
+    if version in {"3.0", "4.0"}:
         panel_path = directory / "panel.json"
         panel_path.write_text(json.dumps({"schema_version": "1.0", "alignment_sha256": protocol["input_hashes"]["alignment"],
                                           "focal_taxon": "focal", "columns0": [0]}))
         monkeypatch.setattr(worker, "PANEL_PATH", str(panel_path))
         protocol.update(schema_version=version, substitution_panel=str(panel_path), event_policy="panel_resolved_nonsynonymous")
         protocol["input_hashes"]["substitution_panel"] = sha256_file(panel_path)
+        if version == "4.0":
+            protocol.update(fixed_background="slac", endpoint_policy="panel_sites_match_focal")
     path.write_text(json.dumps(protocol))
     _fake_engine(monkeypatch)
     output = worker.OUTPUT_ROOT / scorer
     assert worker.run_worker(path, scorer, output) == 0
     payload = json.loads((output / "order.json").read_text())
     assert "SLAC" in payload["provenance"]["ancestral_states"]
-    assert payload["provenance"]["input_profile"]["name"] == ("blinded-benchmark-panel-v3" if version == "3.0" else "blinded-benchmark-slac-v2")
+    assert payload["provenance"]["input_profile"]["name"] == ("blinded-benchmark-slac-background-v4" if version == "4.0" else "blinded-benchmark-panel-v3" if version == "3.0" else "blinded-benchmark-slac-v2")
     assert "plurality_support" not in payload["provenance"]
-    assert json.loads((output / "selection.json").read_text())["starting_codons"] == ["AGC", "TGG" if version == "3.0" else "TGC", "AAG"]
+    selected = json.loads((output / "selection.json").read_text())
+    assert selected["starting_codons"] == ["AGC", "TGG" if version == "3.0" else "TGC", "AAA" if version == "4.0" else "AAG"]
+    if version == "4.0":
+        assert selected["endpoint_codons"] == ["CCC", "TGC", "AAA"]
+        assert not selected["full_mask_reproduces_focal"]
+        assert payload["provenance"]["input_profile"]["full_mask_matches_panel"]
     # Tampering with the staged ancestor is rejected before any inference call.
     rpath.write_text(json.dumps(dict(reconstruction, node="other")))
     monkeypatch.setattr(worker, "_configure_determinism", lambda: pytest.fail("model imported"))

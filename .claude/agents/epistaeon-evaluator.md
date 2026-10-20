@@ -76,3 +76,10 @@ epistatic-site discovery. All excluded columns retain human codons, so the
 background differs from the paper's ancestral experimental construct. Report
 actual covered directions, blocked paths, uniformity and metrics from artifacts;
 do not assume that input coverage establishes correct inferred order.
+
+Protocol 4.0 uses the same manuscript panel with a full SLAC ancestral start.
+Only selected panel codons change; all excluded columns remain at SLAC codons.
+The endpoint matches human codons at the panel, not the full human sequence.
+Keep results separate from protocol 3.0's human-background run. The reconstructed
+ancestor still differs from the paper's assayed construct, and site discovery
+is still outside the benchmark.

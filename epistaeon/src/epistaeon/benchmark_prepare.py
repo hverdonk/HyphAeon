@@ -12,8 +12,8 @@ from .benchmark_worker import validate_protocol
 def prepare(protocol_path, output):
     protocol = json.loads(Path(protocol_path).read_text())
     validate_protocol(protocol)
-    if protocol["schema_version"] not in {"2.0", "3.0"}:
-        raise BenchmarkInputError("Benchmark preparation requires SLAC protocol 2.0 or 3.0")
+    if protocol["schema_version"] not in {"2.0", "3.0", "4.0"}:
+        raise BenchmarkInputError("Benchmark preparation requires SLAC protocol 2.0, 3.0 or 4.0")
     output = Path(output)
     if not output.is_absolute() or output.is_symlink() or Path("/outputs") not in output.resolve().parents:
         raise BenchmarkInputError("Preparation output must be a real subdirectory of /outputs")
@@ -22,12 +22,15 @@ def prepare(protocol_path, output):
         if path.is_symlink() or not path.is_file() or sha256_file(path) != expected:
             raise BenchmarkInputError(f"Preparation input hash mismatch: {name}")
     panel = (read_substitution_panel(protocol["substitution_panel"], protocol["alignment"], protocol["focal_taxon"])
-             if protocol["schema_version"] == "3.0" else None)
+             if protocol["schema_version"] in {"3.0", "4.0"} else None)
     reconstruction = reconstruct(protocol["alignment"], protocol["focal_taxon"], protocol["asr_tree"],
                                  protocol["asr_node"], output, protocol["asr_alignment"])
     selection = select_reconstructed(read_codon_alignment(protocol["alignment"]), protocol["focal_taxon"],
-                                     reconstruction, protocol["max_genotypes"], panel=panel)
+                                     reconstruction, protocol["max_genotypes"], panel=panel, fixed_background=protocol["fixed_background"])
     (output / "selection.json").write_text(json.dumps(selection, indent=2, sort_keys=True) + "\n")
+    if protocol["schema_version"] == "4.0":
+        for name, key in (("benchmark_start", "starting_codons"), ("benchmark_end", "endpoint_codons")):
+            (output / f"{name}.codon.fa").write_text(f">{name}\n{''.join(selection[key])}\n")
     return 0
 
 

@@ -38,11 +38,14 @@ def validate_protocol(protocol):
     """Reject unknown fields and any departure from the benchmark profile."""
     if not isinstance(protocol, dict):
         raise BenchmarkInputError("protocol must be a JSON object")
-    v3 = protocol.get("schema_version") == "3.0"
-    v2 = protocol.get("schema_version") in {"2.0", "3.0"}
+    v4 = protocol.get("schema_version") == "4.0"
+    v3 = protocol.get("schema_version") in {"3.0", "4.0"}
+    v2 = protocol.get("schema_version") in {"2.0", "3.0", "4.0"}
     asr_keys = {"ancestral_method", "asr_alignment", "asr_tree", "asr_node"} if v2 else set()
     if v3:
         asr_keys.add("substitution_panel")
+    if v4:
+        asr_keys.add("endpoint_policy")
     missing = (_REQUIRED | asr_keys) - protocol.keys()
     extra = protocol.keys() - (_REQUIRED | asr_keys | _OPTIONAL | ({"reconstruction_sha256"} if v2 else set()))
     if missing or extra:
@@ -54,7 +57,7 @@ def validate_protocol(protocol):
         "mode": "exact", "temperature": 0.5, "alpha": 1.0,
         "anchor": "root-token", "viability_floor": None, "device": "cpu",
         "threads": 1, "event_policy": "panel_resolved_nonsynonymous" if v3 else "resolved_nonsynonymous",
-        "fixed_background": "focal", **INPUT_PATHS,
+        "fixed_background": "slac" if v4 else "focal", **INPUT_PATHS,
     }
     paths = dict(INPUT_PATHS)
     if v2:
@@ -67,6 +70,8 @@ def validate_protocol(protocol):
     if v3:
         paths["substitution_panel"] = PANEL_PATH
         fixed["substitution_panel"] = PANEL_PATH
+    if v4:
+        fixed["endpoint_policy"] = "panel_sites_match_focal"
     for key, expected in fixed.items():
         value = protocol[key]
         wrong_type = ((type(expected) is int and type(value) is not int)
@@ -96,9 +101,9 @@ def preflight_protocol(protocol):
     """Check actual bytes and the exact-inference budget before model imports."""
     validate_protocol(protocol)
     paths = dict(INPUT_PATHS)
-    if protocol["schema_version"] in {"2.0", "3.0"}:
+    if protocol["schema_version"] in {"2.0", "3.0", "4.0"}:
         paths.update(asr_alignment=protocol["asr_alignment"], asr_tree=protocol["asr_tree"])
-    if protocol["schema_version"] == "3.0":
+    if protocol["schema_version"] in {"3.0", "4.0"}:
         paths["substitution_panel"] = PANEL_PATH
     for key, fixed_path in paths.items():
         path = Path(fixed_path)
@@ -106,7 +111,7 @@ def preflight_protocol(protocol):
             raise BenchmarkInputError(f"{key} must be a regular input file: {path}")
         if sha256_file(path) != protocol["input_hashes"][key]:
             raise BenchmarkInputError(f"{key} input SHA-256 does not match frozen protocol")
-    if protocol["schema_version"] in {"2.0", "3.0"}:
+    if protocol["schema_version"] in {"2.0", "3.0", "4.0"}:
         path = Path(INPUT_PATHS["alignment"]).parent / "reconstruction.json"
         if path.is_symlink() or not path.is_file() or sha256_file(path) != protocol.get("reconstruction_sha256"):
             raise BenchmarkInputError("SLAC reconstruction SHA-256 does not match the frozen protocol")
@@ -114,8 +119,8 @@ def preflight_protocol(protocol):
         if reconstruction.get("node") != protocol["asr_node"]:
             raise BenchmarkInputError("SLAC reconstruction node differs from the protocol")
         panel = (read_substitution_panel(protocol["substitution_panel"], protocol["alignment"], protocol["focal_taxon"])
-                 if protocol["schema_version"] == "3.0" else None)
-        selection = select_reconstructed(read_codon_alignment(protocol["alignment"]), protocol["focal_taxon"], reconstruction, protocol["max_genotypes"], panel=panel)
+                 if protocol["schema_version"] in {"3.0", "4.0"} else None)
+        selection = select_reconstructed(read_codon_alignment(protocol["alignment"]), protocol["focal_taxon"], reconstruction, protocol["max_genotypes"], panel=panel, fixed_background=protocol["fixed_background"])
         if not selection["budget_ok"]:
             raise BenchmarkInputError(selection["budget_error"])
         return selection
@@ -173,7 +178,7 @@ def run_worker(protocol_path, scorer, output):
         json.dumps(selection, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
     namespace = order_namespace(protocol, scorer, output)
-    if protocol["schema_version"] in {"2.0", "3.0"}:
+    if protocol["schema_version"] in {"2.0", "3.0", "4.0"}:
         namespace._benchmark_selection = selection
         namespace._benchmark_reconstruction = json.loads((Path(protocol["alignment"]).parent / "reconstruction.json").read_text())
     _configure_determinism()

@@ -93,7 +93,11 @@ of site coordinates, not a historical order. It contains no expected ancestral
 residues, substitution directions or order constraints. Use it with
 `benchmark-run --substitution-panel` to select resolved SLAC-to-human changes
 at the manuscript sites: seven units and 128 genotypes for the verified SLAC
-inputs. The other 21 nonsynonymous differences stay fixed at human codons.
+inputs. The default protocol 4.0 starts from the entire SLAC sequence, keeping
+the other 21 nonsynonymous differences and all other excluded columns fixed
+at SLAC codons. Its endpoint matches human codons at the seven panel sites,
+not necessarily elsewhere. `--fixed-background focal` reproduces the earlier
+protocol 3.0 policy of holding excluded columns at human codons.
 Selection is audited against the source-qualified reference in tests, while
 the inference container receives only this column-only panel.
 

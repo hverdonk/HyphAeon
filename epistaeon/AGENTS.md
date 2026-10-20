@@ -184,6 +184,14 @@ HyPhy on PATH is reused; `--hyphy` overrides native discovery. No plurality
 fallback remains. The inferred ancestor does not become another model taxon;
 phi retains its [ROOT] anchor. Explicit ancestral rows remain supported.
 
+**The panel benchmark has an explicit fixed background.** Its default
+`--fixed-background slac` (protocol 4.0) starts from the full reconstructed
+sequence and changes only the manuscript panel sites toward the focal codons.
+The endpoint need not be the whole focal sequence; excluded columns remain
+ancestral. `--fixed-background focal` retains protocol 3.0's human background.
+Both retain the existing [ROOT] anchor and scorer placement semantics. See
+`validation/BLINDED_BENCHMARK.md`; do not overwrite or relabel older sealed runs.
+
 **`order` requires `--use-tn93`**, and refuses `--tree` for genotype distances.
 The separate `--asr-tree` is used only for ancestral reconstruction. Each genotype's
 distances are recomputed from its sequence, and **a tree has no branch for a

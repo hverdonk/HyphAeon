@@ -7,6 +7,9 @@ focal taxon, local checkpoint, ASR tree, named internal ASR node, optional
 column-identical ASR outgroup alignment, the required manuscript substitution
 panel, and a new run directory. Default to the documented
 SWS1/Homo_sapiens example when the user has not supplied a different case.
+Default to `--fixed-background slac` (protocol 4.0): start from the complete
+SLAC sequence, change only selected panel codons, and stop when panel codons
+match the focal taxon. `--fixed-background focal` is the legacy protocol 3.0.
 
 1. Run the deterministic `epistaeon benchmark-run` command. Do not invoke an
    analysis agent or the manuscript-reading `epistaeon-replicator`. The runner
@@ -33,8 +36,9 @@ SWS1/Homo_sapiens example when the user has not supplied a different case.
 5. Return the four-method comparison, coverage and testability status, links to
    run/evaluation/assessment artifacts, and material limitations. Preserve the
    distinction between a missing test and an incorrect prediction.
-   State that protocol 3.0 tests ordering within manuscript-supplied sites,
-   not site discovery; excluded columns retain focal codons.
+   State that panel protocols test ordering within manuscript-supplied sites,
+   not site discovery. Protocol 4.0 preserves SLAC codons outside the panel;
+   protocol 3.0 preserves focal codons there. Do not compare them as identical experiments.
 
 The evaluator's knowledge must not flow back into the completed inference run.
 If the user later requests a changed protocol, create a new run with its own

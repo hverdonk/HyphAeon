@@ -180,6 +180,14 @@ def test_real_sws1_slac_and_complete_budget_diagnostics(tmp_path):
     assert restricted["n_units"] == 7 and restricted["n_genotypes"] == 128
     assert restricted["budget_ok"] and restricted["unselected_panel_columns0"] == []
     assert restricted["full_mask_reproduces_focal"]
+    ancestral_background = select_reconstructed(read_codon_alignment(original), "Homo_sapiens", r, panel=panel, fixed_background="slac")
+    assert ancestral_background["budget_ok"]
+    assert ancestral_background["starting_codons"] == r["codons"]
+    assert ancestral_background["n_units"] == 7 and ancestral_background["n_genotypes"] == 128
+    assert ancestral_background["full_mask_matches_panel"] and ancestral_background["full_mask_preserves_background"]
+    assert not ancestral_background["full_mask_reproduces_focal"]
+    for col, codon in enumerate(ancestral_background["endpoint_codons"]):
+        assert codon == (ancestral_background["focal_codons"][col] if col in panel["columns0"] else r["codons"][col])
     assert all(c == restricted["focal_codons"][col]
                for col, c in enumerate(restricted["starting_codons"]) if col not in panel["columns0"])
     # Empirical reference enters only after reconstruction and candidate selection.

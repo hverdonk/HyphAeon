@@ -245,25 +245,27 @@ def check_isolation(image_id, inputs, outputs):
     return json.loads(result.stdout)
 
 
-def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id, asr_node, panel=False):
+def _protocol(focal_taxon, hashes, max_genotypes, source_digest, image_id, asr_node, panel=False, fixed_background="focal"):
     protocol = {
-        "schema_version": "3.0" if panel else "2.0", "focal_taxon": focal_taxon,
+        "schema_version": "4.0" if fixed_background == "slac" else "3.0" if panel else "2.0", "focal_taxon": focal_taxon,
         "ancestral_method": "hyphy-slac", "asr_node": asr_node,
         "asr_alignment": "/inputs/asr_alignment.fa", "asr_tree": "/inputs/asr_tree.nwk",
         "scorers": list(SCORERS), "seed": 0, "mode": "exact",
         "max_genotypes": max_genotypes, "temperature": 0.5, "alpha": 1.0,
         "anchor": "root-token", "viability_floor": None, "device": "cpu", "threads": 1,
-        "event_policy": "panel_resolved_nonsynonymous" if panel else "resolved_nonsynonymous", "fixed_background": "focal",
+        "event_policy": "panel_resolved_nonsynonymous" if panel else "resolved_nonsynonymous", "fixed_background": fixed_background,
         "alignment": "/inputs/alignment.fa", "weights": "/inputs/model.safetensors",
         "config": "/inputs/config.json", "input_hashes": hashes,
         "source_snapshot_sha256": source_digest, "runtime_image_id": image_id,
     }
     if panel:
         protocol["substitution_panel"] = "/inputs/substitution_panel.json"
+    if fixed_background == "slac":
+        protocol["endpoint_policy"] = "panel_sites_match_focal"
     return protocol
 
 
-def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *, asr_tree=None, asr_node=None, asr_alignment=None, substitution_panel=None):
+def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *, asr_tree=None, asr_node=None, asr_alignment=None, substitution_panel=None, fixed_background="focal"):
     alignment = _regular_file(alignment, "Alignment")
     weights = _regular_file(weights, "Checkpoint")
     if weights.suffix != ".safetensors":
@@ -284,6 +286,8 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
         raise BenchmarkInputError("ASR alignment must contain identical sequences for every scoring taxon")
     if type(max_genotypes) is not int or max_genotypes < 1:
         raise BenchmarkInputError("max_genotypes must be a positive integer")
+    if fixed_background not in {"focal", "slac"} or (fixed_background == "slac" and substitution_panel is None):
+        raise BenchmarkInputError("SLAC fixed background requires a substitution panel; choose focal or slac")
     if substitution_panel is not None:
         substitution_panel = _regular_file(substitution_panel, "Substitution panel")
         read_substitution_panel(substitution_panel, alignment, focal_taxon)
@@ -332,7 +336,7 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
         write_json(output / "runtime_image.json", image)
         source_digest = source_manifest["source_snapshot_sha256"]
         protocol = _protocol(focal_taxon, hashes, max_genotypes, source_digest, image["Id"], asr_node,
-                             panel=substitution_panel is not None)
+                             panel=substitution_panel is not None, fixed_background=fixed_background)
         write_json(output / "protocol.json", protocol)
         write_json(inputs / "protocol.json", protocol)
         write_json(output / "execution_manifest.json", {
@@ -372,9 +376,10 @@ def run_benchmark(alignment, focal_taxon, weights, output, max_genotypes=4096, *
         write_json(output / "execution_manifest.json", execution)
         if not selection["budget_ok"]:
             run_status.update(status="preflight_failed", error=selection["budget_error"])
+            reason = "panel_endpoint_unreachable" if selection.get("full_mask_matches_panel") is False else "exact_budget_exceeded"
             for scorer in SCORERS:
                 write_json(methods / scorer / "status.json", {"schema_version": "2.0", "scorer": scorer,
-                           "status": "failed", "exit_code": None, "reason": "exact_budget_exceeded",
+                           "status": "failed", "exit_code": None, "reason": reason,
                            "analysis_executed": False})
             raise BenchmarkInputError(selection["budget_error"])
         # No truth is available here. No scorer's outcome can change settings
@@ -461,7 +466,7 @@ def cmd_benchmark_run(args):
         output = run_benchmark(args.alignment, args.focal_taxon, args.weights,
                                args.output, args.max_genotypes, asr_tree=args.asr_tree,
                                asr_node=args.asr_node, asr_alignment=args.asr_alignment,
-                               substitution_panel=args.substitution_panel)
+                               substitution_panel=args.substitution_panel, fixed_background=args.fixed_background)
     except (BenchmarkRunError, BenchmarkInputError, OSError, subprocess.TimeoutExpired) as exc:
         print(f"benchmark-run: {exc}", file=sys.stderr)
         return 2

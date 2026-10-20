@@ -45,6 +45,33 @@ def test_panel_does_not_supply_or_repair_ancestral_residues():
     assert selected["starting_codons"] == ["GCT", "GGT", "GAT", "AAG"]
 
 
+def test_slac_background_preserves_all_excluded_codons_and_stops_at_panel_endpoint():
+    rows = {"focus": ["GAT", "TGG", "AAG", "---", "GAT"], "other": ["GCT"] * 5}
+    codons = ["GCT", "TGC", "AAA", "GGT", "NNN"]
+    reconstruction = {"method": "hyphy-slac", "node": "Anc", "codons": codons,
+                      "amino_acid_states": ["A", "C", "K", "G", "X"]}
+    selected = select_reconstructed(rows, "focus", reconstruction, panel=panel([0]), fixed_background="slac")
+    assert selected["schema_version"] == "4.0"
+    assert selected["starting_codons"] == codons
+    assert selected["endpoint_codons"] == ["GAT", "TGC", "AAA", "GGT", "NNN"]
+    assert selected["full_mask_matches_panel"] and selected["full_mask_preserves_background"]
+    assert selected["budget_ok"] and not selected["full_mask_reproduces_focal"]
+    assert selected["n_units"] == 1 and selected["n_genotypes"] == 2
+    from epistaeon.cli import _benchmark_endpoints
+    ends = _benchmark_endpoints(rows, "focus", selected)
+    assert ends.ancestral_codons == codons and ends.derived_codons == {0: "GAT"}
+
+
+def test_slac_background_does_not_force_missing_panel_states_to_human():
+    rows = {"focus": ["GAT", "GAT"], "other": ["GCT", "GCT"]}
+    reconstruction = {"method": "hyphy-slac", "node": "Anc", "codons": ["GCT", "NNN"],
+                      "amino_acid_states": ["A", "X"]}
+    selected = select_reconstructed(rows, "focus", reconstruction, panel=panel([0, 1]), fixed_background="slac")
+    assert not selected["budget_ok"] and not selected["full_mask_matches_panel"]
+    assert selected["endpoint_codons"] == ["GAT", "NNN"]
+    assert "no states are repaired" in selected["budget_error"]
+
+
 @pytest.mark.parametrize("change", [
     {"expected_order": [1, 0]}, {"events": []}, {"columns0": [2, 1]},
     {"columns0": [0, 0]}, {"columns0": [True]}, {"columns0": [-1]},

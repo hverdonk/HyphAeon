@@ -101,7 +101,7 @@ def _discrimination(res) -> Dict[str, object]:
 
 
 def _benchmark_endpoints(rows, focal_taxon, selection):
-    """Convert truth-free preflight into endpoints with a focal fixed background."""
+    """Convert frozen preflight into endpoints with its declared background."""
     from .background import Endpoints, residue_of
     from .lattice import Substitution
 
@@ -126,8 +126,15 @@ def _benchmark_endpoints(rows, focal_taxon, selection):
     full = list(ends.ancestral_codons)
     for col, codon in ends.derived_codons.items():
         full[col] = codon
-    if full != rows[focal_taxon]:
-        raise SystemExit("benchmark full mask fails to reconstruct the focal sequence")
+    expected = selection.get("endpoint_codons", rows[focal_taxon])
+    if full != expected:
+        raise SystemExit("benchmark full mask fails to reconstruct the declared endpoint")
+    if selection["fixed_background"] == "slac":
+        panel = set(selection["panel_columns0"])
+        if (ends.ancestral_codons != selection["ancestral_codons"]
+                or any(full[col] != rows[focal_taxon][col] for col in panel)
+                or any(full[col] != selection["ancestral_codons"][col] for col in range(len(full)) if col not in panel)):
+            raise SystemExit("benchmark endpoint must match focal panel codons and preserve the SLAC background")
     return ends
 
 
@@ -265,10 +272,11 @@ def cmd_order(args: argparse.Namespace) -> int:
         provenance["ancestral_reconstruction"]["hyphy_version"] = reconstruction["provenance"]["hyphy_version"]
     if benchmark_selection is not None:
         provenance["input_profile"] = {
-            "name": ("blinded-benchmark-panel-v3" if benchmark_selection.get("schema_version") == "3.0" else
+            "name": ("blinded-benchmark-slac-background-v4" if benchmark_selection.get("schema_version") == "4.0" else
+                     "blinded-benchmark-panel-v3" if benchmark_selection.get("schema_version") == "3.0" else
                      "blinded-benchmark-slac-v2" if reconstruction else "blinded-benchmark-v1"),
             "event_policy": benchmark_selection["event_policy"],
-            "fixed_background": "focal", "all_alignment_taxa_retained": True,
+            "fixed_background": benchmark_selection["fixed_background"], "all_alignment_taxa_retained": True,
             "selection_file": "selection.json",
             "classification_counts": benchmark_selection["classification_counts"],
             "full_mask_reproduces_focal": benchmark_selection["full_mask_reproduces_focal"],
@@ -277,6 +285,11 @@ def cmd_order(args: argparse.Namespace) -> int:
             ("SLAC ancestral codon" if reconstruction else "nonfocal plurality residue/codon") +
             " at selected resolved nonsynonymous columns; every excluded column is frozen at its focal codon"
         )
+        if benchmark_selection["fixed_background"] == "slac":
+            provenance["ancestral_states"] = "Complete SLAC joint-ML sequence; only selected panel codons change toward the focal sequence"
+            provenance["input_profile"]["endpoint_policy"] = benchmark_selection["endpoint_policy"]
+            provenance["input_profile"]["full_mask_matches_panel"] = benchmark_selection["full_mask_matches_panel"]
+            provenance["input_profile"]["full_mask_preserves_background"] = benchmark_selection["full_mask_preserves_background"]
         provenance["substitution_unit"] = "resolved nonsynonymous codon change"
         provenance["diagnostic_baseline"] = args.scorer == "dphi-product"
         if "panel_columns0" in benchmark_selection:
@@ -317,8 +330,8 @@ def cmd_order(args: argparse.Namespace) -> int:
         provenance["genotype_placement"] = (
             "each intermediate is appended to the alignment as its own row, placed "
             "by TN93 distance to every taxon, with MDS coordinates projected into "
-            "the existing frame; the endpoints are read from their own rows rather "
-            "than appended as copies of themselves"
+            "the existing frame; an endpoint is read from an existing row only "
+            "when its whole sequence matches that row, otherwise it is appended"
         )
     else:
         genotypes = GenotypeRows(ctx, ends, lattice, budget=args.max_genotypes)
@@ -368,9 +381,9 @@ def cmd_order(args: argparse.Namespace) -> int:
         provenance["first_step_relative_delta"] = {
             "median": float(np.median(endpoint_steps)),
             "_meaning": "the same measure for the first step out of the ancestral "
-                        "endpoint, which is read from its own row while the "
-                        "intermediate is appended. The gap against "
-                        "per_unit_relative_delta is the frame shift, not biology.",
+                        "endpoint. Existing rows are reused only on whole-sequence "
+                        "identity; any change between reused and appended placement "
+                        "also contributes a frame effect.",
         }
     else:
         # how large is a single-substitution signal, against float precision?
@@ -583,6 +596,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--asr-alignment", help="optional aligned outgroups; scoring taxa remain unchanged")
     run.add_argument("--substitution-panel", required=True,
                      help="alignment-bound manuscript codon-column panel JSON; contains no empirical substitution order")
+    run.add_argument("--fixed-background", choices=["slac", "focal"], default="slac",
+                     help="excluded codons: slac (default, full ancestral start) or focal (legacy human background)")
     run.add_argument("--weights", required=True, help="local .safetensors checkpoint; config.json must be beside it")
     run.add_argument("--max-genotypes", type=int, default=4096,
                      help="exact genotype ceiling; never subsamples sites or switches to sampling")

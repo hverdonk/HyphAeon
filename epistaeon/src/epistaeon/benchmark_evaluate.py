@@ -172,8 +172,8 @@ def _predictions(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[st
     keys: set[tuple[int, str, str]] = set()
     columns = set()
     substitutions = _objects(payload.get("substitutions"), "Predicted substitutions")
-    if len(substitutions) < 2:
-        raise ValueError("Benchmark predictions require at least two substitution units")
+    if not substitutions:
+        raise ValueError("Benchmark predictions require at least one substitution unit")
     for unit in substitutions:
         members = _objects(unit.get("members"), "Predicted unit members")
         if len(members) != 1:
@@ -394,12 +394,15 @@ def evaluate_run(run_dir: Path, reference_path: Path, output_dir: Path) -> dict[
     reference = _read_json(reference_path)
     protocol = _read_json(run_dir / "protocol.json")
     scorers = protocol.get("scorers")
-    if protocol.get("schema_version") not in {"1.0", "2.0", "3.0"} or scorers != list(SCORERS):
-        raise ValueError("Protocol must use schema 1.0, 2.0 or 3.0 and the four frozen scorers in order")
-    if protocol["schema_version"] in {"2.0", "3.0"} and protocol.get("ancestral_method") != "hyphy-slac":
+    if protocol.get("schema_version") not in {"1.0", "2.0", "3.0", "4.0"} or scorers != list(SCORERS):
+        raise ValueError("Protocol must use schema 1.0, 2.0, 3.0 or 4.0 and the four frozen scorers in order")
+    if protocol["schema_version"] in {"2.0", "3.0", "4.0"} and protocol.get("ancestral_method") != "hyphy-slac":
         raise ValueError("SLAC protocols require hyphy-slac ancestry")
-    if protocol["schema_version"] == "3.0" and protocol.get("event_policy") != "panel_resolved_nonsynonymous":
-        raise ValueError("Protocol 3.0 requires a manuscript substitution panel")
+    if protocol["schema_version"] in {"3.0", "4.0"} and protocol.get("event_policy") != "panel_resolved_nonsynonymous":
+        raise ValueError("Panel protocols require a manuscript substitution panel")
+    if protocol["schema_version"] == "4.0" and (protocol.get("fixed_background") != "slac"
+                                               or protocol.get("endpoint_policy") != "panel_sites_match_focal"):
+        raise ValueError("Protocol 4.0 requires the SLAC background and panel-only focal endpoint")
     alignment = reference.get("alignment", {})
     if not isinstance(alignment, dict):
         raise ValueError("Reference alignment metadata must be an object")
@@ -453,13 +456,16 @@ def evaluate_run(run_dir: Path, reference_path: Path, output_dir: Path) -> dict[
             "These assessments do not establish checkpoint training-data provenance.",
         ],
     }
-    if protocol["schema_version"] == "3.0":
+    if protocol["schema_version"] in {"3.0", "4.0"}:
         report["analysis_protocol"].update(event_policy=protocol["event_policy"],
                                             substitution_panel_sha256=protocol["input_hashes"]["substitution_panel"])
-        report["limitations"].append(
-            "Manuscript sites were supplied in advance; this tests ordering within that panel, not site discovery. "
-            "Excluded columns are fixed at focal codons, so the starting background is not the full SLAC ancestor or the assayed ancestral construct."
-        )
+        background = ("Excluded columns are fixed at SLAC codons; the start is the full SLAC ancestor and the endpoint matches focal codons only at panel sites. "
+                      "The SLAC reconstruction is not the original assayed ancestral construct."
+                      if protocol["schema_version"] == "4.0" else
+                      "Excluded columns are fixed at focal codons, so the starting background is not the full SLAC ancestor or the assayed ancestral construct.")
+        report["limitations"].append("Manuscript sites were supplied in advance; this tests ordering within that panel, not site discovery. " + background)
+        if protocol["schema_version"] == "4.0":
+            report["analysis_protocol"].update(fixed_background="slac", endpoint_policy=protocol["endpoint_policy"])
     output_dir.mkdir(parents=True, exist_ok=True)
     write_json(output_dir / "evaluation.json", report)
     for method in methods:

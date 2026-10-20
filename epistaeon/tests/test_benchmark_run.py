@@ -64,8 +64,8 @@ def mock_runtime(monkeypatch, failed=None):
             protocol = json.loads((Path(source).parent / "inputs/protocol.json").read_text())
             panel = (read_substitution_panel(Path(source).parent / "inputs/substitution_panel.json",
                                             Path(source).parent / "inputs/alignment.fa", "focus")
-                     if protocol["schema_version"] == "3.0" else None)
-            write_json(method / "selection.json", select_reconstructed(rows, "focus", r, protocol["max_genotypes"], panel=panel))
+                     if protocol["schema_version"] in {"3.0", "4.0"} else None)
+            write_json(method / "selection.json", select_reconstructed(rows, "focus", r, protocol["max_genotypes"], panel=panel, fixed_background=protocol["fixed_background"]))
             return subprocess.CompletedProcess(command, 0)
         commands.append(command)
         scorer = command[command.index("--scorer") + 1]
@@ -124,23 +124,24 @@ def test_failed_method_does_not_skip_other_methods(tmp_path, monkeypatch):
     verify_seal(output)
 
 
-def test_panel_is_staged_hashed_and_frozen_before_all_scorers(tmp_path, monkeypatch):
+@pytest.mark.parametrize("background", ["focal", "slac"])
+def test_panel_is_staged_hashed_and_frozen_before_all_scorers(tmp_path, monkeypatch, background):
     alignment, weights = inputs(tmp_path)
     panel_path = tmp_path / "panel.json"
     write_json(panel_path, {"schema_version": "1.0", "alignment_sha256": sha256_file(alignment),
                             "focal_taxon": "focus", "columns0": [0]})
     commands = mock_runtime(monkeypatch)
-    output = run_benchmark(alignment, "focus", weights, tmp_path / "run", substitution_panel=panel_path)
+    output = run_benchmark(alignment, "focus", weights, tmp_path / "run", substitution_panel=panel_path, fixed_background=background)
     verify_seal(output)
     protocol = json.loads((output / "protocol.json").read_text())
     validate_protocol(protocol)
-    assert protocol["schema_version"] == "3.0"
+    assert protocol["schema_version"] == ("4.0" if background == "slac" else "3.0")
     assert protocol["input_hashes"]["substitution_panel"] == sha256_file(panel_path)
     assert len(commands) == 4
     selection = json.loads((output / "selection.json").read_text())
     assert selection["selected_columns0"] == [0]
     assert selection["unrestricted_nonsynonymous_units"] == 2
-    assert selection["starting_codons"] == ["GCT", "AGT", "GCC"]
+    assert selection["starting_codons"] == (["GCT", "GGT", "GCT"] if background == "slac" else ["GCT", "AGT", "GCC"])
 
 
 def test_budget_failure_retains_complete_selection_and_runs_no_scorers(tmp_path, monkeypatch):
